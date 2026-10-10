@@ -1,0 +1,205 @@
+/* style.css — petaf000.github.io の見た目。外部の素材は読まない(フォントもこのサイトの中の Poppins だけ。OFL)。 */
+
+@font-face {
+  font-family: "Poppins";
+  src: url("/assets/fonts/Poppins-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --bg: #f6f4ef;
+  --surface: #ffffff;
+  --ink: #1b2233;
+  --muted: #5a6274;
+  --line: #e2ded4;
+  --link: #2a4a86;
+  --accent: #b9801c;
+  --badge-bg: #f3e6cc;
+  --badge-ink: #6e4a0c;
+  --note-bg: #ebeef4;
+  --sans: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+  --display: "Poppins", var(--sans);
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f141f;
+    --surface: #161d2c;
+    --ink: #e9e7e1;
+    --muted: #a2a9b8;
+    --line: #263043;
+    --link: #a3c0f2;
+    --accent: #e0a83a;
+    --badge-bg: #3a2e17;
+    --badge-ink: #f0c877;
+    --note-bg: #1b2436;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.wrap {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+a { color: var(--link); text-underline-offset: 3px; }
+a:hover { color: var(--accent); }
+
+/* --- ヘッダー --- */
+
+.site-header { border-bottom: 1px solid var(--line); }
+
+.header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 24px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  text-decoration: none;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+.logo img { display: block; border-radius: 8px; }
+.logo span { padding-top: 3px; }
+.logo:hover { color: var(--ink); }
+.logo { margin-right: auto; }
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 18px;
+  font-size: 15px;
+}
+.nav a { color: var(--muted); text-decoration: none; padding: 4px 0; }
+.nav a:hover { color: var(--ink); }
+.nav a[aria-current="page"] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent); }
+.lang {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 12px;
+}
+.lang:hover { color: var(--ink); }
+
+/* --- 本文 --- */
+
+main.wrap { padding-top: 56px; padding-bottom: 56px; min-height: 60vh; }
+
+h1, h2, h3 { line-height: 1.3; color: var(--ink); }
+h1 { font-family: var(--display); font-size: 32px; margin: 0 0 20px; letter-spacing: -0.01em; }
+h2 { font-size: 21px; margin: 40px 0 12px; }
+h3 { font-size: 19px; margin: 0; }
+:lang(en) h1, :lang(en) h2, :lang(en) h3 { font-family: var(--display); }
+
+.hero { padding: 16px 0 8px; }
+.hero h1 { font-size: 40px; max-width: 18em; }
+.lead { font-size: 19px; color: var(--muted); max-width: 34em; margin: 0; }
+
+.muted { color: var(--muted); }
+
+ul { padding-left: 1.3em; }
+li { margin: 4px 0; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin: 12px 0 16px;
+}
+.card p { margin: 6px 0 0; }
+.card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.card-links { font-size: 15px; }
+
+.badge {
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--badge-bg);
+  color: var(--badge-ink);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+.mail-line { font-size: 20px; }
+.mail { font-weight: 600; overflow-wrap: anywhere; }
+
+.note {
+  background: var(--note-bg);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 15px;
+  margin: 0 0 28px;
+}
+
+/* --- プライバシーポリシー --- */
+
+.policy { font-size: 16px; }
+.policy h1 { font-size: 30px; }
+.policy h2 { font-size: 20px; margin-top: 36px; }
+.policy ul { margin: 8px 0; }
+
+.table-wrap { overflow-x: auto; margin: 12px 0; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; line-height: 1.6; }
+th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+th { background: var(--note-bg); }
+td:first-child { min-width: 8em; }
+@media (max-width: 600px) { td, th { min-width: 9em; } }
+
+code { font-size: 0.92em; background: var(--note-bg); padding: 1px 5px; border-radius: 4px; }
+
+/* --- フッター --- */
+
+.site-footer { border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+.site-footer .wrap { padding-top: 20px; padding-bottom: 28px; }
+.site-footer p { margin: 4px 0; }
+.site-footer a { color: var(--muted); }
+
+/* --- スマホ幅 --- */
+
+@media (max-width: 600px) {
+  body { font-size: 16px; }
+  .header-row { padding-top: 14px; padding-bottom: 12px; }
+  .logo { order: 1; }
+  .lang { order: 2; }
+  .nav { order: 3; width: 100%; gap: 2px 16px; font-size: 14px; }
+  main.wrap { padding-top: 28px; }
+  h1 { font-size: 27px; }
+  .hero h1 { font-size: 30px; }
+  .lead { font-size: 17px; }
+  .policy h1 { font-size: 25px; }
+  .mail-line { font-size: 18px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  .logo img { box-shadow: 0 0 0 1px #2c3850; }
+}
