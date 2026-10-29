@@ -455,12 +455,13 @@ host.SetHaptics(playerSlot: 0, strength: 0f);     // stop</code></pre>
 </ul>
 <p><strong>タッチが透明なピクセルを無視しない / 「texture is not readable」の警告が出る。</strong><code>PadPlayRaycaster</code> はスプライトのピクセルを読む必要があります。テクスチャのインポート設定で <strong>Read/Write</strong> を有効にしてください(<em>Advanced → Read/Write</em>)。Sprite Atlas に入っているスプライトは、アトラスのほうで有効にします。読めないテクスチャでは、四角形での当たり判定になります。</p>
 <p><strong>タッチが違う UI に当たる。</strong>カメラを割り当てたプレイヤーは、そのカメラの絵にしか当たりません。<em>Touch → More → Player Targets</em> と<code>PadPlayView.UseAsTouchTarget</code> を確かめてください。<code>RaycastOnlyPlayerScreen = false</code> にすると「手前にある物に当たる」に戻ります。</p>
-<p><strong>映像が黒い・遅い・ぼやける。</strong></p>
+<p><strong>映像が黒い・遅い・ぼやける・乱れる。</strong></p>
 <ul>
   <li>Direct3D 11 / 12(一番速い)か Vulkan(1 フレーム遅れる)を使ってください。OpenGL・macOS・Linux は JPEG だけです。</li>
   <li>まずハードウェアエンコーダーを試し、だめなら Windows のソフトウェアエンコーダー(遅い)を使います。確かめたハードウェアエンコーダーは、今のところ NVIDIA のものだけです。</li>
   <li>Inspector と <code>host.VideoStatus</code> で、使っている経路とエンコーダー、または H.264 を使えない理由(その時は JPEG を送ります)が分かります。<code>host.GetVideoChoice(slot, out choice)</code> で、スマホがどちらを受けていて、その理由(例えばスマホが JPEG を求めた)が分かります。</li>
   <li>Wi-Fi が弱い時は <em>Adaptive Video</em> をオンのままにし(ビットレートを、次にフレームレートか大きさを下げます)、好みの <em>Priority</em> を選ぶか、View の <em>Max Bitrate Kbps</em> を下げてください。複数のプレイヤーに送る View は 1 回だけエンコードし、一番弱い接続に合わせた画質になります。</li>
+  <li>ブロック状のノイズ・にじみ・短い止まりが時々出るのは、たいてい Wi-Fi でパケットが落ちているためです。スマホをルーターの<strong>5 GHz</strong> の Wi-Fi につないでください(2.4 GHz は混みやすく、Bluetooth や電子レンジとも電波を分け合います)。ルーターの近くで使い、PC はできれば有線にしてください。Debugger の Video の列で、落ちの割合と、スマホが映像の戻しを頼んだ回数が分かります。</li>
   <li>Display のプレビューでも黒い: ソースのカメラか RenderTexture の問題です。PadPlay Lite には映像はありません。</li>
 </ul>
 <p><strong>プレイヤーがアプリを起動し直したら「正面」がずれた。</strong>これは想定どおりです(スマホのヨーの基準が変わり、遊んでいる間もヨーは少しずつずれます)。正面合わせ(手順 8)をしてください:Role が <em>Recenter</em> のレイアウトのボタン、<code>host.Recenter(slot)</code>、またはプレイヤーがスマホの画面の左上の隅を長押しします。</p>
@@ -471,7 +472,7 @@ host.SetHaptics(playerSlot: 0, strength: 0f);     // stop</code></pre>
 <ul>
   <li><strong>Sample Hub</strong>(まずはここから) — <code>Scenes/Hub</code>。全部のサンプルを選べるメニュー。QR コードを 1 回読み、スマホをカードに向けて A を押します。スマホの <em>Menu</em> か PC の <em>Esc</em> で、つながったまま戻れます(Keep Across Scenes、Remote Pointers)。ミニゲーム <strong>Target Pop</strong>(<code>Scenes/HubTargetPop</code>)つき。PadPlay Lite にもあります。</li>
   <li><strong>Minimal</strong>(まねして書くための 1 本) — <code>Scenes/Minimal</code>。一番短い PadPlay のゲーム: 約 35 行のスクリプト 1 つ(<code>Scripts/Minimal/MinimalPad.cs</code>)。QR コードで参加し、スマホの A で振動、スマホを傾けると模型が回り、スティック(<code>pad.leftStick</code>)を倒すかスマホでドラッグすると点が動きます(ドラッグはふつうの uGUI の <code>IDragHandler</code>)。ほかは全部シーンの部品です。配置のファイル(<code>Layouts/MinimalButtons</code>)は、コードなしの<a href="#button-looks">ボタンの見た目</a>の例でもあります: A は 2 枚の画像で、スティックは専用の色で描かれます。PadPlay Lite にもあります。</li>
-  <li><strong>Treasure Map</strong>(ミニゲーム) — <code>Scenes/TreasureMap</code>。2 つの画面で 1 つの宝探し: 画面の上をキーボードで歩き、スマホはその人の X だけが描かれた紙の宝の地図になります。プレイヤーごとの第二画面、振動、モジュールの選び方。PadPlay で何ができるかが一番よく分かります。</li>
+  <li><strong>Treasure Map</strong>(ミニゲーム) — <code>Scenes/TreasureMap</code>。2 つの画面で 1 つの宝探し: スマホのスティックかキーボードで画面の上を歩き、スマホはその人の X だけが描かれた紙の宝の地図になります。プレイヤーごとの第二画面、ゲームの画像で描くスティック、振動、モジュールの選び方。PadPlay で何ができるかが一番よく分かります。</li>
   <li><strong>Floating Island</strong>(ミニゲーム) — <code>Scenes/FloatingIsland</code>。画面で狙い、スマホでのぞき、PC のキーで撃つ: スマホはそれぞれ望遠レンズ(<code>PadPlayPoseCamera</code>。水晶のボタンでさらにズーム)になり、画面にはスマホが向いている所に光る輪が出ます。スマホにしか見えない光を 5 つ見つけます。<code>PadPlayPoseCamera</code>、<code>PadPlayPhoneOverlay</code>(照準)、<code>host.Pulse</code>、ゲームの画像で描くボタン、PC のキーとスマホの組み合わせ。2 人まで。8 番に PhoneOnly という名前のレイヤーが要ります(下を参照)。</li>
   <li><strong>Gyro Window</strong> — <code>Scenes/GyroWindow</code>。2 人がスマホを窓にして 3D の部屋をのぞきます。スマホに出る絵は 1 人ずつ違います(<code>PadPlayGyroCamera</code> + <code>PadPlayView</code>)。スマホを画面に向けて Recenter を押してから始めます。</li>
   <li><strong>Room Dive</strong> — <code>Scenes/RoomDive</code>。<strong>2 人専用</strong>(PC 1 台 + スマホ 1 台): 4 つの部屋での、役割の違う協力プレイ。スマホの人はスマホの矢印のボタンで部屋を選び、どの部屋にいるかを言います。その部屋の星をクリックすると、スマホの人に数秒だけ見えるようになります。スマホの人はスマホで見回し、その星を出口へドラッグします。3D のオブジェクトへのタッチを標準のイベントで受ける、スマホには描かないカメラのレイヤー、<code>PadPlayPhoneOverlay</code>、振動。</li>
@@ -486,7 +487,7 @@ host.SetHaptics(playerSlot: 0, strength: 0f);     // stop</code></pre>
 <p><strong>遊び方</strong></p>
 <ul>
   <li>1 台か 2 台のスマホで QR コードを読みます。最初のスマホが参加するとラウンドが始まり、150 秒続きます。</li>
-  <li>画面の上をキーボードで歩きます: <strong>P1(最初のスマホ)は WASD、P2 は矢印キー</strong>(または PC につないだゲームパッドの左スティック)。スマホにはボタンが無く、タッチも使いません。持っているだけです。</li>
+  <li>画面の上を歩きます: <strong>スマホの地図の左右にある方位磁針のスティックのどちらかをドラッグ</strong> するか、キーボードで<strong>P1(最初のスマホ)は WASD、P2 は矢印キー</strong>(または PC につないだゲームパッドの左スティック)。スティックとキーは足し合わされます。地図そのものはタッチを受けません。</li>
   <li>地図には島の目印(浜・池・木・岩・桟橋)、方位、<strong>自分の宝(X)</strong> が描かれていますが、<strong>自分がどこにいるかは描かれていません</strong>。目印を画面の島と見比べて、どこへ行けばよいかを考えます。自分の X は、画面にもほかの人のスマホにも出ません。</li>
   <li>木・岩・池・海・もう 1 人のプレイヤーは通れません。</li>
   <li>宝に近づくと地図が弱く震え、見つけると強く震えます(上を歩くだけで見つかります)。その場所は見つけた印が付き、別の場所に新しい X が描かれます。一番多く宝を見つけた人がそのラウンドの勝ちです。</li>
@@ -497,7 +498,8 @@ host.SetHaptics(playerSlot: 0, strength: 0f);     // stop</code></pre>
   <li><strong>プレイヤーごとの第二画面</strong> — プレイヤーごとのスマホの UI(UI のレイヤーだけを見るカメラを <code>PadPlayView</code> で送る)が、その人の X が入った紙の地図を出します。画面のカメラは UI のレイヤーを描きません</li>
   <li><strong>シーンから描く地図</strong> — 島のオブジェクトそれぞれに <code>TreasureMapLandmark</code>。<code>TreasureMapPaper</code> が、紙・インク・焦げた縁を実行時にテクスチャに描きます(画像のファイルは使いません)</li>
   <li><strong>Input System を使わない振動</strong> — <code>host.SetHaptics(slot, strength)</code></li>
-  <li><strong>モジュールの選び方</strong> — Buttons と Video にチェック、ボタンのレイアウトはなし(振動は Buttons のモジュールの機能のため)。Touch と Attitude はチェックなし</li>
+  <li><strong>ゲームの画像で描くスティック</strong> — <code>Layouts/TreasureMapButtons</code>: 左右のスティック(<code>pad.leftStick</code>・<code>pad.rightStick</code>)を、方位磁針と真鍮のつまみの画像(スタイルの <em>Image</em> と <em>Knob Image</em>)で地図の左右の空きに置きます</li>
+  <li><strong>モジュールの選び方</strong> — Buttons(スティックと振動)と Video にチェック。Touch と Attitude はチェックなし</li>
 </ul>
 <p>手触りの値(歩く速さ、どこまで近づけば「見つけた」になるか、振動の強さ、ラウンドの長さ、地図に自分の位置を出すか: <em>Show Self On Map</em>)は全部 <em>TreasureMapGame → Settings</em> にあり、再生中に変えられます。</p>
 <h3 id="floating-island-aim-on-the-screen-look-through-the-phone">Floating Island(画面で狙い、スマホでのぞく)</h3>

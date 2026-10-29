@@ -82,7 +82,7 @@
 <h2 id="tuning">調整</h2>
 <p><em>Settings → Pointer</em> は共通の <code>PadPlayGyroPointerSettings</code> です: <em>Horizontal / Vertical Range Degrees</em>(端から端までどれだけ振るか)、<em>Smoothing</em>、<em>Recenter Blend Ms</em>。<em>Cursor Size</em>、<em>Dimmed Alpha</em>、<em>Hint Seconds</em> で見た目を変えます。どれも再生中に変えられます。既定の値は出発点です。</p>
 <h2 id="how-to-hold-the-phone">スマホの持ち方</h2>
-<p>スマホはリモコンのように、平らにして上の端を画面に向けて持ちます。画面の真ん中を指して <strong>Recenter</strong> を押してください。<code>Axis = Auto</code>(既定)なら、スマホを平らに持った時は上の端で、窓のように縦に立てた時は背面で狙います。手首をひねってもカーソルは動きません。既定では、左右に約 ±20°、上下に約 ±15° 振ると画面の端に届きます(<code>HorizontalRangeDegrees</code> 40、<code>VerticalRangeDegrees</code> 30)。スマホにはセンサーバーが無いので、数分かけて向きが少しずつずれます。カーソルがずれたら、もう一度 Recenter を押してください。仮想スマホでは、Pitch 90 が平らに持った(リモコンの)持ち方です。</p>
+<p>スマホはリモコンのように、上の端(カメラのある短い辺)を画面に向けて持ちます。画面の真ん中を指して <strong>Recenter</strong> を押してください。<code>Axis = DeviceTop</code>(既定)なら、平らに持っても少し傾けても、スマホの画面がどちらを向いていても、いつもその端で狙います(横向きの配置では、その端は表示の左か右の辺です。どちらかは表示の回転から PadPlay が決めます)。手首をひねっても(その端の軸のまわりに回しても)カーソルは動きません。窓のように縦に立てると天井を指します。窓の形は見回しの部品(<code>PadPlayGyroCamera</code>)に残しています。<code>Axis</code> のほかの値: <code>TopEdge</code> = 表示の上の辺、<code>Back</code> = 背面、<code>Auto</code> = 前の既定(合わせ直した時に表示の上の辺と背面のあいだで決める)。既定では、左右に約 ±20°、上下に約 ±15° 振ると画面の端に届きます(<code>HorizontalRangeDegrees</code> 40、<code>VerticalRangeDegrees</code> 30)。スマホにはセンサーバーが無いので、数分かけて向きが少しずつずれます。カーソルがずれたら、もう一度 Recenter を押してください。仮想スマホでは、Pitch 90 が平らに持った(リモコンの)持ち方です。最初の縦に立てた姿勢は真上を指すので、平らに倒して(上下に余裕を持たせるなら 90 より少し手前)Recenter を押してください。Recenter は Host の <code>Yaw</code> のモード(既定)で。<code>KeepGravity</code> の <code>Full</code> で合わせ直すと、スマホの軸が決め直されます。</p>
   </article>
 </main>
 <footer class="site-footer">
