@@ -77,6 +77,7 @@
   <li><code>GetPad(slot)</code>、<code>PadDevices</code> — そのプレイヤーの <code>PadPlayPad</code>(無ければ null)。全部のパッド。</li>
   <li><code>GetScreenRotation(slot)</code>、<code>ScreenRotationChanged</code> — スマホの画面の回転(度)。</li>
   <li><code>GetCapabilities(slot)</code>、<code>GetClockSync(slot)</code> — スマホのアプリが対応していること。時計のずれと往復の時間。</li>
+  <li><code>GetConnectionQuality(slot)</code>、<code>ConnectionQualityChanged</code>(<code>PadPlayConnectionQuality</code>) — プレイヤーの回線の状態: <code>Level</code>(Good・Poor・Bad)と <code>Issue</code>(Loss = 落ち、Delay = 遅れ)。SDK は自分で映像を下げるだけで何も表示しません。「スマホを 5 GHz に」のような案内を自分のゲームで出す時に使います(<a href="/padplay/docs/ja/quickstart/#11-troubleshooting">クイックスタート §11</a>)。</li>
   <li><code>Diagnostics</code> — 道具のための接続と入力のデータ(<a href="/padplay/docs/ja/debugging/#4-reading-the-same-data-from-code">デバッグ §4</a>)。</li>
 </ul>
 <h3 id="input">入力</h3>

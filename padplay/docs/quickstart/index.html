@@ -59,7 +59,7 @@
   <li><strong>PC (the host)</strong> — Windows 10 / 11, in the Editor or a Windows x64 standalone build. macOS and Linux hosts are not tested yet (and send video as JPEG only, see below).</li>
   <li><strong>GPU</strong> (second-screen video only) — H.264 is encoded by Windows Media Foundation (the GPU's hardware encoder when one works, otherwise Windows' software encoder) from Direct3D 11 / 12 without leaving the GPU; Vulkan reads the frame back first (slower). Where H.264 cannot be used (OpenGL, macOS / Linux, Windows without an H.264 encoder) the video is sent as JPEG. Touch, gamepad and gyro do not need a GPU encoder.</li>
   <li><strong>Render pipeline</strong> — <strong>Built-in</strong> and <strong>URP</strong> (Universal Render Pipeline). The second-screen video works the same in both, with no setup. HDRP has not been tested yet. The samples' 3D materials are made for the Built-in pipeline; in a URP project the samples switch them to the pipeline's <em>Lit</em> shader at runtime, with nothing to convert. For player builds, run <em>Window → PadPlay → Prepare Samples for URP or HDRP</em> once (<em>Import All Samples</em> does it for you; see <a href="#12-samples">Samples</a>).</li>
-  <li><strong>Phone / tablet</strong> — Android 7.0 or newer, running the separate <strong>PadPlay</strong> app (see step 5). The iPhone version of the app is in preparation. A gyroscope is needed only for the gyro features (attitude, Gyro Camera, Pose Camera, Remote Pointers).</li>
+  <li><strong>Phone / tablet</strong> — Android 7.0 or newer, or an iPhone with iOS 15 or newer, running the separate <strong>PadPlay</strong> app (see step 5). A gyroscope is needed only for the gyro features (attitude, Gyro Camera, Pose Camera, Remote Pointers).</li>
   <li><strong>Network</strong> — PC and phone on the <strong>same Wi-Fi / LAN</strong>. Everything uses one <strong>UDP</strong> port (7780 by default). Internet play is out of scope.</li>
 </ul>
 <h3 id="what-you-need-besides-unity">What you need besides Unity</h3>
@@ -232,7 +232,7 @@ public class Lobby : MonoBehaviour
   <li>In the app, scan the QR code and tap connect. (Without a camera, copy the join URL from the Debugger, <em>Copy</em> next to <em>Join URI</em>, and paste it into the app.) <em>(The app follows the phone's language: the connect button reads "Connect" in English and 「つなぐ」 in Japanese.)</em></li>
 </ol>
 <h3 id="getting-the-app">Getting the app</h3>
-<p>Every player installs the free <strong>PadPlay</strong> app from <a href="https://play.google.com/store/apps/details?id=com.petaf.padplay">Google Play</a> (Android 7.0 or newer). The iPhone version is in preparation. One app works with every PadPlay game, in PadPlay SDK and PadPlay Lite alike.</p>
+<p>Every player installs the free <strong>PadPlay</strong> app from <a href="https://play.google.com/store/apps/details?id=com.petaf.padplay">Google Play</a> (Android 7.0 or newer); iPhone players install it from the App Store (iOS 15 or newer). One app works with every PadPlay game, in PadPlay SDK and PadPlay Lite alike.</p>
 <p><strong>Your own app (PadPlay SDK only).</strong> PadPlay SDK also includes the app's source code: <code>Packages/dev.petaf.padplay/PhoneApp~/PadPlayPhoneApp-…-source.zip</code> (the folder does not show in the Unity Project window; open it in Explorer). Unzip it outside your Unity project and build it with Flutter (<code>client/README.md</code> in the zip has the steps), or publish it under your own name, app ID, icon and color (<code>WHITE_LABEL.md</code>). PadPlay Lite does not include the source.</p>
 <p>No phone at hand? <em>Window → PadPlay → Virtual Phones</em> connects simulated phones in the Editor.</p>
 <h3 id="connected">Connected</h3>
@@ -460,9 +460,29 @@ host.SetHaptics(playerSlot: 0, strength: 0f);     // stop</code></pre>
   <li>The hardware encoder is tried first, then Windows' software encoder (slower). Only NVIDIA's hardware encoder has been tested so far.</li>
   <li>The Inspector and <code>host.VideoStatus</code> say which path and encoder are used, or why H.264 cannot be used (then JPEG is sent); <code>host.GetVideoChoice(slot, out choice)</code> tells which one a phone gets and why (for example, the phone asked for JPEG).</li>
   <li>On a weak Wi-Fi keep <em>Adaptive Video</em> on (it lowers the bitrate, then the frame rate or size), pick the <em>Priority</em> you prefer, or lower the view's <em>Max Bitrate Kbps</em>. A view sent to several players is encoded once, at the quality of the weakest connection.</li>
-  <li>Blocks, smears or short freezes that come and go are usually packets lost on the Wi-Fi. Put the phone on the router's <strong>5 GHz</strong> network (2.4 GHz is crowded and shares the air with Bluetooth and microwave ovens), keep it near the router, and connect the PC by cable if you can. The Debugger's Video column shows the loss and how often the phone asked to recover the picture.</li>
+  <li>Blocks, smears or short freezes that come and go are usually packets lost on the Wi-Fi. Put the phone on the router's <strong>5 GHz</strong> network (2.4 GHz is crowded and shares the air with Bluetooth and microwave ovens), keep it near the router, and connect the PC by cable if you can. The Debugger's Video column shows the loss and how often the phone asked to recover the picture. When such losses come close together, the SDK lowers the bitrate early (then 60 → 30 fps) and raises it again once the Wi-Fi calms down.</li>
   <li>Black even in the Display preview: the source camera or RenderTexture. In PadPlay Lite there is no video.</li>
 </ul>
+<p><strong>Telling players that their Wi-Fi is weak (optional).</strong> The SDK lowers the video on a weak Wi-Fi by itself and shows nothing on the PC or the phone. If you want a hint such as "put your phone on 5 GHz", read each player's link: <code>host.GetConnectionQuality(slot)</code> or the <code>ConnectionQualityChanged</code> event (<code>Level</code>: Good, Poor or Bad; <code>Issue</code>: Loss or Delay). It turns worse at once and better only after a few calm seconds, so a hint does not flicker. F3 (<code>PadPlayDebugOverlay</code>) and the Debugger's <em>Link</em> column show the same value.</p>
+<pre><code class="language-csharp">using PadPlay;
+using UnityEngine;
+
+// Shows a hint while a player's Wi-Fi loses packets (the SDK itself shows nothing).
+public class WifiHint : MonoBehaviour
+{
+    [SerializeField] PadPlayHost _host;
+    [SerializeField] GameObject _hint;   // for example a text "Weak Wi-Fi: put your phone on the 5 GHz network"
+
+    void OnEnable() =&gt; _host.ConnectionQualityChanged += OnQuality;
+    void OnDisable() =&gt; _host.ConnectionQualityChanged -= OnQuality;
+
+    void OnQuality(PadPlayConnectionQuality q)
+    {
+        // Loss is what 2.4 GHz Wi-Fi usually shows; Delay is a slow or busy network. q.PlayerSlot says whose phone it is.
+        _hint.SetActive(q.Level != PadPlayConnectionLevel.Good &amp;&amp; q.Issue == PadPlayConnectionIssue.Loss);
+    }
+}</code></pre>
+<p>To show it on that player's phone instead, use <code>PadPlayPhoneOverlay</code> or <code>host.SetPhoneOverlay(q.PlayerSlot, items)</code>.</p>
 <p><strong>"Forward" is off after the player restarts the app.</strong> That is expected (the phone's yaw reference changes, and yaw slowly drifts during play). Re-center (step 8): a layout button with Role <em>Recenter</em>, <code>host.Recenter(slot)</code>, or the player long-presses the top-left corner of the phone screen.</p>
 <p><strong>The phone does not vibrate.</strong> Check that <em>Buttons</em> is ticked and <em>Allow Haptics</em> is on (vibration belongs to the Buttons module) and that <em>Haptic Strength Scale</em> is above 0. On the phone, the system vibration setting or Do Not Disturb can silence it. The Debugger's Events list shows <em>HapticSent</em> when the host sent a vibration.</p>
 <hr>

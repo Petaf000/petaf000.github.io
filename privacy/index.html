@@ -36,7 +36,7 @@
   <h1>PadPlay Privacy Policy</h1>
 <ul>
   <li>Published: 2026-10-10</li>
-  <li>Last updated: 2026-10-15 (added the iPhone permission and how to delete data on iPhone)</li>
+  <li>Last updated: 2026-10-30 (added the button pictures that games send and the App keeps in its cache)</li>
   <li>Provided by: Petaf (ぺタフ)</li>
   <li>Contact: <a class="mail" href="mailto:petaf570@gmail.com">petaf570@gmail.com</a></li>
 </ul>
@@ -49,7 +49,8 @@
   <li>The provider (Petaf) runs no servers and <strong>does not receive your information</strong>. The App sends nothing to the provider or to any other company, including Google and Apple.</li>
   <li><strong>No ads, no in-app purchases, no usage analytics, no tracking, and no analytics, crash-reporting or advertising SDKs in the App.</strong></li>
   <li>The <strong>input test and the bonus mini game, which work without a PC, run entirely on your device and send nothing</strong> (sections 2 and 4).</li>
-  <li>QR codes are read <strong>entirely on your device</strong>; no images are stored or sent (section 5).</li>
+  <li>QR codes are read <strong>entirely on your device</strong>; no camera images are stored or sent (section 5).</li>
+  <li>The App keeps the <strong>pictures of on-screen buttons</strong> that a game sends in its cache, so it does not have to receive them again. They are the game's pictures, not information about you, and are never sent anywhere (section 4).</li>
 </ul>
 <h2 id="s2">2. How the App uses device features</h2>
 <div class="table-wrap stack"><table>
@@ -71,9 +72,10 @@
   <li><strong>Device information</strong>: model name (e.g. "Google Pixel 8"; on iPhone a model identifier such as "Apple iPhone15,2"), OS name and version, screen size and scale, and the App version. Used to map screen coordinates and to show which device is connected.</li>
   <li><strong>Capabilities</strong>: which features this device can use (video, touch, tilt, buttons, vibration).</li>
   <li><strong>Input</strong>: touch positions, on-screen buttons and sticks, tilt and rotation, and timestamps used to measure latency.</li>
+  <li><strong>Requests for button pictures</strong>: when a game draws its on-screen buttons with its own pictures, the IDs of the pictures the App does not have yet (each ID is calculated from the picture itself), so that the game sends only those.</li>
   <li><strong>Connection status</strong>: how the video is arriving (delay, jitter, loss rate, received bitrate) and how fast this device can display it. Used to adapt the video quality and format (H.264 or JPEG) to your network and device automatically.</li>
 </ul>
-<p>The App receives the game's video, the layout of the on-screen buttons and vibration signals from the game. The video is only displayed, never stored.</p>
+<p>The App receives the game's video, the layout of the on-screen buttons, the pictures of those buttons (PNG) and vibration signals from the game. The video is only displayed, never stored. The button pictures are kept in the cache described in section 4.</p>
 <p><strong>On the game side</strong>: the PadPlay component built into games (PadPlay SDK) keeps this information in memory only while you are connected and for a short time after a disconnect (60 seconds by default, to give you the same player back). It does not write it to files or send it to the internet. However, each game is made by its own developer, who decides how the game handles what it receives. See the privacy policy of the game you play.</p>
 <p><strong>Encryption</strong>: everything the App exchanges with the game PC (the connection handshake, the device ID and device information, input, video, vibration and so on) goes over PadPlay Link, PadPlay's own UDP protocol, and is <strong>all encrypted</strong> (ChaCha20-Poly1305). The key is in the QR code on the game's screen, changes every time the game starts, and is never sent over the network. Someone on the same Wi-Fi who has not scanned the QR code cannot read the contents, impersonate your input or alter it. The only unencrypted messages are short replies from the game PC saying "this QR code is out of date" or "the app version does not match"; they contain no information about your device or you. The size and timing of the traffic cannot be hidden, and anyone who sees the QR code on the game's screen can connect the same way.</p>
 <h2 id="s4">4. Information stored on your device</h2>
@@ -82,9 +84,10 @@
   <li>The device ID (section 3), in the App's settings storage (Flutter's shared_preferences; UserDefaults on iOS).</li>
   <li>A "reconnect key" (resumeKey) per game: a random value the game gives at connection, paired with a random value from that game's QR code (which changes every time the game starts). Stored in the same place; up to the 8 most recent are kept and older ones are deleted.</li>
   <li>Records of the bonus mini game (your fastest time and how many times you cleared it), in the same place as the device ID.</li>
+  <li><strong>Pictures of on-screen buttons</strong> that a game sent (PNG images made by the game's developer, for example a button drawn as a gem), in the App's cache folder (the cache folder of the App on Android, the Caches folder on iPhone), so that the next time you connect to that game it does not have to send them again. They are kept per game (in a folder whose name is calculated from the game's name in its QR code), with a small index of which pictures each game has and which were used most recently. The cache is limited to 8 MB per game, 32 MB in total and 16 games; past a limit, the least recently used pictures (or games) are deleted first. Each picture is checked when it is read, and a damaged one is deleted and received again. These pictures are not information about you and are never sent to the provider or anyone else. The system may also clear this cache by itself when storage runs low; the pictures are then simply received again.</li>
 </ul>
-<p>Nothing else is stored (the on-screen button layout is received from the game each time you connect). QR images and game video are not stored.</p>
-<p><strong>How to delete</strong>: uninstall the App (on iPhone, delete the App), or on Android go to Settings → Apps → PadPlay → Storage → Clear data. After that, your next connection is treated as a new player.</p>
+<p>Nothing else is stored. The layout of the on-screen buttons is received from the game each time you connect and is not stored. QR images and game video are not stored.</p>
+<p><strong>How to delete</strong>: uninstall the App (on iPhone, delete the App), or on Android go to Settings → Apps → PadPlay → Storage → Clear data. After that, your next connection is treated as a new player. To delete only the button pictures on Android, choose Clear cache instead (the device ID and the records stay).</p>
 <h2 id="s5">5. Reading QR codes</h2>
 <p>On both Android and iOS, the App reads QR codes with an open-source library built into the App (zxing-cpp, the C++ port of ZXing). All camera frames are analyzed on the device. <strong>Camera frames, scan results and device information are never sent to the provider or to any third party such as Google or Apple.</strong> The contents of the QR code (the address of the game PC, a one-time token and the encryption key) are used only to connect to that game.</p>
 <h2 id="s6">6. Sharing with third parties</h2>

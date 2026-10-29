@@ -60,7 +60,7 @@
   <li><strong>PC(ホスト)</strong> — Windows 10 / 11。エディタか、Windows x64 のスタンドアロンビルドで動きます。macOS と Linux のホストはまだ確かめていません(映像も JPEG だけになります。後述)。</li>
   <li><strong>GPU</strong>(第二画面の映像を使う時だけ) — H.264 は Windows Media Foundation でエンコードします(GPU のハードウェアエンコーダーが使えればそれを、無ければ Windows のソフトウェアエンコーダーを使います)。Direct3D 11 / 12 では絵が GPU から出ずにエンコードまで進みます。Vulkan は一度 CPU に読み戻すので遅くなります。H.264 を使えない環境(OpenGL、macOS / Linux、H.264 のエンコーダーが無い Windows)では、映像を JPEG で送ります。タッチ・Gamepad・ジャイロには GPU のエンコーダーは要りません。</li>
   <li><strong>レンダーパイプライン</strong> — <strong>ビルトイン</strong> と <strong>URP</strong>(Universal Render Pipeline)。第二画面の映像はどちらでも同じように動き、設定は要りません。HDRP はまだ確かめていません。サンプルの 3D のマテリアルはビルトイン用です。URP のプロジェクトでは、サンプルが実行時にパイプラインの <em>Lit</em> シェーダーに切り替えるので、変換の作業は要りません。Player をビルドする時は、<em>Window → PadPlay → Prepare Samples for URP or HDRP</em> を 1 回実行してください(<em>Import All Samples</em> なら自動で行います。<a href="#12-samples">サンプル</a> を参照)。</li>
-  <li><strong>スマホ / タブレット</strong> — Android 7.0 以降で、別途 <strong>PadPlay</strong> アプリを入れたもの(手順 5)。iPhone 版のアプリは準備中です。ジャイロスコープは、ジャイロの機能(姿勢・Gyro Camera・Pose Camera・Remote Pointers)を使う時だけ要ります。</li>
+  <li><strong>スマホ / タブレット</strong> — Android 7.0 以降、または iOS 15 以降の iPhone で、別途 <strong>PadPlay</strong> アプリを入れたもの(手順 5)。ジャイロスコープは、ジャイロの機能(姿勢・Gyro Camera・Pose Camera・Remote Pointers)を使う時だけ要ります。</li>
   <li><strong>ネットワーク</strong> — PC とスマホを <strong>同じ Wi-Fi / LAN</strong> につなぎます。通信は全部 1 つの <strong>UDP</strong> ポート(既定は 7780)を使います。インターネット越しの対戦は対象外です。</li>
 </ul>
 <h3 id="what-you-need-besides-unity">Unity のほかに要るもの</h3>
@@ -233,7 +233,7 @@ public class Lobby : MonoBehaviour
   <li>アプリで QR コードを読み、つなぐボタンをタップします。(カメラが使えない時は、デバッガーの <em>Join URI</em>(参加 URI)の横の <em>Copy</em>(コピー)で参加の URL をコピーし、アプリに貼り付けます。)<em>(アプリはスマホの言語に合わせて表示します。つなぐボタンは日本語では「つなぐ」、英語では "Connect" です。)</em></li>
 </ol>
 <h3 id="getting-the-app">アプリの入れ方</h3>
-<p>遊ぶ人はそれぞれ、無料の <strong>PadPlay</strong> アプリを <a href="https://play.google.com/store/apps/details?id=com.petaf.padplay">Google Play</a> から入れます(Android 7.0 以上)。iPhone 版は準備中です。アプリは 1 つで、PadPlay を使ったどのゲームにもつながります。PadPlay SDK と PadPlay Lite のどちらでも同じです。</p>
+<p>遊ぶ人はそれぞれ、無料の <strong>PadPlay</strong> アプリを <a href="https://play.google.com/store/apps/details?id=com.petaf.padplay">Google Play</a> から入れます(Android 7.0 以上)。iPhone は App Store から入れます(iOS 15 以降)。アプリは 1 つで、PadPlay を使ったどのゲームにもつながります。PadPlay SDK と PadPlay Lite のどちらでも同じです。</p>
 <p><strong>自分のアプリ(PadPlay SDK のみ)。</strong> PadPlay SDK にはアプリのソースも入っています:<code>Packages/dev.petaf.padplay/PhoneApp~/PadPlayPhoneApp-…-source.zip</code>(このフォルダは Unity の Project ウィンドウには出ません。エクスプローラーで開いてください)。Unity のプロジェクトの外に展開して Flutter でビルドするか(手順は zip の中の <code>client/README.md</code> にあります)、自分の名前・アプリ ID・アイコン・色で公開できます(<code>WHITE_LABEL.md</code>)。PadPlay Lite にはソースは入っていません。</p>
 <p>手元にスマホが無い時は、<em>Window → PadPlay → Virtual Phones</em>(仮想スマホ)でエディタの中の仮想のスマホをつなげます。</p>
 <h3 id="connected">つながったら</h3>
@@ -461,9 +461,29 @@ host.SetHaptics(playerSlot: 0, strength: 0f);     // stop</code></pre>
   <li>まずハードウェアエンコーダーを試し、だめなら Windows のソフトウェアエンコーダー(遅い)を使います。確かめたハードウェアエンコーダーは、今のところ NVIDIA のものだけです。</li>
   <li>Inspector と <code>host.VideoStatus</code> で、使っている経路とエンコーダー、または H.264 を使えない理由(その時は JPEG を送ります)が分かります。<code>host.GetVideoChoice(slot, out choice)</code> で、スマホがどちらを受けていて、その理由(例えばスマホが JPEG を求めた)が分かります。</li>
   <li>Wi-Fi が弱い時は <em>Adaptive Video</em> をオンのままにし(ビットレートを、次にフレームレートか大きさを下げます)、好みの <em>Priority</em> を選ぶか、View の <em>Max Bitrate Kbps</em> を下げてください。複数のプレイヤーに送る View は 1 回だけエンコードし、一番弱い接続に合わせた画質になります。</li>
-  <li>ブロック状のノイズ・にじみ・短い止まりが時々出るのは、たいてい Wi-Fi でパケットが落ちているためです。スマホをルーターの<strong>5 GHz</strong> の Wi-Fi につないでください(2.4 GHz は混みやすく、Bluetooth や電子レンジとも電波を分け合います)。ルーターの近くで使い、PC はできれば有線にしてください。Debugger の Video の列で、落ちの割合と、スマホが映像の戻しを頼んだ回数が分かります。</li>
+  <li>ブロック状のノイズ・にじみ・短い止まりが時々出るのは、たいてい Wi-Fi でパケットが落ちているためです。スマホをルーターの<strong>5 GHz</strong> の Wi-Fi につないでください(2.4 GHz は混みやすく、Bluetooth や電子レンジとも電波を分け合います)。ルーターの近くで使い、PC はできれば有線にしてください。Debugger の Video の列で、落ちの割合と、スマホが映像の戻しを頼んだ回数が分かります。こうした落ちが短い間に続くと、SDK は早めにビットレートを下げ(続けば 60 → 30 fps)、Wi-Fi が落ち着くとまた上げます。</li>
   <li>Display のプレビューでも黒い: ソースのカメラか RenderTexture の問題です。PadPlay Lite には映像はありません。</li>
 </ul>
+<p><strong>Wi-Fi が弱いことをプレイヤーに知らせたい(任意)。</strong>Wi-Fi が弱い時、SDK は自分で映像を下げるだけで、PC にもスマホにも何も表示しません。「スマホを 5 GHz に」のような案内を出したい時は、プレイヤーごとの回線の状態を読んでください: <code>host.GetConnectionQuality(slot)</code> か <code>ConnectionQualityChanged</code> のイベント(<code>Level</code>: Good・Poor・Bad、<code>Issue</code>: Loss(落ち)か Delay(遅れ))。悪くなる時はすぐ、良くなる時は数秒落ち着いてから変わるので、案内がちらつきません。F3(<code>PadPlayDebugOverlay</code>)と Debugger の <em>回線</em> の列にも同じ値が出ます。</p>
+<pre><code class="language-csharp">using PadPlay;
+using UnityEngine;
+
+// Shows a hint while a player's Wi-Fi loses packets (the SDK itself shows nothing).
+public class WifiHint : MonoBehaviour
+{
+    [SerializeField] PadPlayHost _host;
+    [SerializeField] GameObject _hint;   // for example a text "Weak Wi-Fi: put your phone on the 5 GHz network"
+
+    void OnEnable() =&gt; _host.ConnectionQualityChanged += OnQuality;
+    void OnDisable() =&gt; _host.ConnectionQualityChanged -= OnQuality;
+
+    void OnQuality(PadPlayConnectionQuality q)
+    {
+        // Loss is what 2.4 GHz Wi-Fi usually shows; Delay is a slow or busy network. q.PlayerSlot says whose phone it is.
+        _hint.SetActive(q.Level != PadPlayConnectionLevel.Good &amp;&amp; q.Issue == PadPlayConnectionIssue.Loss);
+    }
+}</code></pre>
+<p>そのプレイヤーのスマホに出したい時は、<code>PadPlayPhoneOverlay</code> か <code>host.SetPhoneOverlay(q.PlayerSlot, items)</code> を使ってください。</p>
 <p><strong>プレイヤーがアプリを起動し直したら「正面」がずれた。</strong>これは想定どおりです(スマホのヨーの基準が変わり、遊んでいる間もヨーは少しずつずれます)。正面合わせ(手順 8)をしてください:Role が <em>Recenter</em> のレイアウトのボタン、<code>host.Recenter(slot)</code>、またはプレイヤーがスマホの画面の左上の隅を長押しします。</p>
 <p><strong>スマホが振動しない。</strong><em>Buttons</em> にチェックが入り、<em>Allow Haptics</em> がオンか確かめてください(振動は Buttons のモジュールの機能です)。<em>Haptic Strength Scale</em> が 0 より大きいかも見てください。スマホ側では、システムの振動の設定やおやすみモードで止まることがあります。ホストが振動を送ると、デバッガーの Events の一覧に <em>HapticSent</em> が出ます。</p>
 <hr>

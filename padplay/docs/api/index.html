@@ -77,6 +77,7 @@
   <li><code>GetPad(slot)</code>, <code>PadDevices</code> — The player's <code>PadPlayPad</code> (null if none); all pads.</li>
   <li><code>GetScreenRotation(slot)</code>, <code>ScreenRotationChanged</code> — The phone's display rotation in degrees.</li>
   <li><code>GetCapabilities(slot)</code>, <code>GetClockSync(slot)</code> — What the phone app supports; clock offset and round trip.</li>
+  <li><code>GetConnectionQuality(slot)</code>, <code>ConnectionQualityChanged</code> (<code>PadPlayConnectionQuality</code>) — How good the player's link is: <code>Level</code> (Good, Poor, Bad) and <code>Issue</code> (Loss, Delay). The SDK lowers the video by itself and shows nothing; use this to show your own hint, such as "put your phone on 5 GHz" (<a href="/padplay/docs/quickstart/#11-troubleshooting">QuickStart §11</a>).</li>
   <li><code>Diagnostics</code> — Connection and input data for tools (<a href="/padplay/docs/debugging/#4-reading-the-same-data-from-code">Debugging §4</a>).</li>
 </ul>
 <h3 id="input">Input</h3>
