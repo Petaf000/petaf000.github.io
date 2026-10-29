@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Debugging — PadPlay documentation</title>
+<meta name="description" content="PadPlay SDK documentation: Debugging">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/debugging/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/debugging/">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/debugging/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/products/">Products</a>
+      <a href="/contact/">Contact</a>
+      <a href="/privacy/">Privacy</a>
+    </nav>
+    <a class="lang" href="/padplay/docs/ja/debugging/" lang="ja" hreflang="ja">日本語</a>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay documentation">
+    <a href="/padplay/docs/">Overview</a>
+    <a href="/padplay/docs/quickstart/">Quick Start</a>
+    <a href="/padplay/docs/concepts/">Concepts</a>
+    <a href="/padplay/docs/debugging/" aria-current="page">Debugging</a>
+    <a href="/padplay/docs/pose-camera/">Pose Camera</a>
+    <a href="/padplay/docs/remote-pointers/">Remote Pointers</a>
+    <a href="/padplay/docs/api/">API Reference</a>
+    <a href="/padplay/docs/glossary-ja/" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="debugging">Debugging</h1>
+<p><em><a href="/padplay/docs/ja/debugging/">日本語</a></em></p>
+<p>Tools for answering three questions without leaving the Unity Editor: <strong>Is the phone connected? What is arriving from it? What does its screen show?</strong></p>
+<ul>
+  <li><a href="#1-display-preview-each-phones-screen-on-display-2-3-">Display preview</a> (Game view → <em>Display 2</em>, <em>Display 3</em>, …) — Seeing each player's phone screen (video, fingers, buttons) next to the main screen.</li>
+  <li><a href="#2-padplay-debugger">PadPlay Debugger</a> (<em>Window → PadPlay → Debugger</em>) — Connection state, round trip, input rates, button bits, gyro, touches, the event log; recenter, test haptics, disconnect.</li>
+  <li><a href="#3-debug-overlay-in-built-games">Debug Overlay</a> (<em>Add Component → PadPlay → Debug Overlay</em>) — A small status box in <strong>built games</strong> (F3 shows / hides it).</li>
+  <li><a href="#4-reading-the-same-data-from-code"><code>host.Diagnostics</code></a> (C#) — The same numbers from your own code or tools.</li>
+  <li><strong>Connection Check</strong> (<em>Window → PadPlay → Connection Check</em>) — Why a phone cannot connect or stays at <code>Connecting</code>: QR addresses and adapters, port, Windows Firewall, the last connection attempt. Read-only. See <a href="/padplay/docs/quickstart/#11-troubleshooting">Quick Start §11</a>.</li>
+  <li><a href="#5-trying-it-without-a-phone-virtual-phones">Virtual Phones</a> (<em>Window → PadPlay → Virtual Phones</em>) — Simulated phones in the Editor: touch with the mouse, buttons with the mouse or keys, tilt by dragging a ball with the mouse. No phone needed.</li>
+  <li><strong>Input Debugger (Unity)</strong> (<em>Window → Analysis → Input Debugger</em>) — What the Input System does with the <code>PadPlayPad</code> devices (bindings, actions, <code>PlayerInput</code>).</li>
+</ul>
+<p>The first four only <strong>read</strong> the host and never change what the game receives; Virtual Phones send input like a real phone. The <em>Debug</em> section of the Host Inspector (between <em>Modules</em> and <em>Connection</em>) holds the preview settings and buttons to open the Debugger and add the overlay.</p>
+<hr>
+<h2 id="1-display-preview-each-phones-screen-on-display-2-3-">1. Display preview: each phone's screen on Display 2, 3, …</h2>
+<p>While playing in the Editor, the host draws what each phone shows on its own display: <strong>P1 → Display 2, P2 → Display 3</strong>, and so on. Display 1 (your game) is never touched.</p>
+<ol>
+  <li>Open a second (and third) <strong>Game view</strong>: right-click the Game tab → <em>Add Tab → Game</em>.</li>
+  <li>In each new Game view pick <strong>Display 2</strong> / <strong>Display 3</strong> in the top-left dropdown. Set its size to your tablet's resolution (for example 1920 × 1200) if you like; the picture keeps its aspect ratio.</li>
+  <li>Press <strong>Play</strong> and connect phones.</li>
+</ol>
+<p>What you see on each display:</p>
+<ul>
+  <li><strong>Black</strong> — the part of the display outside the phone.</li>
+  <li><strong>Dark grey</strong> — the phone's screen (its aspect ratio from the phone's reported size; landscape unless the phone reports portrait).</li>
+  <li><strong>The video</strong> — the <code>PadPlayView</code> texture sent to that player, letterboxed exactly like the phone does (the video's aspect ratio, 16:9 before any video exists). A player with buttons but no video uses the whole phone screen, like the phone app does.</li>
+  <li><strong>Overlay</strong> — the player's fingers (dots in the player's color) and the on-screen buttons of the player's layout. Pressed buttons light up in the player's color while held (optionally for at least <em>Button Highlight Ms</em> after the press); stick knobs follow the stick values.</li>
+  <li><strong>Caption</strong> — player, display, state, phone model and round trip. Without a phone the display reads <em>waiting for a phone</em>.</li>
+</ul>
+<p>Settings: <em>Host Inspector → Debug</em> (<code>host.Settings.Preview</code>), all changeable while playing.</p>
+<ul>
+  <li><strong>Mode</strong> (default EditorOnly) — <code>Off</code>, <code>EditorOnly</code> (built games show nothing), or <code>EditorAndBuilds</code> (built games use extra monitors that exist and activate them).</li>
+  <li><strong>Player Displays</strong> (default 2, 3, 4, 5) — Display number per player: element 0 is P1. <code>0</code> hides that player. <code>1</code> is not allowed (it is the game's screen).</li>
+  <li><strong>Show Touches / Show Buttons</strong> (default on) — The overlay parts.</li>
+  <li><strong>Overlay Opacity</strong> (default 0.6) — How strong the overlay is.</li>
+  <li><strong>Show Caption</strong> (default on) — The text line at the top.</li>
+  <li><strong>Button Highlight Ms</strong> (default 0) — <code>0</code> = lit only while held (the value the game reads). Above 0, a pressed button stays lit at least this long after the press, in the preview, the Debugger and the Debug Overlay. Also editable as <em>Min lit ms</em> in the Debugger.</li>
+</ul>
+<p>How it works: for each shown player the host creates (outside your scene hierarchy, not saved) a camera that only clears the display to black (<code>cullingMask = 0</code>) and a <em>Screen Space – Overlay</em> Canvas on that display. The Canvas has no <code>GraphicRaycaster</code>, so mouse clicks and phone touches never hit it. The video is the same <code>RenderTexture</code> that is being encoded, so the preview costs no extra rendering.</p>
+<hr>
+<h2 id="2-padplay-debugger">2. PadPlay Debugger</h2>
+<p><em>Window → PadPlay → Debugger</em> (or <strong>Open Debugger</strong> in the Host Inspector's <em>Debug</em> section). It shows nothing until you press Play.</p>
+<p><strong>Top bar</strong> — the host, whether it runs and on which port, how many players, whether new players are accepted, the <strong>Join URI</strong> with <em>Copy</em> (paste it into the phone app when the camera cannot read the code) and a <strong>QR</strong> toggle.</p>
+<p><strong>Players</strong> — one row per player slot that joined since the host started:</p>
+<ul>
+  <li><strong>Device</strong> — Phone model and OS.</li>
+  <li><strong>State</strong> — <code>Connecting</code> (joined, input not flowing yet), <code>Ready</code>, <code>Reconnecting</code> (dropped, slot held for <em>Resume Hold Seconds</em>), <code>Gone</code> (left; the reason in brackets).</li>
+  <li><strong>RTT ms</strong> — Round trip over PadPlay Link: the median of the recent round trips, measured from the time stamps that the packets echo back (<code>ClockSync.RoundTripMs</code>).</li>
+  <li><strong>Clock ms</strong> — Phone clock minus PC clock (<code>ClockSync.OffsetMs</code>).</li>
+  <li><strong>Touch / Gyro / Btn Hz</strong> — Input updates per second from the phone. PadPlay Link sends the whole state in every packet, so these count changes, not packets: <em>Touch</em> = moves of fingers that are down (presses and releases are not counted), <em>Gyro</em> = new attitude samples, <em>Btn</em> = button and stick changes. Touch and Btn read 0 while nothing moves or changes. <code>(off)</code> = it arrives, but the module is unticked so the host drops it.</li>
+  <li><strong>Last in</strong> — Seconds since any input arrived.</li>
+  <li><strong>Video</strong> — The encoder's current resolution and frame rate (lowered on a slow network), and the measured bitrate of the video packets, FEC included (from the sender's statistics, once a second; H.264 or JPEG). The last field is the encode time per frame (<code>PadPlayVideoStats.EncodeMsPerFrame</code>): the recent average, over about the last 10 frames sent to that player, of the time from the frame being drawn until the encoded frame is ready (H.264: color conversion and the encoder; JPEG: the GPU readback and the JPEG encoder; waiting included). It reads <code>—</code> when it cannot be measured; point at the cell to see why (no frame sent to that player yet, or the encoder did not report the time).</li>
+  <li><strong>Rot</strong> — The phone's display rotation in degrees.</li>
+</ul>
+<p><strong>Details of the selected player</strong> (click <em>P1</em>, <em>P2</em>, … in the first column):</p>
+<ul>
+  <li><strong>Buttons</strong> — the 32 buttons as the game reads them (the player's <code>PadPlayPad</code>, or the <code>ButtonsReceived</code> values when devices are off): 0–13 are the Gamepad buttons (A/South … right stick press), 14–31 are <code>custom14</code>…<code>custom31</code>. A held button is drawn in the player's color while it is held, exactly like the Input Debugger. Optionally, <em>Min lit ms</em> under the grid (= <code>Settings.Preview.ButtonHighlightMs</code>, default 0) keeps a pressed button lit that long in a lighter color. The small number in each cell is <strong>how many times it was pressed since Play started</strong> (the title shows the total): tap a button 10 times and expect 10 — a smaller number means presses were lost before they reached the game, a correct number with a flicker you did not see means only the drawing was too slow. The window redraws every frame while playing and visible.</li>
+  <li><strong>Sticks</strong> — left and right stick values (−1…1, y up).</li>
+  <li><strong>Attitude</strong> — a phone-shaped box (screen face in the player's color) with Euler angles and angular velocity. It shows the calibrated <code>pad.attitude</code> when the player has a <code>PadPlayPad</code>, otherwise the raw phone attitude.</li>
+  <li><strong>Touches</strong> — the fingers on the phone's video area (0…1, y = 0 at the top) with their ids.</li>
+  <li><strong>Recenter (yaw / full)</strong> — re-centers the player's pad (<code>pad.Recenter(...)</code>; it raises <code>Recentered</code>). <strong>Test haptics</strong> — vibrates for 0.3 s via <code>host.SetHaptics</code>. <strong>Disconnect</strong> — <code>host.Kick(slot)</code> (the slot is not held).</li>
+</ul>
+<p><strong>Events</strong> — the host's log: host started / stopped, joined, resumed, ready (again after a video change), left, removed, layout sent, haptic strength changed (repeats are not logged), calibrate sent, screen rotation, refused join (<em>JoinRejected</em>: bad_token, full or version). Filter by kind, by text, or to the selected player; <em>Pause</em> freezes the list (the host keeps recording); <em>Clear</em> empties it. The host keeps the last 512 events.</p>
+<hr>
+<h2 id="3-debug-overlay-in-built-games">3. Debug Overlay (in built games)</h2>
+<p><em>Add Component → PadPlay → Debug Overlay</em> (or <strong>Add Debug Overlay</strong> in the Host Inspector) on any GameObject. It draws a small box with the number of players and, for each player, state, phone model, round trip, a warning when a ready player has sent nothing for over a second, and — once a button was pressed — the lit buttons and the press count (<code>buttons: South (12 presses)</code>; lit for at least <em>Button Highlight Ms</em> like the Debugger). It is rebuilt every frame. It uses IMGUI (no Canvas, no EventSystem).</p>
+<ul>
+  <li><strong>Host</strong> (default <em>found in the scene</em>)</li>
+  <li><strong>Toggle Key</strong> (default F3) — Input System key that shows / hides it (<code>None</code> = no key).</li>
+  <li><strong>Visible</strong> (default on) — Shown at start.</li>
+  <li><strong>Corner</strong> (default TopLeft)</li>
+  <li><strong>Font Size</strong> (default 18) — At 1080 px screen height; scales with the screen.</li>
+</ul>
+<hr>
+<h2 id="4-reading-the-same-data-from-code">4. Reading the same data from code</h2>
+<pre><code class="language-csharp">using System.Collections.Generic;
+using PadPlay;
+using UnityEngine;
+
+PadPlayDiagnostics diagnostics = host.Diagnostics;
+foreach (PadPlayPlayerDiagnostics player in diagnostics.Players)
+{
+    Debug.Log($"P{player.PlayerSlot + 1} {player.State} {player.Device.Model} " +
+              $"gyro {player.AttitudeRateHz:F0} Hz, fingers {player.Touches.Count}, buttons {player.Buttons.Bits:X8}");
+}
+
+var events = new List&lt;PadPlayDebugEvent&gt;();
+diagnostics.CopyEvents(events);      // oldest first; diagnostics.TotalEventCount tells you when new ones arrived</code></pre>
+<ul>
+  <li><code>host.Diagnostics</code> — <code>PadPlayDiagnostics</code>: <code>Players</code>, <code>TryGetPlayer(slot, out player)</code>, <code>LastJoinAttempt</code> (<code>JoinAttempt</code>: <code>RemoteAddress</code>, <code>AtMs</code>, <code>Result</code> = Accepted / BadToken (old QR code: token or key does not match) / Full / Version, <code>PlayerSlot</code>; null = nothing connected yet.), <code>JoinAttemptCount</code>, <code>EventCount</code>, <code>TotalEventCount</code>, <code>GetEvent(i)</code>, <code>CopyEvents(list)</code>, <code>ClearEvents()</code>, <code>EventCapacity</code> (512).</li>
+  <li><code>PadPlayPlayerDiagnostics</code> — <code>PlayerSlot</code>, <code>Device</code>, <code>AppVersion</code>, <code>State</code>, <code>LeftReason</code>, <code>JoinedHostMs</code>, <code>ResumeCount</code>, <code>TouchRateHz</code>, <code>AttitudeRateHz</code>, <code>ButtonsRateHz</code>, <code>LastTouchHostMs</code>, <code>LastAttitudeHostMs</code>, <code>LastButtonsHostMs</code>, <code>LastInputHostMs</code>, <code>Touches</code>, <code>HasAttitude</code>, <code>Attitude</code>, <code>HasButtons</code>, <code>Buttons</code> (last state received), <code>GameButtonBits</code> (held now, as the game reads them), <code>TotalButtonPresses</code>, <code>GetButtonPressCount(id)</code>, <code>GetButtonLastPressedHostMs(id)</code>, <code>GetButtonLastReleasedHostMs(id)</code>, <code>IsButtonLit(id, nowMs, minLitMs)</code>, <code>GetLitButtonBits(nowMs, minLitMs)</code>, <code>HasScreenRotation</code>, <code>ScreenRotationDegrees</code>, <code>HapticStrength</code>, <code>LayoutsSent</code>, <code>PacketsReceived</code> (input updates, counted as in the <em>Hz</em> columns). Times use the <code>PadPlayHost.NowMs</code> clock (−1 = never).</li>
+  <li><code>PadPlayDebugEvent</code> — <code>HostMs</code>, <code>PlayerSlot</code> (−1 = host), <code>Kind</code> (<code>PadPlayDebugEventKind</code>), <code>Detail</code>.</li>
+  <li><strong>Video (on <code>PadPlayHost</code>)</strong> — <code>VideoStatus</code> (graphics API path, encoder, each player's codec, or why H.264 cannot be used; English text for people), <code>GetVideoChoice(slot, out PadPlayVideoCodecChoice)</code> (<code>Codec</code>, <code>Reason</code> as an enum, <code>Detail</code>), <code>RequestVideoStats(slot, callback)</code> (<code>PadPlayVideoStats</code>, the numbers of the <em>Video</em> column).</li>
+  <li><code>host.Settings.Preview</code> — <code>PadPlayPreviewSettings</code>: <code>Mode</code> (<code>PadPlayPreviewMode</code>), <code>PlayerDisplays</code>, <code>ShowTouches</code>, <code>ShowButtons</code>, <code>OverlayOpacity</code>, <code>ShowCaption</code>, <code>ButtonHighlightMs</code> (0), <code>IsActive(isEditor)</code>, <code>GetDisplay(slot)</code>.</li>
+  <li><code>PadPlayDebugOverlay</code> — <code>Host</code>, <code>Visible</code>, <code>ToggleKey</code>, <code>BuildText()</code>.</li>
+</ul>
+<p>Input counts include input of unticked modules (it arrived, the host then dropped it), so you can tell "the phone sends nothing" from "the module is off".</p>
+<hr>
+<h2 id="5-trying-it-without-a-phone-virtual-phones">5. Trying it without a phone: Virtual Phones</h2>
+<p><em>Window → PadPlay → Virtual Phones</em> (or <strong>Virtual Phones</strong> in the Host Inspector's <em>Debug</em> section) connects simulated phones to the host while playing in the Editor — like a simulator for a console controller. Each one joins <strong>the same way the phone app does</strong> (the join URI's token and key, PadPlay Link over UDP: Hello, the state every 8 ms, reliable messages, video), so your game cannot tell it from a real phone: it gets a player slot, <code>PlayerJoined</code> / <code>PlayerReady</code>, a <code>PadPlayPad</code>, uGUI pointer events, <code>PlayerLeft</code> / <code>PlayerRemoved</code>. Real phones can join at the same time (for example a real phone is P1 and a simulated one P2).</p>
+<ol>
+  <li>Press <strong>Play</strong>, open the window and press <strong>Add phone</strong> (once per player, up to <em>Max Players</em>).</li>
+  <li>Each phone shows the player's screen — the <code>PadPlayView</code> texture sent to that player (grey with <em>no video</em> when the player has no view or the <em>Video</em> module is off) — with the on-screen buttons of the player's layout on top.</li>
+  <li>Use it:</li>
+</ol>
+<ul>
+  <li><strong>Touch</strong> — Left mouse button on the screen = one finger (press, drag, release). Positions outside the video area are clamped, like on the phone.</li>
+  <li><strong>Pinch</strong> — <strong>Ctrl + left drag</strong> (Cmd on a Mac) = two fingers, the second mirrored around the center of the screen (drag away from the center to spread). <strong>Mouse wheel</strong> over the screen = two fingers around the mouse that spread (wheel up) or close (wheel down) and lift a moment after the wheel stops. The window shows these keys under each phone.</li>
+  <li><strong>Buttons and sticks</strong> — Left mouse button on a button or a stick of the layout. Buttons with the same <em>Group</em> can be slid across while held.</li>
+  <li><strong>Keys</strong> — The selected phone (the one you clicked last, outlined in its player color) while the window has focus. Defaults: Space = A (South), Left Shift = B (East), Q = X (West), E = Y (North), Z / C = LB / RB, Return = Start, Tab = Select, arrows = D-pad, WASD = left stick, IJKL = right stick. Change them under <strong>Keys</strong> (saved per computer).</li>
+  <li><strong>Tilt</strong> — <strong>Yaw</strong> (turn right = +), <strong>Pitch</strong> (look down = +), <strong>Roll</strong> (lean left = +): drag the ball with the phone picture on it (drag near its edge to roll); the angles are shown under it. The values are the Euler angles your game reads from <code>pad.attitude</code> before any recenter. <strong>Reset tilt</strong> sets them back to 0 (faces the simulated phone forward; the game is not told); <strong>Recenter</strong> sends the same request as the phone's corner long-press.</li>
+  <li><strong>Vibration</strong> — The phone's frame glows while a haptic command is running (brighter = stronger). A <code>host.Pulse</code> glows for its length on top of a continuous vibration.</li>
+  <li><strong>Phone Overlay</strong> — Text and boards sent with a Phone Overlay / <code>host.SetPhoneOverlay</code> are drawn over the picture, fixed (rich text as the Editor draws it).</li>
+  <li><strong>Disconnect / Reconnect</strong> — <strong>Disconnect</strong> drops the connection silently (like Wi-Fi going away): the slot is held for <em>Resume Hold Seconds</em>, and <strong>Reconnect</strong> returns to the same player (<code>PlayerJoined</code> with <code>Resumed</code>).</li>
+  <li><strong>Remove</strong> — Leaves with <code>bye</code>: the slot is freed (<code>PlayerRemoved</code>) and the phone disappears from the window.</li>
+</ul>
+<p>Like the phone app, a virtual phone only sends buttons and sticks that exist in the player's layout, and only while a layout with buttons was sent (no layout → the keys do nothing). It does not report a screen rotation, so the gyro components use the tilt as it is. The joined device reads <em>PadPlay Virtual Phone</em> (1080 × 2400, landscape) in the Debugger.</p>
+<p>Limits: two fingers at most (pinch only), no real sensor noise or network loss, and no video is decoded (the window draws the texture the host is about to send, so encoding problems only show on a real phone). Simulated phones exist only in the Editor: nothing of them is included in a built game, and they are closed when you stop playing.</p>
+<hr>
+<h2 id="6-which-tool-for-which-problem">6. Which tool for which problem</h2>
+<ul>
+  <li><strong>The phone never connects</strong> — <em>Connection Check</em> (or the Debugger's <strong>Check</strong> button): its last section says whether anything reached the PC (nothing / old QR / full), the others point at the Wi-Fi address, the port or the firewall.</li>
+  <li><strong>Nothing arrives at all</strong> — Windows Firewall blocks UDP for Unity (PadPlay uses one UDP port; a rule that allows only TCP does not help). <em>Connection Check</em> shows the firewall rule.</li>
+  <li><strong>"Old QR code" right after <code>RenewToken()</code></strong> — New phones need the new code. A phone that had joined comes back with the old code only within <code>host.NetworkSettings.RenewGraceMs</code> (60 s) and only if the app kept its resume secret (it was not reinstalled or its data cleared).</li>
+  <li><strong>The phone gets JPEG instead of H.264</strong> — <code>host.VideoStatus</code> / <code>GetVideoChoice(slot, out choice)</code>: the reason is the host setting, no H.264 on this PC (OpenGL, macOS / Linux, no encoder), or the phone asked for it (slow H.264 decoding).</li>
+  <li><code>Ready</code>, but the game reacts to nothing — Debugger <em>Hz</em> columns while you move the phone, touch and press: numbers arrive → check the module checkboxes (<code>(off)</code>) and your code; zero → nothing arrives from the phone (buttons are sent only when a layout with buttons was sent: look for <em>LayoutSent</em> in Events).</li>
+  <li><strong>Buttons do nothing</strong> — Debugger <em>Buttons</em> grid lights up? Yes → your bindings (Input Debugger, <code>&lt;PadPlayPad&gt;/custom20</code>…). No → the layout / the phone.</li>
+  <li><strong>Some taps seem missed</strong> — Debugger <em>Buttons</em> press count: tap N times and compare. N → the game received every press (check how your code reads it, e.g. <code>isPressed</code> polled in <code>FixedUpdate</code>). Fewer → presses were lost on the way (Wi-Fi; <em>Btn Hz</em>).</li>
+  <li><strong>Touches land on the wrong thing</strong> — Display preview: is the dot where the finger is? Then check <em>Touch → Player Targets</em> and <code>PadPlayView.UseAsTouchTarget</code>.</li>
+  <li><strong>The phone shows black or the wrong picture</strong> — Display preview: the same texture is sent. Black there too → the source camera / RenderTexture. Fine there → video encoding or the network (Debugger <em>Video</em> column: fps and kbps).</li>
+  <li><strong>Gyro feels laggy or jumpy</strong> — Debugger <em>Gyro Hz</em> (about 120 expected: the PadPlay app sends the attitude 120 times a second) and <em>RTT</em>; tune <em>Attitude</em> settings.</li>
+  <li><strong>A player keeps dropping</strong> — Events: repeated <em>Left</em> / <em>Resumed</em>, and the reason (<code>closed</code>, <code>timeout</code>).</li>
+  <li><strong>Vibration does not happen</strong> — Events: <em>HapticSent</em> appears? No → <em>Buttons → Allow Haptics</em> / strength scale; yes → the phone (silent mode, vibration settings).</li>
+  <li><strong>No phone at hand, or need a second player</strong> — Virtual Phones: add one per player.</li>
+  <li><strong>Input System questions (actions, <code>PlayerInput</code>, pairing)</strong> — Unity's Input Debugger: each phone is a <code>PadPlayPad</code> device (a <code>Gamepad</code>).</li>
+</ul>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></p>
+    <p class="muted">This site uses no cookies, analytics or tracking.</p>
+  </div>
+</footer>
+</body>
+</html>

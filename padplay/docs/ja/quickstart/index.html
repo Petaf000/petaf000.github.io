@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>クイックスタート — PadPlay ドキュメント</title>
+<meta name="description" content="PadPlay SDK のドキュメント(日本語): クイックスタート">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/quickstart/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/quickstart/">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/quickstart/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/ja/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="メニュー">
+      <a href="/ja/">ホーム</a>
+      <a href="/ja/products/">製品</a>
+      <a href="/ja/contact/">お問い合わせ</a>
+      <a href="/ja/privacy/">プライバシー</a>
+    </nav>
+    <a class="lang" href="/padplay/docs/quickstart/" lang="en" hreflang="en">English</a>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay ドキュメント">
+    <a href="/padplay/docs/ja/" lang="ja">概要</a>
+    <a href="/padplay/docs/ja/quickstart/" aria-current="page" lang="ja">クイックスタート</a>
+    <a href="/padplay/docs/ja/concepts/" lang="ja">仕組み</a>
+    <a href="/padplay/docs/ja/debugging/" lang="ja">デバッグ</a>
+    <a href="/padplay/docs/ja/pose-camera/" lang="ja">Pose Camera</a>
+    <a href="/padplay/docs/ja/remote-pointers/" lang="ja">Remote Pointers</a>
+    <a href="/padplay/docs/ja/api/" lang="ja">API リファレンス</a>
+    <a href="/padplay/docs/glossary-ja/" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="quick-start">クイックスタート</h1>
+<p><em><a href="/padplay/docs/quickstart/">English</a></em></p>
+<p>スマホに PadPlay アプリを入れてあれば(手順 5)、空の Unity プロジェクトから「スマホでゲームを操作できる」状態まで、10 分ほどで進められます。</p>
+<p>流れ: パッケージをインポート → <code>PadPlayHost</code> を置く → QR コードを出す → スマホのアプリでつなぐ →タッチ・Gamepad・ジャイロの入力を受け取る →(必要なら)第二画面の映像を送る・画面のボタンを置く・スマホを振動させる。</p>
+<blockquote>
+<p>設計の考え方は <a href="/padplay/docs/ja/concepts/">仕組み</a>、エディタの道具は <a href="/padplay/docs/ja/debugging/">デバッグ</a> にあります。全部のページの一覧: <a href="/padplay/docs/ja/">ドキュメントの目次</a>。</p>
+<p><em>Window → PadPlay → Welcome</em>(パッケージを入れた後に 1 回だけ自動で開きます)にも同じ最初の手順があります。1 クリックで全部のサンプルを入れて Sample Hub を開けるほか、スマホのアプリとこのドキュメントへのリンクもあります。</p>
+<p>メニューの道筋は英語の表示で書いています。Unity エディタを日本語にしている場合は、Window = ウィンドウ、GameObject = ゲームオブジェクト、Assets = アセット、Add Component = コンポーネントを追加、Project Settings = プロジェクト設定、Preferences = 環境設定、のように読み替えてください。PadPlay が足すメニュー(<em>PadPlay → …</em> の下)は、どの言語でも英語のままです。</p>
+</blockquote>
+<hr>
+<h2 id="1-requirements">1. 必要な環境</h2>
+<ul>
+  <li><strong>Unity</strong> — Unity 2022.3 LTS(<code>2022.3.62f3</code>)以降。Unity 6 も含みます。<a href="#tested-setup">動作を確かめた環境</a> も見てください。</li>
+  <li><strong>パッケージ</strong> — 依存パッケージとして自動で入ります: Input System(<code>com.unity.inputsystem</code> 1.11.2 以上)、uGUI(<code>com.unity.ugui</code>)。ほかには何も要りません。通信は SDK 独自の UDP の <em>PadPlay Link</em> です。</li>
+  <li><strong>Active Input Handling</strong> — <em>Project Settings → Player → Active Input Handling</em>(プロジェクト設定 → プレイヤー)を <strong>Input System Package (New)</strong> か <strong>Both</strong> にします。</li>
+  <li><strong>PC(ホスト)</strong> — Windows 10 / 11。エディタか、Windows x64 のスタンドアロンビルドで動きます。macOS と Linux のホストはまだ確かめていません(映像も JPEG だけになります。後述)。</li>
+  <li><strong>GPU</strong>(第二画面の映像を使う時だけ) — H.264 は Windows Media Foundation でエンコードします(GPU のハードウェアエンコーダーが使えればそれを、無ければ Windows のソフトウェアエンコーダーを使います)。Direct3D 11 / 12 では絵が GPU から出ずにエンコードまで進みます。Vulkan は一度 CPU に読み戻すので遅くなります。H.264 を使えない環境(OpenGL、macOS / Linux、H.264 のエンコーダーが無い Windows)では、映像を JPEG で送ります。タッチ・Gamepad・ジャイロには GPU のエンコーダーは要りません。</li>
+  <li><strong>レンダーパイプライン</strong> — <strong>ビルトイン</strong> と <strong>URP</strong>(Universal Render Pipeline)。第二画面の映像はどちらでも同じように動き、設定は要りません。HDRP はまだ確かめていません。サンプルの 3D のマテリアルはビルトイン用です。URP のプロジェクトでは、サンプルが実行時にパイプラインの <em>Lit</em> シェーダーに切り替えるので、変換の作業は要りません。Player をビルドする時は、<em>Window → PadPlay → Prepare Samples for URP or HDRP</em> を 1 回実行してください(<em>Import All Samples</em> なら自動で行います。<a href="#12-samples">サンプル</a> を参照)。</li>
+  <li><strong>スマホ / タブレット</strong> — Android 7.0 以降で、別途 <strong>PadPlay</strong> アプリを入れたもの(手順 5)。iPhone 版のアプリは準備中です。ジャイロスコープは、ジャイロの機能(姿勢・Gyro Camera・Pose Camera・Remote Pointers)を使う時だけ要ります。</li>
+  <li><strong>ネットワーク</strong> — PC とスマホを <strong>同じ Wi-Fi / LAN</strong> につなぎます。通信は全部 1 つの <strong>UDP</strong> ポート(既定は 7780)を使います。インターネット越しの対戦は対象外です。</li>
+</ul>
+<h3 id="what-you-need-besides-unity">Unity のほかに要るもの</h3>
+<ul>
+  <li><strong>スマホの PadPlay アプリ</strong> — 遊ぶ人全員のスマホに、別途 <strong>PadPlay</strong> アプリが要ります。アプリは 1 つで、PadPlay を使ったどのゲームにもつながります。ゲームごとのアプリはありません。入れ方は <a href="#5-connect-the-phone">手順 5</a> にあります。</li>
+  <li><strong>同じ Wi-Fi</strong> — PC とスマホは <strong>同じ Wi-Fi / LAN</strong> につないでください。PadPlay はインターネットを通らず、インターネット接続も要りません。ゲスト用のネットワークや「AP の分離」(プライバシーセパレーター)が有効なルーターでは端末どうしがつながらないので、ふつうの家庭やオフィスのネットワークを使ってください。</li>
+  <li><strong>Windows ファイアウォール</strong> — 初めて再生した時に、Windows が Unity にネットワークの使用を許可するか聞いてきます。<strong>プライベート</strong> ネットワークで <strong>許可</strong> を選び、使う Wi-Fi をプライベート ネットワークにしてください。ビルドしたゲームは別のプログラムなので、もう一度聞かれます。<a href="#11-troubleshooting">トラブルシューティング</a> も見てください。</li>
+</ul>
+<h3 id="tested-setup">動作を確かめた環境</h3>
+<ul>
+  <li><strong>PC</strong> — Windows、NVIDIA の GPU(ハードウェアの H.264)、Direct3D 12</li>
+  <li><strong>Unity</strong> — 6000.6 で実機のスマホと。2022.3.62f3 と 6000.0.84f1 は同じ自動テスト(Edit Mode と Play Mode、Direct3D 11 での映像、サンプル)が通ります</li>
+  <li><strong>グラフィックス API</strong> — 実機のスマホとは Direct3D 12。同じ PC の自動テストで Direct3D 11・Vulkan・OpenGL Core(JPEG)</li>
+  <li><strong>レンダーパイプライン</strong> — ビルトイン。自動テストで URP 17.6(Unity 6000.6)と URP 14.0.12(2022.3.62f3)</li>
+  <li><strong>Windows のビルド</strong> — 2022.3.62f3(ビルトインと URP、Mono と IL2CPP)と 6000.6 の Player ビルドで、サンプルの QR コード・接続・映像</li>
+  <li><strong>Android</strong> — Android 10、Samsung Galaxy S9+(1 台)</li>
+  <li><strong>iPhone</strong> — この版ではまだ実機で試していません(アプリは自動のビルドでビルドでき、暗号のテストも通っています)</li>
+</ul>
+<p>ほかの GPU のハードウェアエンコーダー、Windows のソフトウェアエンコーダー、macOS / Linux のホスト、HDRP、ほかのスマホでも動く見込みですが、まだ確かめていません。</p>
+<h3 id="what-it-cannot-do-yet">まだできないこと</h3>
+<ul>
+  <li><strong>macOS / Linux のホスト</strong> — まだ H.264 のエンコーダーがないため、第二画面は JPEG で送ります(データが大きく、遅くなります)。動作は確かめていません。</li>
+  <li><strong>Web ブラウザからの参加</strong> — この版にはありません。遊ぶ人全員に PadPlay アプリが要ります。1.x の無料アップデートで足す予定です。</li>
+  <li><strong>インターネット越しの対戦</strong> — 同じ LAN の中だけです(中継サーバー・STUN / TURN はありません)。</li>
+  <li><strong>HDRP</strong> — まだ確かめていません。</li>
+  <li><strong><code>RenewToken()</code> の後の再接続</strong> — ふつうの参加より守りが弱くなります(鍵の交換をやり直さないため。手順 4 を参照)。この場合の鍵の交換は 1.x で足す予定です。</li>
+</ul>
+<h3 id="padplay-lite">PadPlay Lite</h3>
+<p>無料の <strong>PadPlay Lite</strong> は、有料版とまったく同じように動きますが、次の制限があります: <strong>1 人まで</strong>(<em>Max Players</em> の上限が 1)、<strong>第二画面の映像なし</strong>(<code>PadPlayView</code> と映像のエンコーダーは入っていません。<em>Video</em> のモジュールは注意書きを出すだけで何もしません)、サンプルは 2 つ(ミニゲーム <em>Target Pop</em> つきの <em>Sample Hub</em> と <em>Minimal</em>。ほかのサンプルは Hub に灰色のカードで出ます)、スマホのアプリのソースなし。このページのうち、映像・複数のプレイヤー・ほかのサンプルについての節は、有料版の <strong>PadPlay SDK</strong> だけに当てはまります。</p>
+<hr>
+<h2 id="2-import-the-package">2. パッケージをインポートする</h2>
+<p>PadPlay は Unity Asset Store から入れます。Unity ID で PadPlay SDK を購入した(または無料の PadPlay Lite を入手した)後:</p>
+<ol>
+  <li>プロジェクトを開き、同じ Unity ID で Unity エディタにサインインします。</li>
+  <li><em>Window → Package Manager</em>(ウィンドウ → パッケージマネージャー)を開き、<strong>My Assets</strong> を選びます(Unity 6 では左の一覧、Unity 2022.3 では左上の <em>Packages</em> のドロップダウンにあります)。</li>
+  <li><strong>PadPlay SDK</strong>(または <strong>PadPlay Lite</strong>)を選び、<strong>Download</strong> を押してから <strong>Import</strong> を押します。</li>
+  <li><em>Import Unity Package</em> の窓では全部にチェックを入れたまま <strong>Import</strong> を押します。</li>
+</ol>
+<p>パッケージは <code>Packages/dev.petaf.padplay</code> に入ります(埋め込みパッケージなので <code>Assets</code> の下には入りません。Package Manager ではどちらの版も*PadPlay* と表示されます。どちらの版かは Welcome の窓の見出しで分かります)。依存する Input System と uGUI がプロジェクトに無ければ、Unity が入れます。その後、<em>Window → PadPlay → Welcome</em> が開きます。</p>
+<p>PadPlay には Input System が要ります。<em>Active Input Handling</em> を <strong>Both</strong> か <strong>Input System Package (New)</strong> にしてください(<a href="#1-requirements">手順 1</a>)。プロジェクトが古い Input Manager だけを使っている場合(Unity 2022.3 で新しく作ったプロジェクトの既定)は、Welcome の窓に警告と<strong>Set to Both…</strong>(Both にする…)のボタンが出ます。押して Unity を再起動してください。<em>Both</em> なら Input Manager を使うコードもそのまま動きます。PadPlay Setup と Host の Inspector にも同じ警告とボタンが出ます。Unity が自分から Input System のバックエンドを有効にするか聞いてくることもあります(Unity 2022.3 では <strong>Yes</strong>、Unity 6 では <strong>Enable &amp; Restart</strong>)。その後も PadPlay の警告が出たままなら、<strong>Set to Both…</strong> を使ってください。</p>
+<p><strong>アップデート:</strong> 新しい版も同じ手順でダウンロードしてインポートします。前に入れたサンプルは <code>Assets/Samples</code> に残ります。新しい版のサンプルにするには、Welcome の窓の <strong>Import all available samples and open the Sample Hub</strong>(使えるサンプルを全部入れて Sample Hub を開く)を押してください(先に古い版のサンプルを片付けるか聞いてきます。下を参照)。</p>
+<p><strong>PadPlay Lite から PadPlay SDK へ:</strong> 同じプロジェクトに PadPlay SDK をインポートします。<em>Import Unity Package</em> の窓では全部にチェックを入れたままにしてください。パッケージの名前が同じなので Lite がその場で置き換わり、シーンと設定はそのまま残ります。Welcome の窓の見出しが <em>PadPlay SDK</em> になります。もう一度 <strong>Import all available samples and open the Sample Hub</strong> を押してください。サンプルは Lite と同じフォルダ(<code>Assets/Samples/PadPlay/&lt;版&gt;</code>)に入るので、Sample Hub と Minimal は有料版に置き換わり、ほかの 4 つのサンプルが足されます。前の版のサンプルが <code>Assets/Samples</code> に残っている場合(例えば <code>Assets/Samples/PadPlay Lite</code>)は、Welcome の窓がそれを一覧にし、<strong>Remove the old samples…</strong>(古いサンプルを片付ける…)を出します(先に確かめてから、ごみ箱に移します)。両方を残すと同じ名前のアセンブリが 2 つになり(<em>Assembly with name … already exists</em>)、Unity がコンパイルできなくなります。すでにそうなっていて Welcome の窓を使えない場合(例えばセーフモード)は、古いほうのフォルダ(例えば <code>Assets/Samples/PadPlay Lite</code>)を手で消せば、またコンパイルできるようになります。PadPlay SDK の上に PadPlay Lite をインポートすると、SDK のファイルは消えませんが Lite の制限がかかります。戻すには PadPlay SDK をもう一度インポートしてください。</p>
+<hr>
+<h2 id="3-add-a-padplayhost">3. PadPlayHost を置く</h2>
+<p><strong>1 クリックで:</strong> <em>GameObject → PadPlay → PadPlay Setup</em>(ゲームオブジェクト → PadPlay → PadPlay Setup)。次の物を、1 回の Undo で戻せるひとまとまりとして足します:</p>
+<ul>
+  <li><code>PadPlay</code> — <code>PadPlayHost</code>(足した後に選択されます)。<em>Buttons → Layout</em> に最初の <strong>ボタンのレイアウト</strong> が入っています: 左スティック・<strong>A</strong>(<code>buttonSouth</code>)・<strong>B</strong>(<code>buttonEast</code>)。スマホにこれが出て、<a href="#7-read-the-phone-as-a-gamepad">手順 7</a> のコードがすぐに動きます。変え方は <a href="#10-on-screen-buttons-and-haptics">手順 10</a> にあります。</li>
+  <li><code>PadPlay UI</code> — Screen Space – Overlay の Canvas(Sorting Order 100、Raycaster なしなのでタッチを受け止めません)。<strong>QR コード</strong>(<code>PadPlayQrView</code>、右下)とその下の案内(ゲームの名前と参加の URL)、<strong>プレイヤーの一覧</strong>(<code>PadPlayStatusView</code>、左上)が入っています。動かしても、大きさを変えても、消してもかまいません。</li>
+  <li><code>EventSystem</code> — シーンに無い時だけ。Input System の UI モジュールつきの EventSystem です。すでにある EventSystem はそのままにします。</li>
+</ul>
+<p>シーンにもう <code>PadPlayHost</code> がある時は何も足さず、今あるホストを選びます。</p>
+<p><strong>手で置く場合</strong>(結果は同じです):</p>
+<ol>
+  <li>空の GameObject を作ります(例えば <code>PadPlay</code>)。</li>
+  <li><em>Add Component → PadPlay → Host</em>(コンポーネントを追加 → PadPlay → Host)。</li>
+  <li>シーンで uGUI を使っているなら、いつもの <strong>EventSystem</strong> を残します(無ければ足します)。スマホのタッチはこれを通って届きます。</li>
+</ol>
+<p>Host に要る準備はこれだけです。<strong>Auto Start</strong> がオン(既定)なら、再生すると待ち受けを始めます。</p>
+<h3 id="the-host-inspector">Host の Inspector</h3>
+<p>Inspector は上から <strong>Players → Modules → Debug → Connection</strong> の順に並んでいます(再生中はその上に状態の行が出ます)。ゲームで使うモジュールにチェックを入れると、そのすぐ下にモジュールの設定が開きます。チェックを外したモジュールはたたまれて灰色になり、値はそのまま残ります。項目にマウスを重ねると、短い説明が出ます。</p>
+<p>ほとんどの値は <strong>再生中に</strong> 変えられ、すぐに効きます。触った感じを見ながら調整できます。ホストが始まる時にだけ読む項目は、再生中は灰色になり <em>(locked in Play mode)</em>(再生中は変更不可)と出ます。</p>
+<p><strong>Players</strong>(<code>Settings.Players</code>)</p>
+<ul>
+  <li><strong>Max Players</strong>(既定 4。再生中は変更不可) — 参加できるスマホの台数。</li>
+  <li><strong>Resume Hold Seconds</strong>(既定 60。再生中は変更不可) — 切れたスマホ(Wi-Fi が一瞬切れた・アプリが裏に回った)は、この時間内なら同じプレイヤー枠に戻れます。過ぎると <code>PlayerRemoved</code> が出ます。</li>
+  <li><strong>Accept New Players</strong>(既定 オン。再生中も変更可) — オフにすると、新しいスマホは「満員」として断ります。切れたプレイヤーは戻れます。<code>host.AcceptNewPlayers</code> と同じです。</li>
+  <li><strong>Calibrate Yaw On Connect</strong>(既定 オン。次の接続から) — 接続(再接続)した時に、プレイヤーが向いている方向を正面にします。</li>
+  <li><strong>Create Devices</strong>(既定 オン。次の接続から) — プレイヤーごとに Input System の <code>PadPlayPad</code>(Gamepad)を作ります。</li>
+</ul>
+<p><strong>Modules</strong>(<code>Settings.Modules</code>)— 見出しの横の <em>Preset</em>(プリセット)のメニュー(Host のコンテキストメニューにもあります)で、よく使う組み合わせを選べます:<em>Touch only</em>(タッチだけ)、<em>Gyro controller</em>(ジャイロのコントローラー: 姿勢 + ボタン)、<em>Second-screen controller</em>(第二画面つきコントローラー: 全部)。プリセットはチェックだけを変えます。</p>
+<p>オフにしたモジュールは、ホストが無視します。その入力は捨てられ(uGUI のイベントも、<code>TouchReceived</code> / <code>AttitudeReceived</code> /<code>ButtonsReceived</code> も出ず、パッドにも何も入りません)、そのモジュールのためには何も送りません(ボタン・振動・映像を送りません)。</p>
+<p><strong>Touch</strong>(タッチ。<code>Settings.Touch</code>)</p>
+<ul>
+  <li><strong>Drag Threshold Mode</strong>(既定 EventSystem) — 指がどれだけ動いたらドラッグを始めるか(ドラッグ開始距離)の決め方: <em>EventSystem</em>(マウスと同じ)、<em>Pixels</em>、<em>PhoneMillimeters</em>(どのスマホでも指の動きの量が同じ。スマホのピクセル比と画面の大きさから、プレイヤーごとに換算します)。</li>
+  <li><strong>Drag Threshold Mm / Px</strong>(既定 1.5 mm / 10 px) — 選んだ決め方での距離。スマホの大きさが分からない時は Px を使います。</li>
+  <li><strong>Raycast Only Player Screen</strong>(既定 オン) — プレイヤーのタッチは、そのプレイヤーの画面(カメラか表示する領域)にだけ当たります。</li>
+  <li><strong>Alpha threshold</strong> — シーンの全部の <code>PadPlayRaycaster</code> の <em>Alpha Threshold</em> への近道(透明なピクセルはタッチが抜けます)。</li>
+  <li><strong>Stale Timeout Seconds</strong>(既定 0) — この時間何も送ってこない指を離したことにします(0 = しない)。</li>
+  <li><strong>More: Send Ui Events, Click Speed Seconds, Player Targets</strong> — uGUI のイベントのオン・オフ、ダブルタップの間隔、プレイヤーごとにどの画面を触るか(手順 6)。</li>
+</ul>
+<p><strong>Attitude</strong>(姿勢。<code>Settings.Attitude</code>)</p>
+<ul>
+  <li><strong>Max Extrapolation Ms</strong>(既定 150) — Wi-Fi のパケットが遅れた時に、姿勢をどこまで先まで予測するか。</li>
+  <li><strong>Correction Ms</strong>(既定 50) — 予測のずれをどのくらいの速さでなじませるか(0 = すぐに飛ぶ)。</li>
+  <li><strong>Delay Buffer Ms</strong>(既定 0) — パケットの間を補間するための、わざと入れる遅れ(なめらかになりますが、遅れます)。</li>
+  <li><strong>Smoothing</strong>(既定 0) — <code>pad.attitude</code> に足す平滑化(0 = なし。大きいほど安定しますが遅れます)。</li>
+  <li><strong>Full Style</strong>(既定 KeepGravity) — <em>Full</em> の正面合わせで、正面をどう決めるか。</li>
+  <li><strong>Recenter Mode</strong>(既定 Yaw) — <em>Recenter</em> のボタンやスマホの隅の長押しで、正面をどう合わせ直すか(手順 8)。</li>
+  <li><strong>Allow Phone Recenter</strong>(既定 オン) — スマホの隅の長押しを受け付けます(手順 8)。オフにすると、ゲームのボタンとコードからだけになります。</li>
+</ul>
+<p><strong>Buttons</strong>(ボタン。<code>Settings.Buttons</code>)</p>
+<ul>
+  <li><strong>Layout</strong>(既定 なし) — 全部のスマホに出すボタン(手順 10)。<em>New</em> でスティック・A・B 入りのレイアウトのアセットを作ります。</li>
+  <li><strong>Allow Haptics</strong>(既定 オン) — オフにすると振動を送りません(振動中なら止まります)。</li>
+  <li><strong>Haptic Strength Scale</strong>(既定 1) — 全部の振動の強さに掛ける値。</li>
+  <li><strong>Haptic Refresh / Duration / Min Change</strong>(既定 100 ms / 150 ms / 0.05) — 振動をスマホへ送り直す方法(ふつうは変えなくて大丈夫です)。</li>
+</ul>
+<p><strong>Video</strong>(映像。<code>Settings.Video</code>)</p>
+<ul>
+  <li><strong>Codec</strong>(既定 Auto) — <em>Auto</em> = H.264。求めてきたスマホ(H.264 の復号が遅いもの)には JPEG、この PC に H.264 のエンコーダーが無ければ全員に JPEG を使います。<em>H264</em> / <em>Jpeg</em> はどちらかに固定します(H264 に固定しても、この PC に H.264 のエンコーダーが無ければ JPEG になります)。</li>
+  <li><strong>Adaptive Video / Min Kbps / Priority / Min Fps / Min Scale</strong>(既定 オン / 300 / Quality / 30 / 0.5) — Wi-Fi が悪くなるとビットレートを下げ、次にフレームレートか大きさを下げます。よくなるとゆっくり戻します。<em>Quality</em> は大きさを保ちます(フレームレートを先に下げます)。<em>Smoothness</em> はフレームレートを保ちます(大きさを先に下げます)。</li>
+  <li><strong>Total Max Kbps</strong>(既定 0) — 全部のスマホを合わせた上限。1 台あたりはこれをプレイヤーの数で割った値までになります(0 = 上限なし)。</li>
+  <li><strong>Jpeg Scale / Fps / Quality</strong>(既定 0.5 / 30 / 75) — JPEG にした時の設定: View の大きさに対する割合、フレームレート、最初の画質(20〜90。その後はビットレートに合わせます)。</li>
+  <li><strong>Pacing Mbps / Max Playout Frames / Use Ltr Recovery</strong>(既定 20 / 2 / オン) — 1 フレームの断片を送る速さ(0 = 一度に全部)。届き方のむらをならすためにスマホが待つ最大のフレーム数(0 = 待たない。むらがある間だけ待ちます)。失った映像をキーフレームではなく小さな復旧フレームで直すか。<strong>ホストが始まる時に読みます。</strong></li>
+  <li><strong>Prefer Readback</strong>(既定 オフ) — Direct3D 11 / 12 でも、毎フレーム CPU を通してコピーします(GPU の経路がうまく動かない時の回避策。遅くなります)。</li>
+  <li><strong>Views</strong> — シーンの全部の <code>PadPlayView</code> と、そのプレイヤー・大きさ・フレームレート・ビットレートの上限・<em>Match Phone Aspect</em>(手順 9)。1 つも無ければ <em>Create a camera and attach</em>(カメラを作って付ける)で足せます。</li>
+</ul>
+<p>モジュールの設定は、上で印を付けた Video の 3 つの値を除いて再生中に変えられます。Codec・Adaptive Video・JPEG の値は、プレイヤーの映像が始まる(始め直す)時に効きます。<strong>Video</strong> のオン・オフや View を変えると、そのプレイヤーの映像は始め直しになります(キーフレームから。接続とプレイヤー枠はそのままです)。</p>
+<p><strong>Debug</strong>(たたまれています)— スマホごとの Display 2 / 3 のプレビュー(<code>Settings.Preview</code>)、<strong>Open Debugger</strong>(デバッガーを開く)、<strong>Add Debug Overlay</strong>(デバッグ表示を追加)。<a href="/padplay/docs/ja/debugging/">デバッグ</a> を見てください。</p>
+<p><strong>Connection</strong>(たたまれています。ふつうは変えません)</p>
+<ul>
+  <li><strong>Port</strong>(既定 7780。再生中は変更不可) — 全部(参加・入力・映像)に使う UDP ポート。使われていれば次の空いているポートを使い、それを QR に入れます。</li>
+  <li><strong>Game Name</strong>(既定 <em>製品名</em>。再生中は変更不可) — スマホに出す名前。</li>
+  <li><strong>Host Addresses</strong>(既定 <em>自動</em>。再生中は変更不可) — QR に入れる IP アドレス。PC にネットワーク アダプターが複数ある時に設定します。</li>
+  <li><strong>Loopback Only</strong>(既定 オフ。再生中は変更不可) — 127.0.0.1 だけで待ち受けます(テスト用)。</li>
+  <li><strong>Verbose Log</strong>(既定 オフ。再生中も変更可) — 接続の流れと参加の URL を Console に出します。初めて試す時に便利です。</li>
+  <li><strong>Display Language</strong>(既定 Auto。再生中も変更可) — 遊ぶ人が見る文字(QR の下の案内、Status View)の言語。Auto = OS が日本語なら日本語、それ以外は英語。</li>
+</ul>
+<p>エディタの窓と Inspector の説明は日本語でも出せます。Welcome の窓の右上か <em>Preferences → PadPlay</em> で <em>Auto</em> / <em>English</em> / <em>日本語</em> を選んでください(日本語の用語: <a href="/padplay/docs/glossary-ja/">Glossary-ja</a>)。</p>
+<p>コードからは同じ値が <code>host.Settings</code> の下にあります。例えば <code>host.Settings.Players.MaxPlayers</code>、<code>host.Settings.SetEnabled(PadPlayModules.Touch, false)</code>、<code>host.Settings.ApplyPreset(PadPlayModulePreset.TouchOnly)</code> です。古い版の SDK で保存したシーンは、読み込んだ時に新しい形に直ります(値が新しい場所に移ります)。</p>
+<p>プレイヤーの番号は <strong>0 から始まる枠</strong> です(<code>PlayerSlot</code> 0 が画面の「P1」)。</p>
+<hr>
+<h2 id="4-show-the-qr-code">4. QR コードを出す</h2>
+<p><em>PadPlay Setup</em>(手順 3)を使ったなら、もうできています。手で置く場合:</p>
+<ol>
+  <li><em>GameObject → UI → Raw Image</em>(どの Canvas でもかまいません)。</li>
+  <li>Raw Image に <em>Add Component → PadPlay → QR View</em>。</li>
+  <li>必要なら、<em>Caption</em> に <strong>Text</strong> か <strong>TextMeshPro - Text (UI)</strong> を入れると、コードの下にゲームの名前が出ます(<em>Show Uri</em> で参加の URL も出ます。長いので、遊ぶ人は打ち込まずに貼り付けて使います)。</li>
+</ol>
+<p>QR View はシーンの Host を見つけ、参加の URL が変わるたびに描き直し、Host が止まっている間は隠れます。つながっているプレイヤーの一覧を画面に出すには、Text か TextMeshPro のテキストに <em>PadPlay → Status View</em> を付けます。</p>
+<p><strong>TextMeshPro</strong> は、PadPlay が文字を書く・読む所(QR View の <em>Caption</em>、Status View、Phone Overlay)のどこでも、設定なしで使えます。プロジェクトに TextMeshPro があれば自動で有効になります(Unity 6 では uGUI 2.x に入っています。Unity 2022.3 では <code>com.unity.textmeshpro</code>)。日本語の案内を出す時は、日本語の文字を含むフォントアセットを TMP のテキストに設定してください。</p>
+<p>QR コードには、PC のアドレス・UDP ポート・トークン・毎回新しい鍵が入っています。鍵はネットワークを流れません。スマホはこの鍵で送受信するものを全部暗号化・認証するので、同じ Wi-Fi のほかの端末は入力や映像を読むことも偽ることもできません。鍵はホストが始まるたびに変わります。暗号化を切る設定はありません。</p>
+<p>今の QR コードを無効にするには(例えば試合と試合の間に)、<code>RenewToken()</code> を呼びます。新しいトークンと鍵を作ります。参加済みのスマホはつながったままです。参加済みのスマホが作り直しの直後に Wi-Fi が切れた場合は、<code>host.NetworkSettings.RenewGraceMs</code>(既定 60 秒、0 = オフ)の間なら古いコードで自分の枠に戻れます。戻る時は参加した時に受け取った秘密の値で本人であることを示すので、新しいスマホにはいつも新しい QR コードが要ります。この戻り方は、鍵の交換をやり直さず、古いコードの鍵とその秘密の値で守っているので、ふつうの参加より守りが弱くなります(分かっている制限で、1.x で直す予定です)。誰かを締め出すためにコードを作り直す時は、<code>RenewGraceMs</code> を 0 にしてください。</p>
+<pre><code class="language-csharp">using PadPlay;
+using UnityEngine;
+
+public class Lobby : MonoBehaviour
+{
+    [SerializeField] PadPlayHost host;
+
+    void OnEnable()
+    {
+        host.PlayerReady += OnReady;
+        host.PlayerLeft += OnLeft;
+        host.PlayerRemoved += OnRemoved;
+    }
+
+    void OnDisable()
+    {
+        // Unsubscribe, so a destroyed Lobby is not called (and, with Keep Across Scenes, not kept alive).
+        host.PlayerReady -= OnReady;
+        host.PlayerLeft -= OnLeft;
+        host.PlayerRemoved -= OnRemoved;
+    }
+
+    void OnReady(PadPlayPlayer p) =&gt; Debug.Log($"P{p.PlayerSlot + 1} ready: {p.Device.Model} (resumed: {p.Resumed})");
+    void OnLeft(PadPlayPlayerLeft left) =&gt; Debug.Log($"P{left.PlayerSlot + 1} left ({left.Reason}), may come back");
+    void OnRemoved(PadPlayPlayerRemoved removed) =&gt; Debug.Log($"P{removed.PlayerSlot + 1} is gone ({removed.Reason})");
+
+    public void NewQrCode() =&gt; host.RenewToken();
+
+    public void StartMatch() =&gt; host.AcceptNewPlayers = false;   // players who drop can still come back
+}</code></pre>
+<hr>
+<h2 id="5-connect-the-phone">5. スマホをつなぐ</h2>
+<ol>
+  <li>スマホに <strong>PadPlay</strong> アプリを入れます(下の「アプリの入れ方」を参照)。</li>
+  <li>Unity で <strong>再生</strong> します。</li>
+  <li>初めての時は、Windows が Unity にネットワークの使用を許可するか聞いてくることがあります。<strong>許可</strong>(プライベート ネットワーク)を選んでください。</li>
+  <li>アプリで QR コードを読み、つなぐボタンをタップします。(カメラが使えない時は、デバッガーの <em>Join URI</em>(参加 URI)の横の <em>Copy</em>(コピー)で参加の URL をコピーし、アプリに貼り付けます。)<em>(アプリはスマホの言語に合わせて表示します。つなぐボタンは日本語では「つなぐ」、英語では "Connect" です。)</em></li>
+</ol>
+<h3 id="getting-the-app">アプリの入れ方</h3>
+<p>遊ぶ人はそれぞれ、無料の <strong>PadPlay</strong> アプリを <a href="https://play.google.com/store/apps/details?id=com.petaf.padplay">Google Play</a> から入れます(Android 7.0 以上)。iPhone 版は準備中です。アプリは 1 つで、PadPlay を使ったどのゲームにもつながります。PadPlay SDK と PadPlay Lite のどちらでも同じです。</p>
+<p><strong>自分のアプリ(PadPlay SDK のみ)。</strong> PadPlay SDK にはアプリのソースも入っています:<code>Packages/dev.petaf.padplay/PhoneApp~/PadPlayPhoneApp-…-source.zip</code>(このフォルダは Unity の Project ウィンドウには出ません。エクスプローラーで開いてください)。Unity のプロジェクトの外に展開して Flutter でビルドするか(手順は zip の中の <code>client/README.md</code> にあります)、自分の名前・アプリ ID・アイコン・色で公開できます(<code>WHITE_LABEL.md</code>)。PadPlay Lite にはソースは入っていません。</p>
+<p>手元にスマホが無い時は、<em>Window → PadPlay → Virtual Phones</em>(仮想スマホ)でエディタの中の仮想のスマホをつなげます。</p>
+<h3 id="connected">つながったら</h3>
+<p>スマホが受け入れられてプレイヤー枠が決まると <code>PlayerJoined</code> が出ます。その直後、入力が流れ始めた時に <code>PlayerReady</code> が出ます(参加 1 回につき 1 回)。いつまでも準備完了にならない時は <a href="#11-troubleshooting">トラブルシューティング</a> を見てください。</p>
+<p>プレイヤー枠は、次の状態を順にたどります(<code>host.GetPlayerState(slot)</code>):</p>
+<ul>
+  <li><code>Connecting</code>(<code>PlayerJoined</code> で入る) — 枠は決まったが、まだ入力が流れていない。同じスマホが戻ってきた時は <code>PlayerJoined.Resumed</code> が true です。</li>
+  <li><code>Ready</code>(<code>PlayerReady</code> で入る) — 入力が届いている。<code>GetPad(slot)</code> はもうそのプレイヤーのパッドを返します。</li>
+  <li><code>Reconnecting</code>(<code>PlayerLeft</code> で入る) — スマホが切れた。枠とパッドは <em>Resume Hold Seconds</em> の間、取っておきます。</li>
+  <li><code>Gone</code>(<code>PlayerRemoved</code> で入る) — 枠はもう空いた(<code>bye</code>・<code>stopped</code>・<code>expired</code>)。パッドはすでに消えています。プレイヤーのキャラクターはここで消してください。</li>
+</ul>
+<p>アプリを閉じてもう一度開いた場合も、スマホは前の枠に戻れます(アプリが端末の ID を覚えているため)。ただし <em>Resume Hold Seconds</em> の間に戻り、自分から切断していない場合に限ります。</p>
+<p><code>host.AcceptNewPlayers = false</code> にすると、切れたプレイヤーは戻れるまま、新しいスマホを断ります(スマホには「満員」と出ます)。<code>host.ScreenRotationChanged</code> / <code>host.GetScreenRotation(slot)</code> で、プレイヤーがスマホを横に向けたことが分かります。</p>
+<hr>
+<h2 id="6-touch-arrives-as-normal-ugui-events">6. タッチはふつうの uGUI のイベントで届く</h2>
+<p>UI のコードは変えなくてかまいません。スマホのタッチは、標準の <code>OnPointerDown</code>・<code>OnDrag</code>・<code>OnPointerClick</code> などのイベントになるので、<strong>Button・Slider・ScrollRect や自分で書いたハンドラーがそのまま動きます</strong>。同時にマウスも使えるので、デバッグにも困りません。</p>
+<p><em>誰が</em> 触ったかを知りたい時だけ、<code>PadPlayPointerEventData</code> かどうかを見ます:</p>
+<pre><code class="language-csharp">using PadPlay;
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+public class WhoTouchedMe : MonoBehaviour, IPointerDownHandler
+{
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if (eventData is PadPlayPointerEventData phone)
+            Debug.Log($"P{phone.PlayerSlot + 1}, finger {phone.FingerId}, at {phone.PhonePosition} on the phone");
+        else
+            Debug.Log("mouse / local touch");
+    }
+}</code></pre>
+<p>既定では、スマホは Display 1 の全体を触ります。プレイヤーごとに自分の画面を持たせるには(画面の分割、2 つ目のディスプレイ、RenderTexture に描くカメラ)、プレイヤーにカメラを割り当てます:</p>
+<pre><code class="language-csharp">host.Touch.SetPlayerTarget(playerSlot: 1, camera: player2Camera);</code></pre>
+<p>Host の Inspector の <em>Touch → More → Player Targets</em> に入れてもかまいません。そうすると、タッチはそのプレイヤーのカメラ(その Canvas と、カメラに <code>PhysicsRaycaster</code> があれば 3D のオブジェクト)にだけ当たり判定をします。<code>PhonePosition</code> はスマホの画面での指の位置(0〜1、<strong>y = 0 が上</strong>)、<code>position</code> は対象の画面でのいつものピクセルの位置です。</p>
+<p><strong>画像の透明な部分:</strong> スプライトの透明なピクセルをタッチが抜けるようにするには、Canvas の <code>GraphicRaycaster</code> を*PadPlay → Raycaster* に替え、スプライトのテクスチャの <strong>Read/Write</strong> を有効にします(トラブルシューティングを参照)。マウスでも同じように効きます。</p>
+<hr>
+<h2 id="7-read-the-phone-as-a-gamepad">7. スマホを Gamepad として読む</h2>
+<p>準備完了になったスマホは、どれも Input System の <code>PadPlayPad</code> デバイスになります。<code>PadPlayPad</code> は <strong><code>Gamepad</code> そのもの</strong> なので、<code>&lt;Gamepad&gt;/buttonSouth</code> や <code>&lt;Gamepad&gt;/leftStick</code> のような今のバインド、<code>Gamepad.all</code>、<code>PlayerInput</code> がそのまま動きます。Gamepad に加えて、次のものがあります:</p>
+<ul>
+  <li><strong>attitude</strong> — <code>&lt;PadPlayPad&gt;/attitude</code>: Quaternion(Unity の左手系、校正後)</li>
+  <li><strong>angularVelocity</strong> — <code>&lt;PadPlayPad&gt;/angularVelocity</code>: Vector3、rad/s</li>
+  <li><strong>custom14 … custom31</strong> — <code>&lt;PadPlayPad&gt;/custom20</code>: Button(ゲームが決めるボタン。手順 10)</li>
+  <li><strong>playerSlot</strong> — <code>&lt;PadPlayPad&gt;/playerSlot</code>: Integer(C# からは <code>pad.PlayerSlot</code>)</li>
+  <li><strong>recenter</strong> — <code>&lt;PadPlayPad&gt;/recenter</code>: Button: プレイヤーが正面を合わせ直したいと求めた(手順 8)。SDK はもう自分で正面合わせを済ませています</li>
+</ul>
+<p>C# から直接読む例:</p>
+<pre><code class="language-csharp">using PadPlay;
+using UnityEngine;
+
+public class PadReader : MonoBehaviour
+{
+    [SerializeField] PadPlayHost host;
+
+    void Update()
+    {
+        PadPlayPad pad = host.GetPad(0);          // P1, or null if not connected
+        if (pad == null || !pad.IsConnected)
+            return;
+
+        if (pad.buttonSouth.wasPressedThisFrame)
+            Debug.Log("A pressed");
+        Vector2 move = pad.leftStick.ReadValue();
+        Quaternion attitude = pad.attitude.ReadValue();
+        transform.rotation = attitude;
+    }
+}</code></pre>
+<p>補足:</p>
+<ul>
+  <li>スマホにボタンとスティックが出るのは、<strong>ホストにレイアウトがある時だけ</strong> です(手順 10)。<em>PadPlay Setup</em> で置いたホストには最初のレイアウト(左スティック・A・B)が入っています。手で足したホストには無いので、レイアウトを入れるまで Gamepad のボタンは離したままです。</li>
+  <li>スマホが再接続を待っている間も、デバイスは残します(<code>IsConnected == false</code>、ボタンは離した状態、姿勢は止まったまま)。そのため、Wi-Fi が一瞬切れても <code>PlayerInput</code> の組み合わせは崩れません。デバイスは <code>PlayerRemoved</code> の直前に消えます。</li>
+  <li>姿勢は、スマホを縦向きにまっすぐ立て、画面を自分に向けた時に単位回転(identity)です。接続した時に SDK が向き(ヨー)を合わせ、「プレイヤーが今向いている方向」を正面にします。後で正面を合わせ直すには <code>host.Recenter(slot)</code> か <code>pad.Recenter()</code> を使います(手順 8)。</li>
+</ul>
+<hr>
+<h2 id="8-gyro-camera-and-pointer">8. ジャイロのカメラとポインター</h2>
+<p>よくある使い方なら、姿勢を自分で読む必要はありません。</p>
+<p><strong>Gyro Camera</strong> — Camera(かその親)に <em>PadPlay → Gyro Camera</em> を付け、<strong>Player Slot</strong> を設定します。付けた時の回転が「正面」になります。モード(<em>Settings → Mode</em>。再生中も変えられます):</p>
+<ul>
+  <li><strong>Window</strong> — スマホがシーンをのぞく窓になります。スマホを回すと、見える向きも一緒に回ります。</li>
+  <li><strong>LookAround</strong> — ヨーとピッチだけでロールはしません。感度とピッチの範囲を調整できます。</li>
+  <li><strong>Tilt</strong> — スマホを傾けると、その分の速さでカメラが回ります(スティックのような操作)。キャラクターを動かすための <code>Tilt</code>(−1〜1)も読めます。</li>
+</ul>
+<pre><code class="language-csharp">var gyroCamera = GetComponent&lt;PadPlayGyroCamera&gt;();
+gyroCamera.Mode = PadPlayGyroMode.LookAround;
+Vector2 tilt = gyroCamera.Tilt;</code></pre>
+<p><strong>Gyro Pointer</strong> — <em>PadPlay → Gyro Pointer</em> でスマホがレーザーポインターになります:<code>ViewportPosition</code>(ビューポートの座標: <strong>y = 0 が下</strong>、真ん中が 0.5, 0.5)、<code>GetScreenPosition()</code>、<code>GetRay(camera)</code>、それと、ポインターについて動く <strong>Reticle</strong>(<code>RectTransform</code>。任意)があります。</p>
+<p>名前の付け方: 部品は <em>Gyro</em>(付ける物)、データは <em>attitude</em>(姿勢。<code>AttitudeReceived</code>・<code>pad.attitude</code>・<code>Attitude</code> のモジュール)と呼んでいます。</p>
+<p>調整する値(感度・平滑化・デッドゾーン・正面合わせのなじませ時間)は全部 <em>Settings</em> にあり、再生中に変えられます。</p>
+<h3 id="re-centering-make-this-direction-forward">正面合わせ(「今の向きを正面にする」)</h3>
+<p><strong>なぜ要るのか。</strong> スマホはジャイロと加速度センサーを組み合わせて向きを出しています(Android の Game Rotation Vector、iOS の Core Motion)。重力があるのでピッチとロールは正しく保たれますが、<strong>向き(ヨー)</strong> を固定するものが無いため、遊んでいるうちに数分かけて「正面」が少しずつずれます(磁石の近くや、素早く回した後はもっと速くずれます)。アプリを起動し直すと、スマホのヨーの基準も変わります。</p>
+<p>正面合わせは、そのプレイヤーの正面を <strong>全部まとめて</strong> 合わせ直します。その <code>PadPlayPad</code> の姿勢と、そのプレイヤーを読んでいる全部の Gyro Camera /Gyro Pointer です(それぞれ自分の <em>Recenter Blend Ms</em> でなじませるので、画面は飛びません)。ほかのプレイヤーには影響しません。<code>Recenter Mode</code> が <em>Yaw</em>(既定)なら重力を保ちます(地平線は水平のまま)。<em>Full</em> なら今の姿勢全体を正面にします。</p>
+<p>プレイヤーに正面合わせのボタンを用意する方法は 3 つあります。どれか 1 つを選んでください:</p>
+<ol>
+  <li><strong>コードなし: 役割つきのレイアウトのボタン。</strong> ボタンのレイアウトのアセットで、要素の <strong>Role</strong> を <em>Recenter</em> にします(例えば "Recenter" と書いた Select ボタン)。押すとそのプレイヤーの正面合わせをします。ボタンはふつうのボタンとしてもゲームに届きます。</li>
+  <li><strong>コード 1 行。</strong> 例えばポーズメニューから:
+<pre><code class="language-csharp">host.Recenter(playerSlot);                       // Yaw; or host.Recenter(slot, AttitudeCalibrationMode.Full)
+host.RecenterAll();                              // everyone
+pad.Recenter();                                  // same as host.Recenter(pad.PlayerSlot)</code></pre></li>
+  <li><strong>自分の InputAction:</strong> <code>&lt;PadPlayPad&gt;/recenter</code> をバインドします。<em>Recenter</em> の役割のボタンを押している間と、プレイヤーがスマホの隅を長押しした時の1 回の更新の間、押された状態になります。効果音やヒントを出すなど、反応するのに使ってください。正面合わせ自体は SDK がもう済ませています。</li>
+</ol>
+<p><strong>スマホ側の予備の手段。</strong> ボタンが 1 つも無くても、プレイヤーは <strong>スマホの画面の左上の隅を 1 秒長押し</strong> すれば正面合わせができます(薄い十字の印が目印です)。スマホは <code>recenter</code> の要求を送ります。ゲームで許したくない時は <em>Attitude → Allow Phone Recenter</em> をオフにしてください。</p>
+<p><strong>イベント。</strong> <code>host.Recentered</code> で、誰がなぜ正面を合わせたか(<code>Reason</code>: Code・Button・LongPress・Connect)が分かります:</p>
+<pre><code class="language-csharp">host.Recentered += r =&gt; Debug.Log($"P{r.PlayerSlot + 1} recentered by {r.Reason}");</code></pre>
+<p><code>gyroCamera.ResetForward()</code> は今も使えますが、正面合わせをするのは <strong>その部品だけ</strong> です。Gyro の部品の古い <em>Calibrate With Button</em>(Select)のオプションは、今は既定でオフです。代わりに <em>Recenter</em> の役割のボタンを使ってください。</p>
+<hr>
+<h2 id="9-second-screen-video">9. 第二画面(映像)</h2>
+<p>スマホに絵を出す(コントローラーの第二画面)には、どれかの GameObject に <em>PadPlay → View</em> を付けます(または、Host の Inspector の <strong>Video</strong> のモジュールで <em>Create a camera and attach</em> を押します)。Video のモジュールにはチェックが入っている必要があります(既定で入っています):</p>
+<ul>
+  <li><strong>Source Camera</strong>: 出力をスマホにだけ送るカメラ(RenderTexture は SDK が作ります)。<strong>または</strong><strong>Source Texture</strong>: 自分で描く RenderTexture。</li>
+  <li><strong>Player Slot</strong>: 誰に見せるか(<code>-1</code> = 全員に同じ絵)。</li>
+  <li>Width / Height(既定 1280 × 720)、Frame Rate(60)、Max Bitrate Kbps(0 = 2500)。Wi-Fi が悪くなると、ホストはここからビットレート・フレームレート・大きさを下げます(<em>Video → Adaptive Video</em>)。</li>
+  <li><strong>Use As Touch Target</strong>(オン): そのプレイヤーのタッチがこのカメラの絵に当たるので、スマホで絵をタップすると、そこに映っている UI やオブジェクトに当たります。</li>
+</ul>
+<p>誰も見ていない間はソースのカメラを止めるので、負荷はかかりません。</p>
+<p><strong>絵の送り方。</strong> 既定は H.264 で、Windows Media Foundation を通します(GPU のハードウェアエンコーダーが使えればそれを使います)。経路はグラフィックス API で決まります。Direct3D 11 と 12 は絵を GPU から出さずにエンコーダーへ渡します。Vulkan は CPU を通してコピーします(1 フレームほど遅れます)。OpenGL・macOS・Linux には H.264 の経路が無いので、JPEG で送ります。H.264 の復号が遅いと分かったスマホは、自分から JPEG を求めます(<em>Codec = Auto</em>)。失った断片は前方誤り訂正(FEC)で直し、それで直せない分は小さな復旧フレーム(エンコーダーが対応していれば。<em>Use Ltr Recovery</em>)か、キーフレームで直します。<code>host.VideoStatus</code> で、使っている経路とエンコーダー、または H.264 を使えない理由が分かります。<code>host.GetVideoChoice(slot, out choice)</code> で、プレイヤーが H.264 と JPEG のどちらを受けているか、その理由が分かります。</p>
+<p><strong>レンダーパイプライン。</strong> 絵は、全部のカメラが描き終わった後に取るので、ほかのカメラが同じテクスチャに描いた重ねの表示も入ります。ビルトインのレンダーパイプラインでは隠したカメラがこれを行い、URP(とほかの Scriptable Render Pipeline)ではフレームの描画の最後(<code>RenderPipelineManager.endContextRendering</code>)に行います。どちらも設定は要りません。URP では <em>Source Camera</em> は <strong>Base</strong> のカメラにしてください。Overlay のカメラは、Base のカメラのスタックの一部としてしか描かれません。</p>
+<hr>
+<h2 id="10-on-screen-buttons-and-haptics">10. 画面のボタンと振動</h2>
+<h3 id="button-layout">ボタンのレイアウト</h3>
+<ol>
+  <li><em>Assets → Create → PadPlay → Button Layout</em>(アセット → 作成 → PadPlay → Button Layout)。</li>
+  <li><strong>Elements</strong> を足します。要素はそれぞれ <strong>Id</strong>(<code>South</code>、<code>East</code>、…、<code>DpadUp</code>、<code>Select</code>、<code>Custom14</code>〜<code>Custom31</code>、<code>LeftStick</code>、<code>RightStick</code>)、<strong>Shape</strong>(Circle / Rect。スティックはいつもスティックの形)、<strong>Center</strong> と <strong>Size</strong>、<strong>Label</strong>、<strong>Opacity</strong>、必要なら <strong>Group</strong>、それと <strong>Role</strong> を持ちます。Center と Size は、スマホの映像の領域に対する割合で、<strong>(0, 0) が左上</strong> です。そのプレイヤーに映像が無い時は、<strong>スマホの画面全体</strong>(セーフエリアの内側)に対する割合です。<strong>Orientation</strong>(レイアウトの設定)で、そのレイアウトを出している間のスマホの持ち方を選びます: <em>Landscape</em>(横向き。既定)、<em>Portrait</em>(縦向きに固定。例えば映像なしの片手のリモコン)、<em>Auto</em>(固定しない)。古いスマホのアプリは、どのレイアウトも横向きで出します。同じ Group のボタン(例えば十字キーや ABXY)は、指を滑らせて隣のボタンに移れます。Role を <em>Recenter</em> にすると、そのボタンを押した時に SDK がそのプレイヤーの正面を合わせ直します(手順 8)。<em>None</em>(既定)なら何もしません。</li>
+  <li>アセットを Host に入れます: Host の Inspector の <em>Buttons → Layout</em>(全員)、またはプレイヤーごとに <code>SetLayout</code> で。<em>PadPlay Setup</em> で置いたホストには、最初から同梱の <code>PadPlayDefaultLayout</code>(左スティック・A・B)が入っています。欄の横の <strong>New</strong> を押すと、編集できる写しが <code>Assets</code> に保存されます(同梱のほうは PadPlay を更新すると置き換わります)。</li>
+</ol>
+<p>再生中にアセットを編集すると、次のフレームでスマホに反映されます。触った感じを見ながら位置を調整できます。</p>
+<pre><code class="language-csharp">using PadPlay;
+using UnityEngine;
+
+var layout = PadPlayButtonLayout.Create(
+    new PadPlayButtonLayout.Element(PadPlayButtonId.LeftStick, PadPlayButtonShape.Circle,
+        new Vector2(0.15f, 0.7f), new Vector2(0.25f, 0.45f)),
+    new PadPlayButtonLayout.Element(PadPlayButtonId.South, PadPlayButtonShape.Circle,
+        new Vector2(0.85f, 0.75f), new Vector2(0.1f, 0.18f), "A"),
+    new PadPlayButtonLayout.Element(PadPlayButtonId.Custom20, PadPlayButtonShape.Rect,
+        new Vector2(0.5f, 0.9f), new Vector2(0.2f, 0.1f), "Map"));
+
+host.SetLayout(0, layout);       // P1 only; null = back to Settings.Buttons.Layout
+// After changing layout.Elements from code, call layout.MarkChanged().</code></pre>
+<p>スマホのアプリは、どのボタンも少し押しやすくしています。ボタンの外側 2.5 mm までは押したことになり(一番近いボタンが優先)、押したボタンは光って短く振動します。これはアプリ側の設定で、ゲームからは変えられません。</p>
+<p>短いタップも取りこぼしません。ボタンの変化は確実に届く経路でも送り、同じフレームに届いた「押した」と「離した」は 2 フレームに分けるので、<code>wasPressedThisFrame</code> はどの押下も拾えます。</p>
+<p>Id の 0〜13 は、同じ名前の Gamepad のボタンに対応します。どの Id も <code>pad.GetButton(PadPlayButtonId.Custom20).isPressed</code>(または <code>pad.GetButton(20)</code>)で読め、ゲームが決める Id は <code>&lt;PadPlayPad&gt;/custom20</code> のようにバインドできます。</p>
+<h3 id="button-looks">ボタンの見た目</h3>
+<p>要素はそれぞれ <strong>Style</strong> を持ちます(要素の下で開きます)。空のままなら、スマホはいつもの見た目で描きます。変える時は:</p>
+<ul>
+  <li><strong>Image</strong> — ボタンの画像(スティックは台)。ボタンいっぱいに引き伸ばして描きます。<strong>Pressed Image</strong> — 押している間の画像(ボタンだけ。空 = Image のまわりに押した光)。<strong>Knob Image</strong> — スティックのつまみ(スティックだけ)。</li>
+  <li><strong>Custom Colors</strong> — いつもの白と琥珀色の代わりに、<em>Color</em>(塗り。スティックは台)・<em>Pressed Color</em>・<em>Border Color</em>・<em>Label Color</em> を使います。値はいつもの見た目から始まるので、チェックを入れて変えたい所だけ変えてください。アルファは <em>Opacity</em> と掛け合わせます。</li>
+  <li><strong>Custom Sizes</strong> — <em>Border Width</em>・<em>Corner Radius</em>(Rect のボタン)・<em>Label Size</em> を、要素の短い辺に対する割合で決めます。<em>Label Size</em> を 0 にすると文字を描きません(画像に文字が入っている時)。</li>
+</ul>
+<p>画像がスマホに届くまで:</p>
+<ul>
+  <li>取り込んだ Texture2D なら何でも使えます。レイアウトを送る時に、PC が画像を PNG にします。取り込みの設定で <em>Read/Write</em> がオンならCPU で読み、オフなら GPU を通して写します。くっきりさせたい時は <em>Compression</em> を <em>None</em> にしてください。</li>
+  <li>スマホは長い辺 1024 px までで描くので、それより大きい画像は送る前に縮めます。PNG にしてまだ 256 KB を超える画像は、収まるまで半分にします(警告が出ます)。1 つのレイアウトで使える画像は 64 枚・合計 2 MB までです。超えた分は送らず(警告が出ます)、そのボタンは色で描きます。</li>
+  <li>スマホはつないだ時に、まだ持っていない画像だけを頼み、受け取った画像を覚えます(ゲームごと、アプリのキャッシュに)。次からはすぐ画像で出て、もう送りません。届くまでの間(およそ 100 KB/秒。入力と並んで流れ、入力を待たせません)は、そのボタンを色で描きます。</li>
+  <li>透明はそのまま使えるので、角が透明な丸い画像は丸く見えます。古いスマホのアプリは Style を読まず、いつもの見た目で出します。</li>
+  <li>仮想スマホもスマホと同じやり方で画像を受け取ります。Game ビューのプレイヤーのプレビュー(<em>Settings → Preview</em>)にも出ます。</li>
+  <li>再生中に Inspector で Style を変えるとレイアウトを送り直します。コードでテクスチャの画素を変えた後は <code>layout.MarkChanged()</code> を呼んでください。</li>
+</ul>
+<pre><code class="language-csharp">var crystal = new PadPlayButtonStyle { Image = zoomTexture, PressedImage = zoomPressedTexture };
+var plank = new PadPlayButtonStyle { Image = woodTexture, CustomColors = true, LabelColor = new Color(1f, 0.95f, 0.84f) };
+var layout = PadPlayButtonLayout.Create(
+    new PadPlayButtonLayout.Element(PadPlayButtonId.South, PadPlayButtonShape.Circle,
+        new Vector2(0.88f, 0.76f), new Vector2(0.17f, 0.3f), style: crystal),
+    new PadPlayButtonLayout.Element(PadPlayButtonId.Select, PadPlayButtonShape.Rect,
+        new Vector2(0.13f, 0.88f), new Vector2(0.2f, 0.14f), "Recenter", role: PadPlayButtonRole.Recenter, style: plank));</code></pre>
+<p>サンプルの <a href="#floating-island-aim-on-the-screen-look-through-the-phone">Floating Island</a> がこのとおりに使っています(<code>Layouts/FloatingIslandButtons</code>、画像は <code>Textures/FloatingIsland</code>)。<strong>Minimal</strong> のサンプルは同じことをコードなしで見せています:配置のファイル <code>Layouts/MinimalButtons</code> だけで <strong>A</strong> に 2 枚の画像(<code>Textures/Minimal</code>)、<strong>スティック</strong> に専用の色を付けていて、<code>MinimalPad.cs</code> はいつもどおり読むだけです(<code>buttonSouth</code>・<code>leftStick</code>)。</p>
+<h3 id="haptics">振動</h3>
+<p><code>PadPlayPad</code> は Gamepad の振動(rumble)の API を実装していて、スマホの振動モーターに伝えます:</p>
+<pre><code class="language-csharp">pad.SetMotorSpeeds(0.6f, 0.6f);   // strength = max(low, high); phones have one motor
+pad.SetMotorSpeeds(0f, 0f);       // stop</code></pre>
+<p><code>PauseHaptics</code>・<code>ResumeHaptics</code>・<code>ResetHaptics</code>・<code>InputSystem.ResetHaptics()</code> もいつもどおり使えます。振動は 0 にするまで続きます(Host が止まると、少し後に自然に止まります)。</p>
+<p>Input System を使わない場合(または <em>Players → Create Devices</em> がオフの場合)は、Host を使います:</p>
+<pre><code class="language-csharp">host.SetHaptics(playerSlot: 0, strength: 0.6f);   // same throttling as SetMotorSpeeds
+host.SetHaptics(playerSlot: 0, strength: 0f);     // stop</code></pre>
+<p>決まった長さで 1 回だけ震わせたい時(当たった・拾った)は、<code>Pulse</code> を使います。時間はスマホが自分で計るので、ゲームが引っかかっても伸びたり切れたりせず、後で 0 を送る必要もありません。続けて振動している最中なら、スマホはその上にパルスを重ね、終わったら元の振動に戻ります。</p>
+<pre><code class="language-csharp">host.Pulse(playerSlot: 0, durationMs: 250, strength: 1f);   // false if the player is away or haptics are off</code></pre>
+<p>スマホのアプリは、1 回の振動を 1 秒までにしています。古いスマホのアプリは、パルスを <code>SetHaptics</code> の命令と同じように扱います(その場合、続けて振動している最中だとパルスが途中で切れます)。</p>
+<hr>
+<h2 id="11-troubleshooting">11. トラブルシューティング</h2>
+<p>スマホごとに何が映っているか・スマホから何が届いているかを見る方法(Display 2 / 3 のプレビュー、<em>Window → PadPlay → Debugger</em>、ゲームの中のオーバーレイ)は <a href="/padplay/docs/ja/debugging/">デバッグ</a> にあります。</p>
+<p><strong>つながらない時は <em>Window → PadPlay → Connection Check</em>(接続チェック)を開いてください。</strong> 下の項目をこの順に調べ、何が見つかったか・次に何をすればよいかを示し、コピーして使えるコマンドも出します。読むだけで、ファイアウォール・ネットワーク・ホストを変えることはありません。<em>Copy report</em>(結果をコピー)で結果をクリップボードに入れられます(不具合の報告に便利です。トークンや鍵は入りません)。ネットワークとファイアウォールはいつでも、ポートと接続の試みは再生中に調べます。Welcome の窓(<em>Window → PadPlay → Welcome</em>)の <em>うまくつながらない時</em> にも、よくある原因の短い一覧と、Windows の設定の画面を開くボタン(開くだけです)があります。</p>
+<ol>
+  <li><strong>ホスト。</strong> シーンに <code>PadPlayHost</code> があって動いていて、<em>Connection → Loopback Only</em> がオフか。→ ホストが無い: <em>GameObject → PadPlay → PadPlay Setup</em>。動いていない: <em>Auto Start</em> をオンにするか、<code>host.StartHost()</code> を呼びます。</li>
+  <li><strong>ネットワークと QR のアドレス。</strong> QR コードにはこの PC の IPv4 のアドレスが並んでいて、スマホは順に試します。最初のアドレスは <strong>Wi-Fi か有線</strong> のネットワーク アダプターの物であるべきで、スマホはそれと同じネットワークにいる必要があります(ゲスト用のネットワークや、ルーターの「AP の分離」・プライバシーセパレーターは不可)。スマホの IP アドレス(スマホの Wi-Fi の設定で見られます)がPC と同じ数字で始まるか(例: どちらも <code>192.168.1.</code>)を見てください。→ 仮想のネットワーク アダプター(Hyper-V、WSL、VirtualBox、VMware、Docker)や VPN(Tailscale、Radmin、ZeroTier など)が先頭にある、または QR に Wi-Fi のアドレスが無い: <em>Connection → Host Addresses</em> に Wi-Fi の IP を入れます(か、そのネットワーク アダプターを無効にします)。もうこの PC の物でないアドレスがある: <em>Host Addresses</em> を直すか、空にします(空 = 自動)。</li>
+  <li><strong>待ち受けのポート。</strong> ホストは UDP ポート 7780 で待ち受けます(<em>Connection → Port</em>。使われていれば次の空いているポートを使い、それを QR に入れます)。→ 何も待ち受けていない: 再生を止めてもう一度再生し、Console に PadPlay のエラーが無いか見ます。</li>
+  <li><strong>Windows ファイアウォール</strong> — <strong>Unity エディタ</strong> と、あれば <strong>ビルドしたゲーム</strong>(最後に Windows 用にビルドした場所)について調べます。この 2 つは別のプログラムなので、それぞれに許可が要ります。許可はポートごとではなくプログラムごとです(通信は全部 1 つの UDP ポートです)。
+<ul>
+  <li><em>許可されている</em>: 問題ありません。</li>
+  <li><em>規則がまだ無い</em>: 最初の接続で Windows が聞いてきます。<strong>プライベート</strong> ネットワークで <strong>許可</strong> を選んでください。聞かれなかった・見落とした時は、下の <em>Windows に聞かれなかった時</em> を見てください。</li>
+  <li><em>ブロックされている</em>: 誰かがそのダイアログで <em>キャンセル</em> を押すと <strong>ブロック</strong> の規則ができます。ブロックの規則は許可の規則より強いです。<em>Windows Defender ファイアウォール → 詳細設定 → 受信の規則</em> でその規則(<code>Unity.exe</code> やゲームの exe の規則)を無効にしてから、プログラムを許可してください。</li>
+  <li><em>このネットワークはパブリックで、プログラムがパブリック ネットワークで許可されていない</em>: スマホは QR コードを読めても、ここで止まります。Windows の確認で「許可」を押しても、パブリックにチェックを入れない限り許可されるのはプライベートだけで、パブリックにはブロックの規則が残ります。Wi-Fi を <strong>プライベート</strong> ネットワークにするか(<em>設定 → ネットワークとインターネット → Wi-Fi → 使っているネットワーク → プライベート ネットワーク</em>)、<em>ファイアウォールによるアプリケーションの許可</em> でそのプログラムの <strong>パブリック</strong> にチェックを入れます。</li>
+  <li><em>TCP だけ許可されている</em>: 何も通りません(PadPlay は UDP を使います)。UDP か全部のプロトコルを許可します。</li>
+  <li><em>読めなかった</em>: <em>Windows セキュリティ → ファイアウォールとネットワーク保護 → ファイアウォールによるアプリケーションの許可</em> で手で確かめます。</li>
+</ul>
+<p>出てくるコマンド(<strong>管理者</strong> のコマンド プロンプト / PowerShell で、自分で実行します):</p>
+<pre><code>netsh advfirewall firewall add rule name="PadPlay Unity Editor" dir=in action=allow program="C:\Program Files\Unity\Hub\Editor\&lt;version&gt;\Editor\Unity.exe" enable=yes profile=private</code></pre>
+<pre><code class="language-powershell">Set-NetConnectionProfile -InterfaceAlias "Wi-Fi" -NetworkCategory Private</code></pre>
+<p>管理者の権限が無いと、TCP の規則と UDP の規則を見分けられません。その時はそう表示します。</p></li>
+  <li><strong>最後の接続の試み</strong> — ホストが始まってから届いたもの(<code>host.Diagnostics.LastJoinAttempt</code> でも読めます):
+<ul>
+  <li><strong>この PC に何も届いていない</strong> — スマホからの接続が一度も届いていません。次にすること: 同じ Wi-Fi か(2)、QR のアドレス(2)、ファイアウォール(4)。</li>
+  <li><strong>古い QR コード</strong> — スマホが前の再生のコード、または <code>RenewToken()</code> の前のコードを使いました(トークンか鍵が合いません)。参加済みのスマホには <code>RenewToken()</code> の後に猶予があります(手順 4)が、新しいスマホにはありません。次にすること: 今画面に出ている QR コードを読みます。</li>
+  <li><strong>満員</strong> — <em>Max Players</em> の枠が全部埋まっているか、<em>Accept New Players</em> がオフです。次にすること: <em>Max Players</em> を増やすか、新しいプレイヤーを受け付けます。</li>
+  <li><strong>プロトコルの版が違う</strong> — スマホのアプリと SDK の版が合っていません。次にすること: アプリ(か SDK)を更新します。</li>
+  <li><strong>参加した</strong> — 参加できました。</li>
+</ul></li>
+</ol>
+<p>デバッガー(<em>Window → PadPlay → Debugger</em>)の参加の URL の横にある <strong>Check</strong>(診断)のボタンでも同じ窓が開きます。デバッガーの Events の一覧には、断った参加(<em>JoinRejected</em>)が全部出ます。<em>Verbose Log</em> をオンにすると、接続の流れと参加の URL が Console に出ます。</p>
+<p><strong>Windows に聞かれなかった・確認を見落とした時。</strong><em>Windows セキュリティの重要な警告</em> はいつも出るとは限らず(ほかの窓の後ろに出ることもあります)、一度答えると二度と聞かれません。手でプログラムを許可します(管理者のコマンドは要りません):</p>
+<ol>
+  <li><em>Windows セキュリティ → ファイアウォールとネットワーク保護 → ファイアウォールによるアプリケーションの許可</em>(または Welcome の窓の <em>うまくつながらない時</em> にある同じ名前のボタン)を開き、<em>設定の変更</em> を押します。</li>
+  <li>一覧から Unity エディタ(<em>Unity 6000.x Editor</em>)かゲームを探し、<strong>プライベート</strong> に、ネットワークがパブリックなら <strong>パブリック</strong> にもチェックを入れます。</li>
+  <li>一覧に無い時: <em>別のアプリの許可… → 参照…</em> で <code>Unity.exe</code>(かゲームの <code>.exe</code>)を選び、<em>ネットワークの種類…</em> でプライベート(とパブリック)にチェックを入れて <em>追加</em> します。</li>
+</ol>
+<p>そのあと、ネットワークがプライベートか確かめます: <em>設定 → ネットワークとインターネット</em> → 使っている Wi-Fi → <em>プロパティ</em>。</p>
+<p><strong>それでもつながらない時: ほかによくある原因。</strong></p>
+<ul>
+  <li>VPN や、ウイルス対策ソフトの独自のファイアウォール: Windows の設定はそれには効きません。VPN を切り、そのソフトで Unity エディタ・ゲームを許可します。</li>
+  <li>iPhone: PadPlay アプリに <em>ローカルネットワーク</em> を許可します(<em>設定 → プライバシーとセキュリティ → ローカルネットワーク</em>)。</li>
+  <li>会社・学校のネットワークは、端末どうしの通信を止めていることが多いです。家の Wi-Fi などで試してください。</li>
+</ul>
+<p><strong>タッチが透明なピクセルを無視しない / 「texture is not readable」の警告が出る。</strong><code>PadPlayRaycaster</code> はスプライトのピクセルを読む必要があります。テクスチャのインポート設定で <strong>Read/Write</strong> を有効にしてください(<em>Advanced → Read/Write</em>)。Sprite Atlas に入っているスプライトは、アトラスのほうで有効にします。読めないテクスチャでは、四角形での当たり判定になります。</p>
+<p><strong>タッチが違う UI に当たる。</strong>カメラを割り当てたプレイヤーは、そのカメラの絵にしか当たりません。<em>Touch → More → Player Targets</em> と<code>PadPlayView.UseAsTouchTarget</code> を確かめてください。<code>RaycastOnlyPlayerScreen = false</code> にすると「手前にある物に当たる」に戻ります。</p>
+<p><strong>映像が黒い・遅い・ぼやける。</strong></p>
+<ul>
+  <li>Direct3D 11 / 12(一番速い)か Vulkan(1 フレーム遅れる)を使ってください。OpenGL・macOS・Linux は JPEG だけです。</li>
+  <li>まずハードウェアエンコーダーを試し、だめなら Windows のソフトウェアエンコーダー(遅い)を使います。確かめたハードウェアエンコーダーは、今のところ NVIDIA のものだけです。</li>
+  <li>Inspector と <code>host.VideoStatus</code> で、使っている経路とエンコーダー、または H.264 を使えない理由(その時は JPEG を送ります)が分かります。<code>host.GetVideoChoice(slot, out choice)</code> で、スマホがどちらを受けていて、その理由(例えばスマホが JPEG を求めた)が分かります。</li>
+  <li>Wi-Fi が弱い時は <em>Adaptive Video</em> をオンのままにし(ビットレートを、次にフレームレートか大きさを下げます)、好みの <em>Priority</em> を選ぶか、View の <em>Max Bitrate Kbps</em> を下げてください。複数のプレイヤーに送る View は 1 回だけエンコードし、一番弱い接続に合わせた画質になります。</li>
+  <li>Display のプレビューでも黒い: ソースのカメラか RenderTexture の問題です。PadPlay Lite には映像はありません。</li>
+</ul>
+<p><strong>プレイヤーがアプリを起動し直したら「正面」がずれた。</strong>これは想定どおりです(スマホのヨーの基準が変わり、遊んでいる間もヨーは少しずつずれます)。正面合わせ(手順 8)をしてください:Role が <em>Recenter</em> のレイアウトのボタン、<code>host.Recenter(slot)</code>、またはプレイヤーがスマホの画面の左上の隅を長押しします。</p>
+<p><strong>スマホが振動しない。</strong><em>Buttons</em> にチェックが入り、<em>Allow Haptics</em> がオンか確かめてください(振動は Buttons のモジュールの機能です)。<em>Haptic Strength Scale</em> が 0 より大きいかも見てください。スマホ側では、システムの振動の設定やおやすみモードで止まることがあります。ホストが振動を送ると、デバッガーの Events の一覧に <em>HapticSent</em> が出ます。</p>
+<hr>
+<h2 id="12-samples">12. サンプル</h2>
+<p>一番早いのは <em>Window → PadPlay → Import All Samples</em>(または Welcome の窓の <strong>Import all available samples and open the Sample Hub</strong>)です。全部のサンプルを <code>Assets/Samples</code> に入れ、シーンを Build Settings に足し、Sample Hub を開きます。1 つだけ入れる時は、<em>Package Manager → PadPlay → Samples → Import</em> を押してから、そのシーンを開きます。</p>
+<ul>
+  <li><strong>Sample Hub</strong>(まずはここから) — <code>Scenes/Hub</code>。全部のサンプルを選べるメニュー。QR コードを 1 回読み、スマホをカードに向けて A を押します。スマホの <em>Menu</em> か PC の <em>Esc</em> で、つながったまま戻れます(Keep Across Scenes、Remote Pointers)。ミニゲーム <strong>Target Pop</strong>(<code>Scenes/HubTargetPop</code>)つき。PadPlay Lite にもあります。</li>
+  <li><strong>Minimal</strong>(まねして書くための 1 本) — <code>Scenes/Minimal</code>。一番短い PadPlay のゲーム: 約 35 行のスクリプト 1 つ(<code>Scripts/Minimal/MinimalPad.cs</code>)。QR コードで参加し、スマホの A で振動、スマホを傾けると模型が回り、スティック(<code>pad.leftStick</code>)を倒すかスマホでドラッグすると点が動きます(ドラッグはふつうの uGUI の <code>IDragHandler</code>)。ほかは全部シーンの部品です。配置のファイル(<code>Layouts/MinimalButtons</code>)は、コードなしの<a href="#button-looks">ボタンの見た目</a>の例でもあります: A は 2 枚の画像で、スティックは専用の色で描かれます。PadPlay Lite にもあります。</li>
+  <li><strong>Treasure Map</strong>(ミニゲーム) — <code>Scenes/TreasureMap</code>。2 つの画面で 1 つの宝探し: 画面の上をキーボードで歩き、スマホはその人の X だけが描かれた紙の宝の地図になります。プレイヤーごとの第二画面、振動、モジュールの選び方。PadPlay で何ができるかが一番よく分かります。</li>
+  <li><strong>Floating Island</strong>(ミニゲーム) — <code>Scenes/FloatingIsland</code>。画面で狙い、スマホでのぞき、PC のキーで撃つ: スマホはそれぞれ望遠レンズ(<code>PadPlayPoseCamera</code>。水晶のボタンでさらにズーム)になり、画面にはスマホが向いている所に光る輪が出ます。スマホにしか見えない光を 5 つ見つけます。<code>PadPlayPoseCamera</code>、<code>PadPlayPhoneOverlay</code>(照準)、<code>host.Pulse</code>、ゲームの画像で描くボタン、PC のキーとスマホの組み合わせ。2 人まで。8 番に PhoneOnly という名前のレイヤーが要ります(下を参照)。</li>
+  <li><strong>Gyro Window</strong> — <code>Scenes/GyroWindow</code>。2 人がスマホを窓にして 3D の部屋をのぞきます。スマホに出る絵は 1 人ずつ違います(<code>PadPlayGyroCamera</code> + <code>PadPlayView</code>)。スマホを画面に向けて Recenter を押してから始めます。</li>
+  <li><strong>Room Dive</strong> — <code>Scenes/RoomDive</code>。<strong>2 人専用</strong>(PC 1 台 + スマホ 1 台): 4 つの部屋での、役割の違う協力プレイ。スマホの人はスマホの矢印のボタンで部屋を選び、どの部屋にいるかを言います。その部屋の星をクリックすると、スマホの人に数秒だけ見えるようになります。スマホの人はスマホで見回し、その星を出口へドラッグします。3D のオブジェクトへのタッチを標準のイベントで受ける、スマホには描かないカメラのレイヤー、<code>PadPlayPhoneOverlay</code>、振動。</li>
+</ul>
+<p><strong>URP のプロジェクトでは。</strong> Treasure Map・Floating Island・Room Dive は、3D のオブジェクトにビルトインの <em>Standard</em> シェーダーを使っていて、URP ではピンクに描かれます。そこで Scriptable Render Pipeline が有効な時は、再生を始めた時に、各サンプルが自分のレンダラーのマテリアルを、パイプラインの <em>Lit</em> シェーダーを使う写しに切り替えます(色・メインのテクスチャ・Smoothness・Metallic・Emission・透明度を写します)。エディタで遊ぶだけなら変換は要りません。Gyro Window と Minimal は <em>Unlit/Color</em> を使っていて、URP でもそのまま描かれます。</p>
+<p><strong>URP での Player ビルド: メニューを 1 回。</strong> ビルドには、そのマテリアルが使うシェーダーしか入らないので、サンプルにはビルドに入る*Lit* のマテリアルも要ります。サンプルを入れた後に <em>Window → PadPlay → Prepare Samples for URP or HDRP</em> を選んでください。各サンプルの小さな <code>&lt;Sample&gt;SrpLitSet</code> アセット(その Materials フォルダの中)に、<em>Lit</em> のマテリアル(隣の <code>&lt;Sample&gt;SrpLit</code> フォルダの中)を入れます。サンプルのシーンはそのアセットを参照しているので、<em>Lit</em> シェーダーがシーンと一緒にビルドに入ります。<em>Import All Samples</em>(と Welcome の窓の <strong>Import all available samples and open the Sample Hub</strong>)は、これを自動で行います。後から 1 つずつサンプルを入れた時や、プロジェクトを別のパイプラインに切り替えた時は、もう一度実行してください。全部そろっていれば何も書きません。スクリプトの再読み込みやビルドの前に勝手に動くことはなく、<em>Always Included Shaders</em> などのプロジェクトの設定にも触れません。実行しなくてもエディタではサンプルを遊べますが、Player ビルドでは <em>Standard</em> のオブジェクトが描かれず、Player のログがこのメニューを案内します。マテリアルのアセット自体は変えません。ビルトインのプロジェクトでは、このメニューは何もしません(アセットは空のまま)。URP のプロジェクトでマテリアルを編集したい場合は、これまでどおり <em>Edit → Rendering → Materials → Convert Selected Built-In Materials to Current SRP</em> で変換できます(残したいビルトインのマテリアルがプロジェクトにある時は、<em>Convert All…</em> は避けてください)。サンプルのスクリプトは <code>_Color</code> と <code>_BaseColor</code> の両方を設定するので、どちらでもハイライトが効きます。HDRP はまだ確かめていません。</p>
+<h3 id="sample-hub-and-target-pop">Sample Hub と Target Pop</h3>
+<p><code>Scenes/Hub</code> を開いて再生します。画面にサンプルごとのカードが出ます。QR コードを 1 回読み、スマホをカードに向けて <strong>A</strong> を押すと、そのサンプルが開きます(マウスでも選べます)。シーンが変わってもスマホはつながったままです。Hub の Host で <em>Keep Across Scenes</em>(シーンをまたいで保つ)にチェックが入っているためです(<a href="/padplay/docs/ja/concepts/#across-scenes">仕組み: シーンをまたぐ</a>)。サンプルの中では、スマホの小さな <strong>Menu</strong> のボタンか PC の <strong>Esc</strong> で Hub に戻ります。灰色のカードは、そのサンプルをまだ入れていないことを示します(PadPlay Lite では、PadPlay SDK だけにあるサンプルであることを示します)。Target Pop・Treasure Map・Floating Island のカードには*MINI-GAME* の札が付いています。</p>
+<p><strong>Target Pop</strong> は Hub の中の小さなポインターのゲームです。画面に的が出ては薄れて消えていきます。スマホを的に向けて <strong>A</strong> を押すと割れます。割るたびにそのプレイヤーに 1 点が入り、短く振動します。1 ラウンドは 30 秒で、1〜4 人で遊べます。<a href="/padplay/docs/ja/remote-pointers/">Remote Pointers</a> の見本です。的は <code>IPointerClickHandler</code> を持つふつうの uGUI のオブジェクトで、<code>PadPlayPointerEventData.PlayerSlot</code> で誰が割ったかが分かります。</p>
+<h3 id="treasure-map-two-screens-one-hunt">Treasure Map(2 つの画面で 1 つの宝探し)</h3>
+<p><code>Scenes/TreasureMap</code> を開いて再生します。画面(Game ビュー)には上から見た島が出て、スマホはそれぞれ<strong>その人だけが見られる、古い紙の宝の地図</strong> になります。両方の画面が要ります。画面の上を歩き、地図は手の中にあります。</p>
+<p><strong>遊び方</strong></p>
+<ul>
+  <li>1 台か 2 台のスマホで QR コードを読みます。最初のスマホが参加するとラウンドが始まり、150 秒続きます。</li>
+  <li>画面の上をキーボードで歩きます: <strong>P1(最初のスマホ)は WASD、P2 は矢印キー</strong>(または PC につないだゲームパッドの左スティック)。スマホにはボタンが無く、タッチも使いません。持っているだけです。</li>
+  <li>地図には島の目印(浜・池・木・岩・桟橋)、方位、<strong>自分の宝(X)</strong> が描かれていますが、<strong>自分がどこにいるかは描かれていません</strong>。目印を画面の島と見比べて、どこへ行けばよいかを考えます。自分の X は、画面にもほかの人のスマホにも出ません。</li>
+  <li>木・岩・池・海・もう 1 人のプレイヤーは通れません。</li>
+  <li>宝に近づくと地図が弱く震え、見つけると強く震えます(上を歩くだけで見つかります)。その場所は見つけた印が付き、別の場所に新しい X が描かれます。一番多く宝を見つけた人がそのラウンドの勝ちです。</li>
+  <li>スマホなしでは遊べません。地図はスマホにしか無いためです。エディタで見るには、Display 2 / 3 のプレビューを使ってください(<a href="/padplay/docs/ja/debugging/">デバッグ</a>)。</li>
+</ul>
+<p><strong>見られること</strong></p>
+<ul>
+  <li><strong>プレイヤーごとの第二画面</strong> — プレイヤーごとのスマホの UI(UI のレイヤーだけを見るカメラを <code>PadPlayView</code> で送る)が、その人の X が入った紙の地図を出します。画面のカメラは UI のレイヤーを描きません</li>
+  <li><strong>シーンから描く地図</strong> — 島のオブジェクトそれぞれに <code>TreasureMapLandmark</code>。<code>TreasureMapPaper</code> が、紙・インク・焦げた縁を実行時にテクスチャに描きます(画像のファイルは使いません)</li>
+  <li><strong>Input System を使わない振動</strong> — <code>host.SetHaptics(slot, strength)</code></li>
+  <li><strong>モジュールの選び方</strong> — Buttons と Video にチェック、ボタンのレイアウトはなし(振動は Buttons のモジュールの機能のため)。Touch と Attitude はチェックなし</li>
+</ul>
+<p>手触りの値(歩く速さ、どこまで近づけば「見つけた」になるか、振動の強さ、ラウンドの長さ、地図に自分の位置を出すか: <em>Show Self On Map</em>)は全部 <em>TreasureMapGame → Settings</em> にあり、再生中に変えられます。</p>
+<h3 id="floating-island-aim-on-the-screen-look-through-the-phone">Floating Island(画面で狙い、スマホでのぞく)</h3>
+<p><code>Scenes/FloatingIsland</code> を開いて再生します。画面(Game ビュー)には浮島の全体が出て、ゆっくり周りを回ります。スマホはそれぞれ同じ世界を、プレイヤーが向けた方向にのぞく <strong>望遠レンズ</strong> になり(<a href="/padplay/docs/ja/pose-camera/">Pose Camera</a>)、<strong>PC のキーで撃ちます</strong>。3 つとも要ります。画面でどこを見るか見当をつけ、スマホでそこに何があるかを見て、キーボードで撃ちます。2 人まで遊べます。1 人でも、片手にスマホ、もう片手をキーボードに置いて遊べます。</p>
+<p><strong>遊ぶ前に。</strong> 隠れた光はレイヤー 8 にあり、画面のカメラはこのレイヤーを描きません。<em>Project Settings → Tags and Layers</em>(プロジェクト設定 → タグとレイヤー)で、レイヤー 8 に <strong>PhoneOnly</strong> という名前を付けてください。レイヤーは番号で効くので名前が無くても動きますが、再生のたびに 1 回警告が出ます。また、自分のオブジェクトをレイヤー 8 に置いていると、このサンプルの画面には映りません。</p>
+<p><strong>遊び方</strong></p>
+<ul>
+  <li>1 台か 2 台のスマホで QR コードを読みます。まだ参加できる間は、画面に QR の板が出ています。</li>
+  <li>スマホを島に向けます。画面の島の上を、自分のプレイヤーの色の光る輪が動きます。輪の内側が、だいたいスマホに拡大して映っている所です。スマホの画面の真ん中には照準の印が出ます。</li>
+  <li>PC のキーで撃ちます: <strong>P1 は Space、P2 は Enter</strong>(または PC につないだゲームパッドの下のボタン / 右トリガー。つないだ順)。弾は照準を通ります。<strong>P1 は R、P2 は Backspace</strong>(ゲームパッドでは Select)で、スマホが今向いている方向を正面にします。</li>
+  <li>スマホにはボタンも 2 つあり、サンプル専用の画像で描かれています。<strong>水晶</strong> でレンズをズームし(もう一度押すと戻ります。スマホに <em>Zoom x2.5</em> と出ます)、<strong>木の板</strong> でスマホが今向いている方向を正面にします。スマホでは撃てず、タッチの操作もありません。ほかの所はレンズです。</li>
+  <li>何かを撃つと調べられます。スマホにその名前が出て、少しの間自分のプレイヤーの色で光り、スマホが弱く震えます。</li>
+  <li>島の周りに光が 5 つ隠れていて、スマホにしか見えません。画面では <strong>かすかな火花</strong> でしか分かりません。画面で場所の見当をつけ、スマホでのぞいて確かめてください。光を撃つと見つかり、スマホが強く震えて、画面にも光が出ます。画面には、見つけた数と、プレイヤーごとに最後に撃った物が出ます。</li>
+  <li>5 つ全部見つけると、短いお祝いの演出(光の柱・渦を巻く欠片・花)が出ます。20 秒後に光はまた隠れます。全員が抜けた時も、また隠れます。</li>
+  <li>スマホが無い時は、仮想スマホ(<em>Window → PadPlay → Virtual Phones</em>。スマホの画面の上を右ドラッグで回せます)と、いつもどおりキーボードを使ってください。</li>
+</ul>
+<p><strong>見られること</strong></p>
+<ul>
+  <li><strong>Pose Camera</strong> — プレイヤーごとのカメラに <code>PadPlayPoseCamera</code> + <code>PadPlayView</code>。PC はスマホの向きで描き、スマホはそのフレームから回った分を補正します。視野角がレンズの倍率です</li>
+  <li><strong>PC からスマホ越しに狙う</strong> — <code>FloatingIslandGame.Shoot</code> が、Pose Camera の真ん中を通る光線を飛ばします(スマホは絵を今の向きに回して出すので、カメラの今の正面が照準になります)</li>
+  <li><strong>画面で、スマホがどこを向いているか</strong> — <code>FloatingIslandAim</code> が、その光線が島に当たる所に、レンズに映る大きさに合わせて輪を描きます。<code>FloatingIslandFrustum</code> は視錐台を描きます。どちらもスマホのカメラが描かないレイヤー(UI)に描くので、画面にだけ出ます</li>
+  <li><strong>画面にだけ出すヒント</strong> — <code>FloatingIslandHints</code> が、まだ見つかっていない光の周りに、同じ UI のレイヤーでかすかな火花を描きます</li>
+  <li><strong>スマホの画面に固定した文字と照準</strong> — <code>PadPlayPhoneOverlay</code>: スマホが映像の上に描くので、補正しても動きません。その四角形は <code>VisibleViewportRect</code> に合わせます</li>
+  <li><strong>決まった長さの振動</strong> — <code>host.Pulse(slot, durationMs, strength)</code>(時間はスマホが計ります)</li>
+  <li><strong>スマホにしか見えない物</strong> — レイヤー 8(PhoneOnly)は画面のカメラが描きません。見つけた光は <em>Default</em> に移ります</li>
+  <li><strong>コードからの正面合わせ</strong> — R / Backspace で <code>host.Recenter(slot)</code>。Pose Camera もそれに従います</li>
+  <li><strong>PC のキーとスマホを一緒に</strong> — <code>FloatingIslandControls</code> が全部のキーボードと PC のゲームパッドを読みます(スマホの <code>PadPlayPad</code> は読みません)</li>
+  <li><strong>ボタンの見た目</strong> — <code>Layouts/FloatingIslandButtons</code>: 水晶のズームのボタンは画像と押した時の画像(押すたびに <code>FloatingIslandControls</code> がズームを切り替えます)、正面合わせの板(<em>Role</em> = Recenter。コードは要りません)は画像と自分の文字の色(<a href="#button-looks">ボタンの見た目</a>)</li>
+  <li><strong>モジュールの選び方</strong> — Attitude・Buttons・Video にチェック。Touch はチェックなし。<em>Max Players</em> は 2</li>
+</ul>
+<p>手触りの値(レンズの倍率。ふだんと水晶でズームした時、振動の強さと長さ、名前とハイライトが残る時間、お祝いの長さ)は全部 <em>FloatingIslandGame → Settings</em> にあり、再生中に変えられます。キーは <em>FloatingIslandControls</em>、輪と火花は <em>FloatingIslandAim</em> と <em>FloatingIslandHints</em>、画面のカメラの回る速さは <em>FloatingIslandOrbit</em> にあります。</p>
+<h3 id="room-dive-2-players-only-one-at-the-pc-one-with-a-phone">Room Dive(2 人専用: PC の人とスマホの人)</h3>
+<p><em>Package Manager → PadPlay → Samples → Room Dive → Import</em> を押してから、<code>Scenes/RoomDive</code> を開きます。<strong>ちょうど 2 人が要ります</strong>: PC でマウスを持ち、部屋を上から見ている人と、スマホを持って部屋に潜る人(<strong>Diver</strong>)です。1 人では遊べず、2 台目のスマホは断ります(<em>Max Players</em> 1)。スマホが参加するまでは、画面にそう出ます。画面には 4 つの小さな部屋(Red・Blue・Green・Purple)が、上から見た形で出ます。スマホは、Diver がいる部屋の中から見た窓になります。<strong>部屋を決めるのはスマホ側です</strong>: 画面には Diver がどの部屋にいるかは出ません。</p>
+<p><strong>遊び方</strong></p>
+<ul>
+  <li>Diver が QR コードを読み、最初の部屋に潜ります。スマホに部屋の名前が大きく出ます(<em>RED ROOM</em>)。</li>
+  <li><strong>Diver はどの部屋にいるかを声で伝えます</strong>(「赤い部屋にいる!」)。スマホの矢印のボタン <strong>&lt;</strong> / <strong>&gt;</strong> で、星の残っている前 / 次の部屋へ移ります。</li>
+  <li><strong>星は画面にだけ描かれています。</strong> Diver のスマホには出ません。</li>
+  <li><strong>Diver のいる部屋の星をクリックすると、スマホの人に見えるようになります</strong>: Diver のスマホに数秒だけその星が出ます(最後は点滅して薄れます)。どこにあるかを声で伝え合ってください(「右の棚の上!」)。クリックで Diver は移りません。別の部屋の星は見えるようにならず、その部屋の札に少しの間 <em>The phone player is not here</em> と出ます。</li>
+  <li>Diver はスマホを傾けて見回し、見えるようになった星に触れて、黄色の <strong>出口</strong> の枠まで運ぶと集められます(運んでいる星は見えたままです)。星が見えるようになった時、見えている星が視界の真ん中に近い時(弱く)、集めた時(強く)、スマホが震えます。</li>
+  <li>部屋が空になると、Diver は星の残っている次の部屋へ自分で進みます。</li>
+  <li>4 つの部屋の星を全部集めると、次の回が始まります。<strong>Select</strong>("Recenter"、Role は <em>Recenter</em>)で視界の正面を合わせ直します。スマホが切れても、その部屋は残り、PC の人は再接続するまで待ちます。</li>
+</ul>
+<p><strong>見られること</strong></p>
+<ul>
+  <li><strong>プレイヤーごとの第二画面</strong> — Diver のカメラに <code>PadPlayView</code> + <code>PadPlayGyroCamera</code>(Window モード)。</li>
+  <li><strong>画面にだけ出す物</strong> — まだ見えるようにしていない星はビルトインの <em>UI</em> レイヤー(5)にあり、Diver のカメラはこれを Culling Mask から外しています。<code>PhysicsRaycaster</code> も Culling Mask を使うので、スマホからも触れません。レイヤーを足す必要はありません。</li>
+  <li><strong>3D のオブジェクトへのタッチを標準のイベントで</strong> — <code>RoomDiveStar</code> は <code>IBeginDragHandler</code> / <code>IDragHandler</code> / <code>IEndDragHandler</code> だけを実装しています。カメラには <code>PhysicsRaycaster</code> があります。</li>
+  <li><strong>誰が触ったか</strong> — <code>eventData is PadPlayPointerEventData p</code> → <code>p.PlayerSlot</code>(<code>RoomDiveGame.CanCarry</code>)。マウスでは星を運べません。</li>
+  <li><strong>画面でのマウス</strong> — <code>RoomDiveGame</code> が <code>Camera.pixelRect</code> で部屋を、<code>WorldToScreenPoint</code> で一番近い星を見つけます。</li>
+  <li><strong>スマホの画面に固定した文字</strong> — <code>PadPlayPhoneOverlay</code> と <code>RoomDivePhone</code>(大きな部屋の名前、今すること、星)。</li>
+  <li><strong>ボタン</strong> — <code>Layouts/RoomDiveButtons</code>: Recenter = Role が <em>Recenter</em> の <code>Select</code>、<strong>&lt;</strong> / <strong>&gt;</strong> = <code>DpadLeft</code> / <code>DpadRight</code>(<code>RoomDiveGame</code> が <code>pad.GetButton(id).wasPressedThisFrame</code> で読みます。Buttons のモジュールは振動も受け持ちます)。</li>
+  <li><strong>振動</strong> — <code>pad.SetMotorSpeeds(strength, strength)</code>。</li>
+  <li><strong>プレイヤーの状態</strong> — <code>host.GetPlayerState(slot)</code>: <code>Gone</code> 以外なら部屋を残すので、切れた Diver を待てます。</li>
+  <li><strong>QR と状態の表示</strong> — <code>PadPlayQrView</code>(スマホが参加したら隠れます)と <code>PadPlayStatusView</code>。</li>
+</ul>
+<p>手触りの値(見えるようにした星が出ている時間と薄れる時間、画面でのクリックの半径、<em>not here</em> の案内が出ている時間、振動の強さ、「近い」とみなす角度、運べる距離、次の回までの間、Diver の頭と部屋を画面に出す <em>Show Phone Player On Screen</em>)は全部*RoomDiveGame → Settings* にあり、再生中に変えられます。</p>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/ja/contact/">お問い合わせ</a> · <a href="/ja/privacy/">プライバシー</a></p>
+    <p class="muted">このサイトは Cookie・アクセス解析・トラッキングを使っていません。</p>
+  </div>
+</footer>
+</body>
+</html>

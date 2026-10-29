@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API リファレンス — PadPlay ドキュメント</title>
+<meta name="description" content="PadPlay SDK のドキュメント(日本語): API リファレンス">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/api/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/api/">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/api/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/ja/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="メニュー">
+      <a href="/ja/">ホーム</a>
+      <a href="/ja/products/">製品</a>
+      <a href="/ja/contact/">お問い合わせ</a>
+      <a href="/ja/privacy/">プライバシー</a>
+    </nav>
+    <a class="lang" href="/padplay/docs/api/" lang="en" hreflang="en">English</a>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay ドキュメント">
+    <a href="/padplay/docs/ja/" lang="ja">概要</a>
+    <a href="/padplay/docs/ja/quickstart/" lang="ja">クイックスタート</a>
+    <a href="/padplay/docs/ja/concepts/" lang="ja">仕組み</a>
+    <a href="/padplay/docs/ja/debugging/" lang="ja">デバッグ</a>
+    <a href="/padplay/docs/ja/pose-camera/" lang="ja">Pose Camera</a>
+    <a href="/padplay/docs/ja/remote-pointers/" lang="ja">Remote Pointers</a>
+    <a href="/padplay/docs/ja/api/" aria-current="page" lang="ja">API リファレンス</a>
+    <a href="/padplay/docs/glossary-ja/" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="api-reference">API リファレンス</h1>
+<p><em><a href="/padplay/docs/api/">English</a></em></p>
+<p>ゲームで使う型とメンバーです。全部名前空間 <code>PadPlay</code> にあります(<code>using PadPlay;</code>)。Inspector の説明(Tooltip)と XML コメント(IntelliSense)にも、同じことをもっと詳しく書いています。ガイド: <a href="/padplay/docs/ja/quickstart/">クイックスタート</a>、<a href="/padplay/docs/ja/concepts/">仕組み</a>、<a href="/padplay/docs/ja/debugging/">デバッグ</a>。</p>
+<p>いくつかの型は、エンジンに依存しない Core のアセンブリにあります(<code>AttitudeCalibrationMode</code>、<code>ClockSync</code>、<code>DeviceInfo</code>、<code>PadPlayPhoneOverlayItem</code>、<code>PadPlayNetworkSettings</code>、<code>PadPlayVideoCodecChoice</code>)。これらも同じ名前空間 <code>PadPlay</code> にあります。</p>
+<p>プレイヤーの番号は <strong>0 から始まる枠</strong> です(<code>playerSlot</code> 0 が画面の「P1」)。イベントはメインスレッドで出ます。</p>
+<p><strong>エラーと例外。</strong> 渡した値の誤りは、その場で例外を投げ、何も変えません: 無いオブジェクトには <code>ArgumentNullException</code>、枠ごとに何かを持つメソッド(<code>SetLayout</code>、<code>SetPhoneOverlay</code>、<code>Touch.SetPlayerTarget</code>)に負の枠を渡すと <code>ArgumentOutOfRangeException</code>、メソッドが受け付けない値(形の合わないオーバーレイの一覧、<code>Yaw</code> / <code>Full</code> 以外の正面合わせのモード)には <code>ArgumentException</code>。その時の状況だけで決まる呼び出しは、例外を投げません。ホストが止まっている、その枠に誰もいない、スマホが振動できない・映像が無い、といった時は、<code>bool</code> を返すメソッドは <code>false</code> を返し(<code>Pulse</code>、<code>SetHaptics</code>、<code>Recenter</code>、<code>Kick</code>、<code>TryGet…</code>)、ほかは <code>null</code>・<code>None</code>・<code>0</code>・空の一覧を返します(<code>GetPad</code>、<code>GetClockSync</code>、<code>GetCapabilities</code>、止まっている間の <code>RenewToken</code>)。自然な範囲がある数(強さ 0〜1、パルスの長さ)は範囲に収めます。PC の都合で失敗しうる呼び出しは <code>StartHost()</code> だけです。UDP のポートを 1 つも開けない時は <code>InvalidOperationException</code> を投げ、<code>IsRunning</code> は <code>false</code> のままです。自分のイベントハンドラーが投げた例外はログに出し、ホストは動き続けます。</p>
+<h2 id="padplayhost">PadPlayHost</h2>
+<p><em>Add Component → PadPlay → Host</em>(または <em>GameObject → PadPlay → PadPlay Setup</em>)。シーンに 1 つ。</p>
+<h3 id="starting-and-the-qr-code">開始と QR コード</h3>
+<ul>
+  <li><code>Settings</code> — Inspector の全部の値(<code>PadPlayHostSettings</code>): <code>Players</code>、<code>Modules</code>、<code>Touch</code>、<code>Attitude</code>、<code>Buttons</code>、<code>Video</code>、<code>Preview</code>、<code>Port</code>、<code>GameName</code>、<code>HostAddresses</code>、<code>LoopbackOnly</code>、<code>VerboseLog</code>、<code>DisplayLanguage</code>。<code>IsEnabled(module)</code>、<code>SetEnabled(module, on)</code>、<code>ApplyPreset(preset)</code>。</li>
+  <li><code>AutoStart</code> — <code>Start</code> で待ち受けを始めます(既定はオン)。オフなら自分で <code>StartHost()</code> を呼びます。</li>
+  <li><code>StartHost()</code>、<code>StopHost()</code> — 開始 / 停止。止めると全部のスマホを切ります(<code>PlayerLeft</code>、その後に理由 <code>stopped</code> の <code>PlayerRemoved</code>)。</li>
+  <li><code>IsRunning</code>、<code>Port</code> — 待ち受けているか。実際に使っている UDP ポート(止まっている時は 0)。</li>
+  <li><code>JoinUri</code>、<code>JoinUriChanged</code> — QR コードの中の URL(止まっている時は null)と、それが変わった時のイベント。</li>
+  <li><code>RenewToken()</code> — 新しいトークンと鍵(新しい QR コード)。参加済みのスマホはそのままです。新しい <code>JoinUri</code> を返します(止まっている間は null)。</li>
+  <li><code>AcceptNewPlayers</code> — オフ: 新しいスマホを「満員」として断ります。切れたプレイヤーは戻れます。</li>
+  <li><code>KeepAcrossScenes</code> — シーンを読み込んでもスマホをつないだままにします(<a href="/padplay/docs/ja/concepts/#across-scenes">仕組み</a>)。</li>
+  <li><code>KeptHost</code>(static)、<code>ActiveHost</code> — シーンをまたいで残す Host。実際に動いている Host(残す Host か、この Host)。</li>
+  <li><code>NetworkSettings</code> — 接続の詳しい値(<code>PadPlayNetworkSettings</code>)。<code>StartHost</code> の時に読みます(例えば <code>RenewGraceMs</code>)。</li>
+  <li><code>SdkVersion</code>、<code>ProtocolVersion</code>、<code>NowMs</code>(static) — パッケージの版、プロトコルの版、ホストの時計(ms)。</li>
+</ul>
+<h3 id="players">プレイヤー</h3>
+<ul>
+  <li><code>PlayerJoined</code>(<code>PadPlayPlayer</code>) — スマホが参加して枠を得た(<code>Resumed</code> = 戻ってきた)。まだ入力は流れていません。</li>
+  <li><code>PlayerReady</code>(<code>PadPlayPlayer</code>) — 入力が流れ始めた。<code>GetPad(slot)</code> がそのパッドを返します。参加 1 回につき 1 回。</li>
+  <li><code>PlayerLeft</code>(<code>PadPlayPlayerLeft</code>) — スマホが切れた(<code>Reason</code>)。理由が <code>Bye</code> か <code>Stopped</code>(<code>PadPlayLeaveReason</code>)でなければ、枠は <em>Resume Hold Seconds</em> の間取っておきます。</li>
+  <li><code>PlayerRemoved</code>(<code>PadPlayPlayerRemoved</code>) — 枠が本当に空いた(<code>Bye</code>・<code>Stopped</code>・<code>Expired</code>)。プレイヤーのキャラクターはここで消してください。</li>
+  <li><code>PlayerCount</code>、<code>PlayerSlots</code> — 参加しているスマホの数(再接続を待っている物は数えません)と、その枠(小さい順)。</li>
+  <li><code>TryGetPlayer(slot, out player)</code> — 参加しているプレイヤー(<code>PlayerSlot</code>、<code>Device</code>、<code>AppVersion</code>、<code>Resumed</code>、<code>Capabilities</code>)。</li>
+  <li><code>GetPlayerState(slot)</code> — <code>Connecting</code>・<code>Ready</code>・<code>Reconnecting</code>・<code>Gone</code>(<code>PadPlayPlayerState</code>)。</li>
+  <li><code>Kick(slot)</code> — スマホを切ります(枠は取っておきません)。</li>
+  <li><code>GetPad(slot)</code>、<code>PadDevices</code> — そのプレイヤーの <code>PadPlayPad</code>(無ければ null)。全部のパッド。</li>
+  <li><code>GetScreenRotation(slot)</code>、<code>ScreenRotationChanged</code> — スマホの画面の回転(度)。</li>
+  <li><code>GetCapabilities(slot)</code>、<code>GetClockSync(slot)</code> — スマホのアプリが対応していること。時計のずれと往復の時間。</li>
+  <li><code>Diagnostics</code> — 道具のための接続と入力のデータ(<a href="/padplay/docs/ja/debugging/#4-reading-the-same-data-from-code">デバッグ §4</a>)。</li>
+</ul>
+<h3 id="input">入力</h3>
+<ul>
+  <li><code>Touch</code> — タッチの振り分け: <code>SetPlayerTarget(slot, camera)</code> / <code>(slot, display, rect)</code>、<code>ClearPlayerTarget(slot)</code>、<code>PhonePositionToPixel</code>、<code>GetDragThresholdPx(slot)</code>。</li>
+  <li><code>Recenter(slot, mode = Yaw)</code>、<code>RecenterAll(mode)</code> — プレイヤーの今の向きを正面にします。パッドと全部のジャイロの部品に効きます。</li>
+  <li><code>Recentered</code>(<code>PadPlayRecentered</code>) — 誰がなぜ正面を合わせたか(<code>Reason</code>: Code、Button、LongPress、Connect)。</li>
+  <li><code>TouchReceived</code>、<code>AttitudeReceived</code>、<code>ButtonsReceived</code> — 生のパケット。ふつうは uGUI のイベントと <code>PadPlayPad</code> で足ります。</li>
+</ul>
+<h3 id="output-to-the-phone">スマホへの出力</h3>
+<ul>
+  <li><code>SetLayout(slot, layout)</code>、<code>GetLayout(slot)</code> — そのプレイヤーの画面のボタン(null = <code>Settings.Buttons.Layout</code> に戻す)。</li>
+  <li><code>SetHaptics(slot, strength)</code> — 続けて振動させます。0〜1(0 で止まります)。<code>pad.SetMotorSpeeds</code> と同じです。</li>
+  <li><code>Pulse(slot, durationMs, strength = 1)</code> — 決まった長さで 1 回振動させます。時間はスマホが計ります。</li>
+  <li><code>SetPhoneOverlay(slot, items)</code>、<code>GetPhoneOverlay(slot)</code> — スマホが映像の上に描く文字と板(<code>PadPlayPhoneOverlayItem</code>。ふつうは <code>PadPlayPhoneOverlay</code> を通して使います)。</li>
+</ul>
+<h3 id="video-padplay-sdk-only">映像(PadPlay SDK のみ)</h3>
+<ul>
+  <li><code>VideoStatus</code> — 映像の送り方(グラフィックス API の経路、エンコーダー、プレイヤーごとのコーデック)、または H.264 を使わない理由。人が読むための文。</li>
+  <li><code>GetVideoChoice(slot, out choice)</code> — そのプレイヤーが H.264 と JPEG のどちらか、その理由(<code>Codec</code>、<code>Reason</code>、<code>Detail</code>)。</li>
+  <li><code>RequestVideoStats(slot, callback)</code> — 送信の統計(<code>PadPlayVideoStats</code>)。</li>
+  <li><code>TryGetPoseView(slot, out view)</code> — Pose Camera のフレームについてスマホが知らせる値(動かしてから画面に出るまでの時間、補正)。</li>
+</ul>
+<h2 id="padplaypad">PadPlayPad</h2>
+<p>スマホ 1 台ごとの Input System のデバイスです。<strong><code>Gamepad</code> そのもの</strong> なので、<code>&lt;Gamepad&gt;/…</code> のバインド、<code>Gamepad.all</code>、<code>PlayerInput</code> が動きます。</p>
+<ul>
+  <li><code>attitude</code>、<code>angularVelocity</code> — <code>QuaternionControl</code>(校正後、Unity の座標系)、<code>Vector3Control</code>(rad/s)。パスは <code>&lt;PadPlayPad&gt;/attitude</code>、<code>&lt;PadPlayPad&gt;/angularVelocity</code>。</li>
+  <li><code>recenter</code> — <code>ButtonControl</code>: プレイヤーが正面合わせを求めた(SDK はもう反映済み)。</li>
+  <li><code>GetButton(id)</code> — <code>PadPlayButtonId</code> か番号でボタンを取ります。14〜31 はゲームが決めるボタン(<code>&lt;PadPlayPad&gt;/custom14</code> … <code>custom31</code>)。</li>
+  <li><code>ButtonBits</code> — 32 個のボタン全部をビットで。</li>
+  <li><code>PlayerSlot</code>、<code>IsConnected</code> — プレイヤー。スマホが再接続を待っている間は false。</li>
+  <li><code>Recenter(mode = Yaw)</code> — <code>host.Recenter(PlayerSlot)</code> と同じです。</li>
+  <li><code>SetMotorSpeeds(low, high)</code> — 振動(強さ = 大きいほうの値)。<code>PauseHaptics</code>、<code>ResumeHaptics</code>、<code>ResetHaptics</code> もいつもどおり使えます。</li>
+</ul>
+<h2 id="touch">タッチ</h2>
+<p><code>PadPlayPointerEventData</code>(<code>PointerEventData</code> の一種): <code>PlayerSlot</code>、<code>FingerId</code>、<code>PhonePosition</code>(スマホの上の 0〜1、y = 0 が上)、<code>ViewPoseSeq</code>(プレイヤーが見ていた Pose Camera のフレーム)。どの uGUI のハンドラーでも <code>eventData is PadPlayPointerEventData p</code> で調べられます。</p>
+<p><code>PadPlayRaycaster</code>: 透明なピクセルを無視する <code>GraphicRaycaster</code>(<code>AlphaThreshold</code>、既定 0.1)。</p>
+<h2 id="components">部品</h2>
+<h3 id="padplayqrview"><code>PadPlayQrView</code></h3>
+<p>Raw Image に付ける。主なメンバー: <code>Host</code>、<code>Caption</code>(Text か TextMeshPro のテキスト)、<code>Texture</code>、<code>ShownUri</code>、<code>Refresh()</code>。</p>
+<h3 id="padplaystatusview"><code>PadPlayStatusView</code></h3>
+<p>Text か TextMeshPro のテキストに付ける。主なメンバー: <code>Host</code>、<code>Target</code>(書き込む先。空 = 同じ GameObject の物)、<code>Rows</code>、<code>TryGetRow(slot, out row)</code>、<code>BuildText()</code>。</p>
+<h3 id="padplayview"><code>PadPlayView</code></h3>
+<p>主なメンバー: <code>SourceCamera</code> か <code>SourceTexture</code>、<code>PlayerSlot</code>(<code>AllPlayers</code> = -1、既定)、<code>Width</code>、<code>Height</code>、<code>FrameRate</code>、<code>MaxBitrateKbps</code>、<code>MatchPhoneAspect</code>、<code>UseAsTouchTarget</code>。PadPlay SDK のみ。</p>
+<h3 id="padplaygyrocamera"><code>PadPlayGyroCamera</code></h3>
+<p>主なメンバー: <code>PlayerSlot</code>、<code>Mode</code>(<code>Window</code>、<code>LookAround</code>、<code>Tilt</code>)、<code>Settings</code>、<code>Tilt</code>、<code>Rotation</code>、<code>BaseRotation</code>、<code>ResetForward()</code>(このカメラだけ)。</p>
+<h3 id="padplaygyropointer"><code>PadPlayGyroPointer</code></h3>
+<p>主なメンバー: <code>PlayerSlot</code>、<code>Settings</code>、<code>ViewportPosition</code>(y = 0 が下)、<code>IsPointing</code>、<code>GetScreenPosition()</code>、<code>GetRay(camera)</code>、<code>Reticle</code>、<code>ResetForward()</code>(このポインターだけ)。</p>
+<h3 id="padplayposecamera"><code>PadPlayPoseCamera</code></h3>
+<p>主なメンバー: <code>PlayerSlot</code>、<code>FieldOfView</code>、<code>Settings</code>、<code>YawOffsetDegrees</code>、<code>VisibleViewportRect</code>、<code>VisiblePixelRect</code>、<code>ScreenPointToRay(eventData)</code>、<code>TryGetView(out view)</code>、<code>ResetForward()</code>(このカメラだけ)。<a href="/padplay/docs/ja/pose-camera/">Pose Camera</a> を参照。</p>
+<h3 id="padplayphoneoverlay"><code>PadPlayPhoneOverlay</code></h3>
+<p>主なメンバー: <code>PlayerSlot</code>(<code>AllPlayers</code> = -1)、<code>HideInPicture</code>、<code>RefreshSeconds</code>、<code>Refresh()</code>。</p>
+<h3 id="padplayremotepointers"><code>PadPlayRemotePointers</code></h3>
+<p>主なメンバー: <code>Layout</code>、<code>TargetCamera</code>、<code>Settings</code>、<code>GetPointerId(slot)</code>(static)、<code>GetHovered(slot)</code>、<code>IsPressing(slot)</code>、<code>TryGetScreenPosition(slot, out pos)</code>、<code>TryGetPointer(slot, out pointer)</code>、<code>ShowRecenterHint(slot)</code>。<a href="/padplay/docs/ja/remote-pointers/">Remote Pointers</a> を参照。</p>
+<h3 id="padplaydebugoverlay"><code>PadPlayDebugOverlay</code></h3>
+<p>主なメンバー: <code>Host</code>、<code>Visible</code>、<code>ToggleKey</code>、<code>BuildText()</code>。</p>
+<h2 id="button-layouts">ボタンのレイアウト</h2>
+<p><code>PadPlayButtonLayout</code>(<em>Assets → Create → PadPlay → Button Layout</em>): <code>Elements</code>、<code>Orientation</code>(<code>Landscape</code>、<code>Portrait</code>、<code>Auto</code>)、コードから <code>Elements</code> を変えた後の <code>MarkChanged()</code>、<code>Create(params Element[])</code>。<code>PadPlayButtonLayout.Element</code>: <code>Id</code>(<code>PadPlayButtonId</code>)、<code>Shape</code>(<code>Circle</code>、<code>Rect</code>)、<code>Center</code>、<code>Size</code>(0〜1、(0, 0) が左上)、<code>Label</code>、<code>Opacity</code>、<code>Group</code>、<code>Role</code>(<code>None</code>、<code>Recenter</code>)、<code>Style</code>。<code>PadPlayButtonStyle</code>(スマホでの要素の見た目。空 = いつもの見た目): <code>Image</code>、<code>PressedImage</code>、<code>KnobImage</code>(Texture2D。PNG にして 1 回だけ送る)、<code>CustomColors</code> と <code>Color</code>・<code>PressedColor</code>・<code>BorderColor</code>・<code>LabelColor</code>、<code>CustomSizes</code> と <code>BorderWidth</code>・<code>CornerRadius</code>・<code>LabelSize</code>、<code>IsEmpty</code>。<code>PadPlayRemoteLayout</code>: 同梱のリモコンのレイアウト(<code>Create()</code>、ボタンの Id は <code>Press</code>、<code>Back</code>、<code>Recenter</code>、<code>Menu</code>、<code>Minus</code>、<code>Plus</code>)。</p>
+<h2 id="editions">版</h2>
+<p><code>PadPlayEdition</code>: <code>IsLite</code>、<code>Name</code>("PadPlay SDK" か "PadPlay Lite")、<code>LiteMaxPlayers</code>(1)、<code>ClampMaxPlayers(requested)</code>。</p>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/ja/contact/">お問い合わせ</a> · <a href="/ja/privacy/">プライバシー</a></p>
+    <p class="muted">このサイトは Cookie・アクセス解析・トラッキングを使っていません。</p>
+  </div>
+</footer>
+</body>
+</html>

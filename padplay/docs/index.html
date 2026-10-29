@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PadPlay SDK documentation — PadPlay documentation</title>
+<meta name="description" content="PadPlay SDK documentation: PadPlay SDK documentation">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/products/">Products</a>
+      <a href="/contact/">Contact</a>
+      <a href="/privacy/">Privacy</a>
+    </nav>
+    <a class="lang" href="/padplay/docs/ja/" lang="ja" hreflang="ja">日本語</a>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay documentation">
+    <a href="/padplay/docs/" aria-current="page">Overview</a>
+    <a href="/padplay/docs/quickstart/">Quick Start</a>
+    <a href="/padplay/docs/concepts/">Concepts</a>
+    <a href="/padplay/docs/debugging/">Debugging</a>
+    <a href="/padplay/docs/pose-camera/">Pose Camera</a>
+    <a href="/padplay/docs/remote-pointers/">Remote Pointers</a>
+    <a href="/padplay/docs/api/">API Reference</a>
+    <a href="/padplay/docs/glossary-ja/" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="padplay-sdk-documentation">PadPlay SDK documentation</h1>
+<p><em><a href="/padplay/docs/ja/">日本語</a></em></p>
+<p>PadPlay SDK turns a phone into a second-screen controller for a Unity game: touch screen, gyro, on-screen buttons, vibration and its own view of the game. Start with the Quick Start; come back here to find a topic.</p>
+<p>These pages are inside the package (<code>Packages/dev.petaf.padplay/Documentation~</code>) and online at <a href="https://petaf.dev/padplay/docs/">petaf.dev/padplay/docs</a>. In the Editor, <em>Window → PadPlay → Welcome</em> (it opens once by itself after you import the package) shows the first steps, imports the samples with one click and links to these pages.</p>
+<p><strong>You need</strong> the separate PadPlay phone app on every player's phone, and the PC and the phones on the <strong>same Wi-Fi / LAN</strong> (no internet play). See <a href="/padplay/docs/quickstart/#1-requirements">Quick Start §1</a> for the requirements and the tested setup.</p>
+<h2 id="pages">Pages</h2>
+<ul>
+  <li><a href="/padplay/docs/quickstart/">Quick Start</a> — You set PadPlay up for the first time: import, add the Host, connect a phone, read input, samples, troubleshooting.</li>
+  <li><a href="/padplay/docs/concepts/">Concepts</a> — You want to know how it works: slots, tokens, encryption, state and reliable messages, touch injection, attitude, video, scenes.</li>
+  <li><a href="/padplay/docs/debugging/">Debugging</a> — Something does not arrive, or you want to see what each phone shows.</li>
+  <li><a href="/padplay/docs/pose-camera/">Pose Camera</a> — You want to look around by pointing the phone: the PC renders for the phone's orientation and the phone corrects the remaining turn on screen.</li>
+  <li><a href="/padplay/docs/remote-pointers/">Remote Pointers</a> — Players point the phone at the screen to move a cursor and press the UI with A.</li>
+  <li><a href="/padplay/docs/api/">API Reference</a> — You look for a type, property, method or event.</li>
+  <li><a href="/padplay/docs/glossary-ja/">用語集 / Glossary (Japanese)</a> — You use the Editor in Japanese (<em>Preferences → PadPlay</em>) and want the English term.</li>
+  <li><strong>Changelog</strong> — <code>CHANGELOG.md</code> in the package folder: what changed in each version.</li>
+</ul>
+<h2 id="by-task">By task</h2>
+<ul>
+  <li>Check what I need (phone app, same Wi-Fi, firewall) and the tested setup → <a href="/padplay/docs/quickstart/#1-requirements">Quick Start §1</a></li>
+  <li>Know what it cannot do yet, and what PadPlay Lite leaves out → <a href="/padplay/docs/quickstart/#what-it-cannot-do-yet">What it cannot do yet</a>, <a href="/padplay/docs/quickstart/#padplay-lite">PadPlay Lite</a></li>
+  <li>Import the package from the Asset Store, or move from Lite to the full version → <a href="/padplay/docs/quickstart/#2-import-the-package">Quick Start §2</a></li>
+  <li>Get the phone app → <a href="/padplay/docs/quickstart/#5-connect-the-phone">Quick Start §5</a></li>
+  <li>Try every sample from one menu (Sample Hub) → <a href="/padplay/docs/quickstart/#12-samples">Quick Start §12</a></li>
+  <li>Add the Host in one click (<em>GameObject → PadPlay → PadPlay Setup</em>) and understand its Inspector → <a href="/padplay/docs/quickstart/#3-add-a-padplayhost">Quick Start §3</a></li>
+  <li>Show the QR code, react to players joining and leaving → <a href="/padplay/docs/quickstart/#4-show-the-qr-code">Quick Start §4</a>, <a href="/padplay/docs/quickstart/#5-connect-the-phone">§5</a></li>
+  <li>Receive touches in uGUI, know which player touched → <a href="/padplay/docs/quickstart/#6-touch-arrives-as-normal-ugui-events">Quick Start §6</a></li>
+  <li>Read buttons, sticks and the attitude as a Gamepad → <a href="/padplay/docs/quickstart/#7-read-the-phone-as-a-gamepad">Quick Start §7</a></li>
+  <li>Turn a camera with the phone, or point with it → <a href="/padplay/docs/quickstart/#8-gyro-camera-and-pointer">Quick Start §8</a></li>
+  <li>Look through the phone like a window, with the delay hidden → <a href="/padplay/docs/pose-camera/">Pose Camera</a></li>
+  <li>Let players point at the screen and click your menus with the phone (one cursor each) → <a href="/padplay/docs/remote-pointers/">Remote Pointers</a></li>
+  <li>Show a picture on the phone → <a href="/padplay/docs/quickstart/#9-second-screen-video">Quick Start §9</a></li>
+  <li>Show text that stays still on the phone screen (score, crosshair) → <a href="/padplay/docs/pose-camera/#text-on-the-phone-in-the-picture-or-fixed-to-the-screen">Pose Camera: Phone Overlay</a></li>
+  <li>Put game-specific buttons on the phone, vibrate it → <a href="/padplay/docs/quickstart/#10-on-screen-buttons-and-haptics">Quick Start §10</a></li>
+  <li>Keep the phones connected when you load another scene (menu → game → menu) → <a href="/padplay/docs/concepts/#across-scenes">Concepts: Across scenes</a></li>
+  <li>Understand the encryption, H.264 / JPEG and how video adapts to the Wi-Fi → <a href="/padplay/docs/concepts/#encryption">Concepts: Encryption</a>, <a href="/padplay/docs/concepts/#second-screen-video">Second screen</a></li>
+  <li>Fix "cannot connect", "stuck connecting" (<em>Window → PadPlay → Connection Check</em>), wrong touches, black video → <a href="/padplay/docs/quickstart/#11-troubleshooting">Quick Start §11</a>, <a href="/padplay/docs/debugging/#6-which-tool-for-which-problem">Debugging §6</a></li>
+  <li>See each phone's screen in the Editor → <a href="/padplay/docs/debugging/#1-display-preview-each-phones-screen-on-display-2-3-">Debugging §1</a></li>
+  <li>Inspect connection state, input rates, button bits, events → <a href="/padplay/docs/debugging/#2-padplay-debugger">Debugging §2</a></li>
+  <li>Show a status box in a built game → <a href="/padplay/docs/debugging/#3-debug-overlay-in-built-games">Debugging §3</a></li>
+  <li>Try the game without a phone (simulated phones in the Editor) → <a href="/padplay/docs/debugging/#5-trying-it-without-a-phone-virtual-phones">Debugging §5</a></li>
+</ul>
+<h2 id="main-types">Main types</h2>
+<ul>
+  <li><code>PadPlayHost</code> — <em>Add Component → PadPlay → Host</em>. One per scene: connections, players, settings (<code>host.Settings</code>). <em>Keep Across Scenes</em> keeps the phones connected through scene loads.</li>
+  <li><code>PadPlayQrView</code>, <code>PadPlayStatusView</code> — <em>PadPlay → QR View</em> on a Raw Image, <em>Status View</em> on a Text or a TextMeshPro text.</li>
+  <li><code>PadPlayPointerEventData</code> — The <code>PointerEventData</code> of phone touches (<code>PlayerSlot</code>, <code>FingerId</code>, <code>PhonePosition</code>).</li>
+  <li><code>PadPlayPad</code> — The Input System device of each phone (<code>Gamepad</code> + <code>attitude</code>, <code>angularVelocity</code>, <code>custom14</code>…<code>custom31</code>).</li>
+  <li><code>PadPlayGyroCamera</code>, <code>PadPlayGyroPointer</code> — <em>PadPlay → Gyro Camera / Gyro Pointer</em>.</li>
+  <li><code>PadPlayPoseCamera</code> — <em>PadPlay → Pose Camera</em>: a camera that follows the phone; the phone hides the video delay.</li>
+  <li><code>PadPlayRemotePointers</code>, <code>PadPlayRemoteLayout</code> — <em>GameObject → PadPlay → Remote Pointers</em>: a cursor per player that clicks uGUI; the bundled phone layout.</li>
+  <li><code>PadPlayView</code> — <em>PadPlay → View</em>: stream a camera or RenderTexture to a phone.</li>
+  <li><code>PadPlayPhoneOverlay</code> — <em>PadPlay → Phone Overlay</em>: uGUI Text, TextMeshPro text and Image that the phone draws over the video, fixed to its screen.</li>
+  <li><code>PadPlayButtonLayout</code> — <em>Assets → Create → PadPlay → Button Layout</em>: the buttons and sticks on the phone.</li>
+  <li><code>PadPlayRaycaster</code> — <em>PadPlay → Raycaster</em>: a <code>GraphicRaycaster</code> that ignores transparent pixels.</li>
+  <li><code>PadPlayDebugOverlay</code>, <code>host.Diagnostics</code> — <em>PadPlay → Debug Overlay</em>; diagnostics from code.</li>
+</ul>
+<p>Members of each type: <a href="/padplay/docs/api/">API Reference</a>.</p>
+<h2 id="phone-app">Phone app</h2>
+<p>Players install the free <strong>PadPlay</strong> app from <a href="https://play.google.com/store/apps/details?id=com.petaf.padplay">Google Play</a> (Android 7.0 or newer). One app works with every PadPlay game. The iPhone version is in preparation. PadPlay SDK (not Lite) also includes the app's source code in the <code>PhoneApp~</code> folder of the package, so you can build the app yourself or publish it under your own name and icon. See <a href="/padplay/docs/quickstart/#getting-the-app">Quick Start §5</a>.</p>
+<h2 id="support">Support</h2>
+<ul>
+  <li>Questions and bug reports: <a href="https://petaf.dev/contact/">petaf.dev/contact</a> (English or Japanese). Please include the package version, your Unity version, the phone model, and the result of <em>Window → PadPlay → Connection Check → Copy report</em> for connection problems.</li>
+  <li>Privacy policy of the PadPlay app: <a href="https://petaf.dev/privacy/">English</a> / <a href="https://petaf.dev/ja/privacy/">日本語</a></li>
+</ul>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></p>
+    <p class="muted">This site uses no cookies, analytics or tracking.</p>
+  </div>
+</footer>
+</body>
+</html>

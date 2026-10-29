@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PadPlay 用語集(日本語 / English) — PadPlay documentation</title>
+<meta name="description" content="PadPlay SDK の用語集(日本語 / English)">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/glossary-ja/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/products/">Products</a>
+      <a href="/contact/">Contact</a>
+      <a href="/privacy/">Privacy</a>
+    </nav>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay documentation">
+    <a href="/padplay/docs/">Overview</a>
+    <a href="/padplay/docs/quickstart/">Quick Start</a>
+    <a href="/padplay/docs/concepts/">Concepts</a>
+    <a href="/padplay/docs/debugging/">Debugging</a>
+    <a href="/padplay/docs/pose-camera/">Pose Camera</a>
+    <a href="/padplay/docs/remote-pointers/">Remote Pointers</a>
+    <a href="/padplay/docs/api/">API Reference</a>
+    <a href="/padplay/docs/glossary-ja/" aria-current="page" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="padplay-用語集日本語--english">PadPlay 用語集(日本語 / English)</h1>
+<p>PadPlay のエディタの窓・Inspector・実行時の表示を日本語で出す時の用語です。言語は Welcome の窓の右上か <em>Preferences → PadPlay</em> で選べます(Auto = Unity エディタの言語)。遊ぶ人が見る文字(QR の下の案内・Status View)は PadPlayHost の <em>Connection → Display Language</em>(Auto = OS の言語)。</p>
+<ul>
+  <li>Inspector の項目の名前(Max Players・Drag Threshold Mode など)は、コードのフィールドの名前と同じ英語のままです。説明(Tooltip)だけが日本語になります。</li>
+  <li>メニューの道筋(<em>Window → PadPlay → …</em>・<em>GameObject → PadPlay → PadPlay Setup</em>)・Console のログ・例外・Debugger のイベントの記録は英語のままです(検索と問い合わせのため)。</li>
+  <li>ドキュメントには英語版と日本語版があります。日本語版はパッケージの <code>Documentation~/ja</code>(<a href="/padplay/docs/ja/">目次</a>)と <a href="https://petaf.dev/padplay/docs/ja/">https://petaf.dev/padplay/docs/ja/</a> に、英語版は <code>Documentation~</code> と <a href="https://petaf.dev/padplay/docs/">https://petaf.dev/padplay/docs/</a> にあります。日本語版の用語は、この用語集に合わせています。</li>
+  <li>メニューの道筋は、ドキュメントでは「→」でつないで書きます(例: <em>Window → PadPlay → Welcome</em>)。</li>
+</ul>
+<h2 id="窓とメニュー">窓とメニュー</h2>
+<div class="table-wrap"><table>
+  <tr class="head"><th>English</th><th>日本語</th></tr>
+  <tr><td>Welcome</td><td>ようこそ</td></tr>
+  <tr><td>Virtual Phones</td><td>仮想スマホ</td></tr>
+  <tr><td>Connection Check</td><td>接続チェック</td></tr>
+  <tr><td>Debugger</td><td>デバッガー</td></tr>
+  <tr><td>Debug Overlay</td><td>デバッグ表示</td></tr>
+  <tr><td>PadPlay Setup</td><td>PadPlay Setup(そのまま)</td></tr>
+  <tr><td>Import All Samples</td><td>サンプルを全部入れる</td></tr>
+  <tr><td>Sample Hub</td><td>Sample Hub(そのまま。サンプルを選ぶ画面)</td></tr>
+  <tr><td>Preset</td><td>プリセット</td></tr>
+  <tr><td>Samples</td><td>サンプル</td></tr>
+  <tr><td>Documentation</td><td>ドキュメント</td></tr>
+  <tr><td>Editor language</td><td>エディタの表示言語</td></tr>
+</table></div>
+<h2 id="仕組み">仕組み</h2>
+<div class="table-wrap"><table>
+  <tr class="head"><th>English</th><th>日本語</th></tr>
+  <tr><td>Host</td><td>ホスト</td></tr>
+  <tr><td>player / P1, P2</td><td>プレイヤー / P1・P2</td></tr>
+  <tr><td>phone (device)</td><td>スマホ(端末)</td></tr>
+  <tr><td>simulated phone</td><td>仮想スマホ</td></tr>
+  <tr><td>module</td><td>モジュール</td></tr>
+  <tr><td>Touch</td><td>タッチ</td></tr>
+  <tr><td>Attitude (gyro)</td><td>姿勢(ジャイロ)</td></tr>
+  <tr><td>Buttons</td><td>ボタン</td></tr>
+  <tr><td>Video (second screen)</td><td>映像(第二画面)</td></tr>
+  <tr><td>Haptics</td><td>振動</td></tr>
+  <tr><td>layout</td><td>レイアウト</td></tr>
+  <tr><td>stick / D-pad</td><td>スティック / 十字キー</td></tr>
+  <tr><td>button look (style)</td><td>ボタンの見た目</td></tr>
+  <tr><td>picture (button image)</td><td>画像</td></tr>
+  <tr><td>calibrate</td><td>校正</td></tr>
+  <tr><td>recenter</td><td>正面合わせ</td></tr>
+  <tr><td>Reset tilt (Virtual Phones)</td><td>傾きを 0 に</td></tr>
+  <tr><td>Gyro Camera / Gyro Pointer</td><td>Gyro Camera / Gyro Pointer(そのまま)</td></tr>
+  <tr><td>Pose Camera</td><td>Pose Camera(そのまま。スマホの向きで見回すカメラ。遅れをスマホ側で補正する)</td></tr>
+  <tr><td>Phone Overlay</td><td>Phone Overlay(そのまま。スマホの画面に固定して出す文字と板)</td></tr>
+  <tr><td>Remote Pointers</td><td>Remote Pointers(そのまま。プレイヤーごとのポインター)</td></tr>
+  <tr><td>Keep Across Scenes</td><td>シーンをまたいで保つ</td></tr>
+  <tr><td>drag threshold</td><td>ドラッグ開始距離</td></tr>
+  <tr><td>Join URI / token</td><td>参加 URI / トークン</td></tr>
+  <tr><td>QR code</td><td>QR コード</td></tr>
+  <tr><td>main screen</td><td>メインの画面(PC のモニター・つないだテレビなど。文では「画面」/ "screen" と書く)</td></tr>
+  <tr><td>remote pointer</td><td>ポインター(スマホを画面に向けて動かすカーソル)</td></tr>
+  <tr><td>Play mode</td><td>再生中 / 再生モード</td></tr>
+  <tr><td>locked in Play mode</td><td>再生中は変更不可</td></tr>
+</table></div>
+<h2 id="状態">状態</h2>
+<div class="table-wrap"><table>
+  <tr class="head"><th>English</th><th>日本語</th></tr>
+  <tr><td>Connecting</td><td>接続中</td></tr>
+  <tr><td>Joined</td><td>参加済み</td></tr>
+  <tr><td>Ready</td><td>準備完了</td></tr>
+  <tr><td>Reconnecting</td><td>再接続待ち</td></tr>
+  <tr><td>Gone / Removed</td><td>退出</td></tr>
+  <tr><td>Disconnected</td><td>切断</td></tr>
+  <tr><td>Rejected</td><td>拒否</td></tr>
+</table></div>
+<h2 id="ネットワーク">ネットワーク</h2>
+<div class="table-wrap"><table>
+  <tr class="head"><th>English</th><th>日本語</th></tr>
+  <tr><td>network adapter</td><td>ネットワーク アダプター</td></tr>
+  <tr><td>Wi-Fi / Ethernet / virtual / VPN</td><td>Wi-Fi / 有線 / 仮想 / VPN</td></tr>
+  <tr><td>listening port</td><td>待ち受けのポート</td></tr>
+  <tr><td>Windows Firewall</td><td>Windows ファイアウォール</td></tr>
+  <tr><td>Private / Public network</td><td>プライベート / パブリック ネットワーク</td></tr>
+  <tr><td>inbound rule (Allow / Block)</td><td>受信の規則(許可 / ブロック)</td></tr>
+  <tr><td>connection attempt</td><td>接続の試み</td></tr>
+</table></div>
+<h2 id="映像">映像</h2>
+<div class="table-wrap"><table>
+  <tr class="head"><th>English</th><th>日本語</th></tr>
+  <tr><td>second screen</td><td>第二画面</td></tr>
+  <tr><td>encoder</td><td>エンコーダー</td></tr>
+  <tr><td>codec</td><td>コーデック</td></tr>
+  <tr><td>key frame</td><td>キーフレーム</td></tr>
+  <tr><td>recovery frame</td><td>復旧フレーム</td></tr>
+  <tr><td>bitrate</td><td>ビットレート</td></tr>
+  <tr><td>frame rate</td><td>フレームレート</td></tr>
+  <tr><td>overscan</td><td>オーバースキャン</td></tr>
+  <tr><td>motion-to-photon (m2p)</td><td>動かしてから画面に出るまでの時間</td></tr>
+</table></div>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></p>
+    <p class="muted">This site uses no cookies, analytics or tracking.</p>
+  </div>
+</footer>
+</body>
+</html>

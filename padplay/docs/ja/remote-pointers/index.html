@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remote Pointers — PadPlay ドキュメント</title>
+<meta name="description" content="PadPlay SDK のドキュメント(日本語): Remote Pointers">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/remote-pointers/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/remote-pointers/">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/remote-pointers/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/ja/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="メニュー">
+      <a href="/ja/">ホーム</a>
+      <a href="/ja/products/">製品</a>
+      <a href="/ja/contact/">お問い合わせ</a>
+      <a href="/ja/privacy/">プライバシー</a>
+    </nav>
+    <a class="lang" href="/padplay/docs/remote-pointers/" lang="en" hreflang="en">English</a>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay ドキュメント">
+    <a href="/padplay/docs/ja/" lang="ja">概要</a>
+    <a href="/padplay/docs/ja/quickstart/" lang="ja">クイックスタート</a>
+    <a href="/padplay/docs/ja/concepts/" lang="ja">仕組み</a>
+    <a href="/padplay/docs/ja/debugging/" lang="ja">デバッグ</a>
+    <a href="/padplay/docs/ja/pose-camera/" lang="ja">Pose Camera</a>
+    <a href="/padplay/docs/ja/remote-pointers/" aria-current="page" lang="ja">Remote Pointers</a>
+    <a href="/padplay/docs/ja/api/" lang="ja">API リファレンス</a>
+    <a href="/padplay/docs/glossary-ja/" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="remote-pointers">Remote Pointers</h1>
+<p><em><a href="/padplay/docs/remote-pointers/">English</a></em></p>
+<p>遊ぶ人がスマホを画面に向けるとカーソルがついて動き、スマホの <strong>A</strong> を押すと、カーソルの下の uGUI をクリックします。カーソルはつながっているプレイヤーごとに 1 つ、そのプレイヤーの色で出ます。UI のコードは変わりません。Button・Toggle・Slider・ScrollView には、マウスやスマホのタッチと同じように、ふつうの <code>OnPointerEnter</code> / <code>OnPointerDown</code> / <code>OnPointerClick</code> / <code>OnDrag</code> のイベントが届きます(<a href="/padplay/docs/ja/concepts/#injected-as-standard-events">仕組み: タッチ</a>)。</p>
+<p>大きな画面のメニュー、「画面を指す」ミニゲームなど、スマホをタッチパネルではなくリモコンとして使うシーンに向いています。Sample Hub とそのミニゲーム Target Pop も、これを使っています(<a href="/padplay/docs/ja/quickstart/#sample-hub-and-target-pop">クイックスタート §12</a>)。</p>
+<h2 id="minimal-steps">最小の手順</h2>
+<ol>
+  <li><strong>部品を足す。</strong> <em>GameObject → PadPlay → Remote Pointers</em>(または <em>Add Component → PadPlay → Remote Pointers</em>)。シーンの <code>PadPlayHost</code> を見つけ、シーンに無ければホスト・QR コード・EventSystem を足します。</li>
+  <li><strong>レイアウトを選ぶ。</strong> <em>Layout</em> には最初から同梱の <strong>PadPlayRemoteLayout</strong>(Recenter、A、B、−、+、Menu)が入っています。そのまま使うか、自分のボタンのレイアウトを入れてください。このシーンではホストの <strong>Video</strong> のモジュールをオフにします。このレイアウトは、絵を出さずに縦に持つスマホ向けに作ってあります。<em>Orientation</em> が <strong>Portrait</strong> なので、スマホのアプリは画面を縦向きに固定し、画面全体にボタンを並べます。</li>
+  <li><strong>完了。</strong> 再生してスマホで参加します(または <em>Window → PadPlay → Virtual Phones</em>: 傾きの球をドラッグし、<strong>A</strong> をクリックします)。</li>
+</ol>
+<p>スマホが参加すると、画面とスマホが 1 回だけ、<strong>画面の真ん中を指して Recenter を押す</strong> ように案内します。Recenter で今の向きが真ん中になり、カーソルが真ん中に飛びます。カーソルがずれてきた時など、いつでも使えます。</p>
+<h2 id="the-bundled-layout">同梱のレイアウト</h2>
+<ul>
+  <li><strong>A</strong>(大) — <code>Press</code> = Gamepad の <code>buttonSouth</code>。カーソルの下の UI を押します。押したままでドラッグします。</li>
+  <li><strong>B</strong> — <code>Back</code> = <code>buttonEast</code>。それ自体は何もしません。「戻る」として読んでください(<code>pad.buttonEast</code>)。</li>
+  <li><strong>Recenter</strong> — <code>Recenter</code> = <code>custom14</code>、Role は <em>Recenter</em>。今の向きを真ん中にします(コードは要りません)。</li>
+  <li><strong>Menu</strong> — <code>Menu</code> = <code>startButton</code>。それ自体は何もしません。自分のメニューに戻る時などに読んでください。</li>
+  <li><strong>−</strong> / <strong>+</strong> — <code>Minus</code> / <code>Plus</code> = <code>leftShoulder</code> / <code>rightShoulder</code>。それ自体は何もしません。ページ送り、ズーム、音量など。</li>
+</ul>
+<p>Id が Gamepad のボタンなので、<code>&lt;Gamepad&gt;/buttonSouth</code> などの今あるバインドからも見えます。<code>PadPlayRemoteLayout.Create()</code> で、同じレイアウトをコードから作れます。</p>
+<h2 id="knowing-who-pointed">誰が指したかを知る</h2>
+<pre><code class="language-csharp">public void OnPointerClick(PointerEventData eventData)
+{
+    if (eventData is PadPlayPointerEventData p &amp;&amp; p.FingerId == PadPlayRemotePointers.FingerId)
+        Debug.Log($"P{p.PlayerSlot + 1} clicked with the remote pointer");
+}</code></pre>
+<p>プレイヤーごとのカーソルには、マウスやスマホの指とは別の <code>pointerId</code>(<code>PadPlayRemotePointers.GetPointerId(slot)</code>)があるので、2 人のプレイヤーとマウスが同時に別々のボタンを押せます。コードからは <code>remote.GetHovered(slot)</code>、<code>remote.IsPressing(slot)</code>、<code>remote.TryGetScreenPosition(slot, out pos)</code>、<code>remote.TryGetPointer(slot, out gyroPointer)</code>(カーソルの元になっている <code>PadPlayGyroPointer</code>)、<code>remote.ShowRecenterHint(slot)</code> が使えます。</p>
+<h2 id="behavior-worth-knowing">知っておきたい動き</h2>
+<ul>
+  <li><strong>無効な UI。</strong> <em>Interactable</em> がオフの <code>Selectable</code> は、カーソルが乗っても無効の色のままで、クリックできません(uGUI の標準の動きです)。</li>
+  <li><strong>選択。</strong> A は Gamepad の <em>Submit</em> でもあります。ボタンが 2 回押されないよう(カーソルで 1 回、入力モジュールの Submit で 1 回)、押すと EventSystem の選択を外します(<em>Clear Ui Selection</em>)。UI に選択が要る時だけオフにしてください。</li>
+  <li><strong>タッチ。</strong> 部品が有効な間は、ボタンの外のスマホのタッチは uGUI に届きません(<em>Block Touch Ui</em>)。そうしないと、A の横に触れた指が、その位置にある画面のゲームの UI をクリックしてしまいます。<code>TouchReceived</code> は出ます。</li>
+  <li><strong>指していない時。</strong> スマホの向きが分からない間(まだ姿勢が届いていない、再接続を待っている)は、カーソルが薄くなり、押しても取り消されます。</li>
+  <li><strong>画面。</strong> カーソルは Display 1 の全体か、<em>Target Camera</em> の範囲を動きます。当たるのは、その画面の UI だけです。</li>
+  <li><strong>時間。</strong> カーソルはスケールしない時間を使うので、一時停止したメニュー(<code>Time.timeScale = 0</code>)でも動きます。</li>
+  <li><strong>シーンをまたぐ。</strong> レイアウトは、部品が有効な間プレイヤーごとに設定し、無効になると外します。<em>Keep Across Scenes</em> を使う場合も、シーンごとに自分の Remote Pointers を持てます(持たなくてもかまいません)。Recenter した向きは Host がプレイヤーごとに持つので、シーンを替えても(スマホの画面が回っても)カーソルは真ん中に飛ばず、スマホが指す所にあります。</li>
+</ul>
+<h2 id="tuning">調整</h2>
+<p><em>Settings → Pointer</em> は共通の <code>PadPlayGyroPointerSettings</code> です: <em>Horizontal / Vertical Range Degrees</em>(端から端までどれだけ振るか)、<em>Smoothing</em>、<em>Recenter Blend Ms</em>。<em>Cursor Size</em>、<em>Dimmed Alpha</em>、<em>Hint Seconds</em> で見た目を変えます。どれも再生中に変えられます。既定の値は出発点です。</p>
+<h2 id="how-to-hold-the-phone">スマホの持ち方</h2>
+<p>スマホはリモコンのように、平らにして上の端を画面に向けて持ちます。画面の真ん中を指して <strong>Recenter</strong> を押してください。<code>Axis = Auto</code>(既定)なら、スマホを平らに持った時は上の端で、窓のように縦に立てた時は背面で狙います。手首をひねってもカーソルは動きません。既定では、左右に約 ±20°、上下に約 ±15° 振ると画面の端に届きます(<code>HorizontalRangeDegrees</code> 40、<code>VerticalRangeDegrees</code> 30)。スマホにはセンサーバーが無いので、数分かけて向きが少しずつずれます。カーソルがずれたら、もう一度 Recenter を押してください。仮想スマホでは、Pitch 90 が平らに持った(リモコンの)持ち方です。</p>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/ja/contact/">お問い合わせ</a> · <a href="/ja/privacy/">プライバシー</a></p>
+    <p class="muted">このサイトは Cookie・アクセス解析・トラッキングを使っていません。</p>
+  </div>
+</footer>
+</body>
+</html>

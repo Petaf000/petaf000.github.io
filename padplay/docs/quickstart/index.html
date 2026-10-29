@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quick Start — PadPlay documentation</title>
+<meta name="description" content="PadPlay SDK documentation: Quick Start">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/quickstart/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/quickstart/">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/quickstart/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/products/">Products</a>
+      <a href="/contact/">Contact</a>
+      <a href="/privacy/">Privacy</a>
+    </nav>
+    <a class="lang" href="/padplay/docs/ja/quickstart/" lang="ja" hreflang="ja">日本語</a>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay documentation">
+    <a href="/padplay/docs/">Overview</a>
+    <a href="/padplay/docs/quickstart/" aria-current="page">Quick Start</a>
+    <a href="/padplay/docs/concepts/">Concepts</a>
+    <a href="/padplay/docs/debugging/">Debugging</a>
+    <a href="/padplay/docs/pose-camera/">Pose Camera</a>
+    <a href="/padplay/docs/remote-pointers/">Remote Pointers</a>
+    <a href="/padplay/docs/api/">API Reference</a>
+    <a href="/padplay/docs/glossary-ja/" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="quick-start">Quick Start</h1>
+<p><em><a href="/padplay/docs/ja/quickstart/">日本語</a></em></p>
+<p>Get from an empty Unity project to "my phone controls the game" in about ten minutes, once the PadPlay app is on your phone (step 5).</p>
+<p>You will: import the package → add a <code>PadPlayHost</code> → show a QR code → connect the phone app → receive touch, gamepad and gyro input → (optionally) stream a second screen, place on-screen buttons and rumble the phone.</p>
+<blockquote>
+<p>For the ideas behind the design, see <a href="/padplay/docs/concepts/">Concepts</a>; for the Editor tools, <a href="/padplay/docs/debugging/">Debugging</a>. All pages: <a href="/padplay/docs/">Documentation index</a>.</p>
+<p><em>Window → PadPlay → Welcome</em> (it opens once by itself after you import the package) has the same first steps, imports every sample and opens the Sample Hub with one click, and links to the phone app and these pages.</p>
+</blockquote>
+<hr>
+<h2 id="1-requirements">1. Requirements</h2>
+<ul>
+  <li><strong>Unity</strong> — Unity 2022.3 LTS (<code>2022.3.62f3</code>) or newer, including Unity 6. See <a href="#tested-setup">Tested setup</a>.</li>
+  <li><strong>Packages</strong> — Installed automatically as dependencies: Input System (<code>com.unity.inputsystem</code> 1.11.2+), uGUI (<code>com.unity.ugui</code>). Nothing else: the connection is the SDK's own <em>PadPlay Link</em> over UDP.</li>
+  <li><strong>Active Input Handling</strong> — <em>Project Settings → Player → Active Input Handling</em> = <strong>Input System Package (New)</strong> or <strong>Both</strong>.</li>
+  <li><strong>PC (the host)</strong> — Windows 10 / 11, in the Editor or a Windows x64 standalone build. macOS and Linux hosts are not tested yet (and send video as JPEG only, see below).</li>
+  <li><strong>GPU</strong> (second-screen video only) — H.264 is encoded by Windows Media Foundation (the GPU's hardware encoder when one works, otherwise Windows' software encoder) from Direct3D 11 / 12 without leaving the GPU; Vulkan reads the frame back first (slower). Where H.264 cannot be used (OpenGL, macOS / Linux, Windows without an H.264 encoder) the video is sent as JPEG. Touch, gamepad and gyro do not need a GPU encoder.</li>
+  <li><strong>Render pipeline</strong> — <strong>Built-in</strong> and <strong>URP</strong> (Universal Render Pipeline). The second-screen video works the same in both, with no setup. HDRP has not been tested yet. The samples' 3D materials are made for the Built-in pipeline; in a URP project the samples switch them to the pipeline's <em>Lit</em> shader at runtime, with nothing to convert. For player builds, run <em>Window → PadPlay → Prepare Samples for URP or HDRP</em> once (<em>Import All Samples</em> does it for you; see <a href="#12-samples">Samples</a>).</li>
+  <li><strong>Phone / tablet</strong> — Android 7.0 or newer, running the separate <strong>PadPlay</strong> app (see step 5). The iPhone version of the app is in preparation. A gyroscope is needed only for the gyro features (attitude, Gyro Camera, Pose Camera, Remote Pointers).</li>
+  <li><strong>Network</strong> — PC and phone on the <strong>same Wi-Fi / LAN</strong>. Everything uses one <strong>UDP</strong> port (7780 by default). Internet play is out of scope.</li>
+</ul>
+<h3 id="what-you-need-besides-unity">What you need besides Unity</h3>
+<ul>
+  <li><strong>The PadPlay phone app</strong> — Every player needs the separate <strong>PadPlay</strong> app on their phone. One generic app works with every PadPlay game; there is no per-game app. How to get it: <a href="#5-connect-the-phone">step 5</a>.</li>
+  <li><strong>The same Wi-Fi</strong> — The PC and the phones must be on the <strong>same Wi-Fi / LAN</strong>. PadPlay never goes over the internet and needs no internet connection. Guest networks and routers with "AP isolation" (privacy separator) keep devices apart: use a normal home or office network.</li>
+  <li><strong>Windows Firewall</strong> — On the first Play, Windows asks whether Unity may use the network: choose <strong>Allow</strong> on <strong>Private</strong> networks, and make your Wi-Fi a Private network. Your built game is a separate program and asks again. See <a href="#11-troubleshooting">Troubleshooting</a>.</li>
+</ul>
+<h3 id="tested-setup">Tested setup</h3>
+<ul>
+  <li><strong>PC</strong> — Windows, NVIDIA GPU (hardware H.264), Direct3D 12</li>
+  <li><strong>Unity</strong> — 6000.6 with a phone. 2022.3.62f3 and 6000.0.84f1 pass the same automated tests (Edit Mode and Play Mode, the video on Direct3D 11, the samples)</li>
+  <li><strong>Graphics API</strong> — Direct3D 12 with a phone; Direct3D 11, Vulkan and OpenGL Core (JPEG) in automated tests on the same PC</li>
+  <li><strong>Render pipeline</strong> — Built-in; URP 17.6 (Unity 6000.6) and URP 14.0.12 (2022.3.62f3) in automated tests</li>
+  <li><strong>Windows builds</strong> — Player builds with 2022.3.62f3 (Built-in and URP, Mono and IL2CPP) and 6000.6: QR code, connection and video of the samples</li>
+  <li><strong>Android</strong> — Android 10, Samsung Galaxy S9+ (one device)</li>
+  <li><strong>iPhone</strong> — Not yet tried on a device with this version (the app builds and passes its encryption tests in automated builds)</li>
+</ul>
+<p>Other GPUs' hardware encoders, Windows' software encoder, macOS / Linux hosts, HDRP and other phones may work but have not been tested yet.</p>
+<h3 id="what-it-cannot-do-yet">What it cannot do (yet)</h3>
+<ul>
+  <li><strong>macOS / Linux host</strong> — No H.264 encoder there yet: the second screen is sent as JPEG (larger, slower). Not tested.</li>
+  <li><strong>Joining from a web browser</strong> — Not in this version: every player needs the PadPlay app. Planned as a free 1.x update.</li>
+  <li><strong>Internet play</strong> — Same LAN only (no relay server, no STUN / TURN).</li>
+  <li><strong>HDRP</strong> — Not tested yet.</li>
+  <li><strong>Reconnecting after <code>RenewToken()</code></strong> — Weaker than a normal join (no fresh key exchange; see step 4). A key exchange for this case is planned for 1.x.</li>
+</ul>
+<h3 id="padplay-lite">PadPlay Lite</h3>
+<p>The free <strong>PadPlay Lite</strong> edition works exactly like the full version, with these limits: <strong>1 player</strong> (<em>Max Players</em> is capped at 1), <strong>no second-screen video</strong> (<code>PadPlayView</code> and the video encoder are not included; the <em>Video</em> module shows a note and does nothing), two samples (<em>Sample Hub</em> with the <em>Target Pop</em> mini-game, and <em>Minimal</em>; the other samples show as grey cards in the Hub), and no phone app source code. Sections of this page about video, several players or the other samples apply to the full <strong>PadPlay SDK</strong> only.</p>
+<hr>
+<h2 id="2-import-the-package">2. Import the package</h2>
+<p>PadPlay comes from the Unity Asset Store. After you buy PadPlay SDK (or get the free PadPlay Lite) with your Unity ID:</p>
+<ol>
+  <li>Open your project and sign in to the Unity Editor with the same Unity ID.</li>
+  <li><em>Window → Package Manager</em>. Choose <strong>My Assets</strong> (Unity 6: in the list on the left; Unity 2022.3: in the <em>Packages</em> drop-down at the top left).</li>
+  <li>Select <strong>PadPlay SDK</strong> (or <strong>PadPlay Lite</strong>), press <strong>Download</strong>, then <strong>Import</strong>.</li>
+  <li>In the <em>Import Unity Package</em> window keep everything ticked and press <strong>Import</strong>.</li>
+</ol>
+<p>The package goes to <code>Packages/dev.petaf.padplay</code> (an embedded package: it is not under <code>Assets</code>, and the Package Manager lists it as <em>PadPlay</em> in both editions; the Welcome window's title says which edition you have). Unity installs its dependencies, Input System and uGUI, if the project does not have them yet. Then <em>Window → PadPlay → Welcome</em> opens.</p>
+<p>PadPlay needs the Input System: <em>Active Input Handling</em> must be <strong>Both</strong> or <strong>Input System Package (New)</strong> (<a href="#1-requirements">step 1</a>). If the project still uses only the old Input Manager (the default for new Unity 2022.3 projects), the Welcome window shows a warning with <strong>Set to Both…</strong>. Press it and let Unity restart; code that uses the Input Manager keeps working with <em>Both</em>. PadPlay Setup and the Host Inspector show the same warning and button. Unity may also ask by itself whether to enable the Input System backends (<strong>Yes</strong> in Unity 2022.3, <strong>Enable &amp; Restart</strong> in Unity 6). If the PadPlay warning is still shown after that, use <strong>Set to Both…</strong>.</p>
+<p><strong>Updating:</strong> download and import the new version the same way. Samples you imported before stay in <code>Assets/Samples</code>; to get the new version, press <strong>Import all available samples and open the Sample Hub</strong> in the Welcome window (it offers to remove the old version's samples first, see below).</p>
+<p><strong>From PadPlay Lite to PadPlay SDK:</strong> import PadPlay SDK into the same project and keep everything ticked in the <em>Import Unity Package</em> window. It has the same package name, so it replaces Lite in place; your scenes and settings stay. The Welcome window's title then reads <em>PadPlay SDK</em>. Press <strong>Import all available samples and open the Sample Hub</strong> again: the samples go to the same folder as Lite's (<code>Assets/Samples/PadPlay/&lt;version&gt;</code>), so the full versions of Sample Hub and Minimal replace the Lite ones and the other four samples are added. If samples of an earlier version are still in <code>Assets/Samples</code> (for example <code>Assets/Samples/PadPlay Lite</code>), the Welcome window lists them and offers <strong>Remove the old samples…</strong> (it asks first and moves them to the trash). Leaving both copies gives two assemblies with the same name (<em>Assembly with name … already exists</em>), and Unity stops compiling; if that already happened and the Welcome window is not available (for example in Safe Mode), delete the older folder by hand (for example <code>Assets/Samples/PadPlay Lite</code>) and Unity compiles again. Importing PadPlay Lite over PadPlay SDK does not remove the SDK's files but turns on the Lite limits; import PadPlay SDK again to go back.</p>
+<hr>
+<h2 id="3-add-a-padplayhost">3. Add a PadPlayHost</h2>
+<p><strong>One click:</strong> <em>GameObject → PadPlay → PadPlay Setup</em>. It adds, as one undoable step:</p>
+<ul>
+  <li><code>PadPlay</code> — The <code>PadPlayHost</code> (selected afterwards), with a starter <strong>button layout</strong> in <em>Buttons → Layout</em>: a left stick, <strong>A</strong> (<code>buttonSouth</code>) and <strong>B</strong> (<code>buttonEast</code>). The phone shows them and the code in <a href="#7-read-the-phone-as-a-gamepad">step 7</a> works right away. Change them as in <a href="#10-on-screen-buttons-and-haptics">step 10</a>.</li>
+  <li><code>PadPlay UI</code> — A Screen Space – Overlay Canvas (sorting order 100, no raycaster, so it never catches touches) with a <strong>QR code</strong> (<code>PadPlayQrView</code>, bottom right), its caption (game name and join URL) and a <strong>player list</strong> (<code>PadPlayStatusView</code>, top left). Move, resize or delete them as you like.</li>
+  <li><code>EventSystem</code> — Only if the scene has none: an EventSystem with the Input System UI module. An existing EventSystem is left as it is.</li>
+</ul>
+<p>If the scene already has a <code>PadPlayHost</code>, nothing is added; the existing host is selected.</p>
+<p><strong>By hand</strong> (same result):</p>
+<ol>
+  <li>Create an empty GameObject (for example <code>PadPlay</code>).</li>
+  <li><em>Add Component → PadPlay → Host</em>.</li>
+  <li>If your scene has uGUI, keep (or add) the usual <strong>EventSystem</strong>. Phone touches are sent through it.</li>
+</ol>
+<p>That is all the setup the Host needs. With <strong>Auto Start</strong> on (default) it starts listening when you press Play.</p>
+<h3 id="the-host-inspector">The Host Inspector</h3>
+<p>The Inspector is laid out top to bottom as <strong>Players → Modules → Debug → Connection</strong> (plus a status line while playing). Tick the modules your game uses; each checkbox opens the module's settings right below it. An unticked module is folded and greyed out, and its values are kept. Hover over any field for a short explanation.</p>
+<p>Most values can be changed <strong>while playing</strong> and take effect at once, so you can tune by feel. Fields read only when the host starts are greyed out during Play and marked <em>(locked in Play mode)</em>.</p>
+<p><strong>Players</strong> (<code>Settings.Players</code>)</p>
+<ul>
+  <li><strong>Max Players</strong> (default 4; locked in Play mode) — How many phones may join.</li>
+  <li><strong>Resume Hold Seconds</strong> (default 60; locked in Play mode) — A phone that drops (Wi-Fi blip, app in background) gets the same player slot back within this time. After it, <code>PlayerRemoved</code> fires.</li>
+  <li><strong>Accept New Players</strong> (default on; can change while playing) — Off = new phones are refused as "full"; dropped players can still come back. Same as <code>host.AcceptNewPlayers</code>.</li>
+  <li><strong>Calibrate Yaw On Connect</strong> (default on; from the next connection) — On (re)connect, the direction the player faces becomes forward.</li>
+  <li><strong>Create Devices</strong> (default on; from the next connection) — Create a <code>PadPlayPad</code> (Gamepad) per player in the Input System.</li>
+</ul>
+<p><strong>Modules</strong> (<code>Settings.Modules</code>) — the <em>Preset</em> menu next to the header (also the Host's context menu) picks a common set: <em>Touch only</em>, <em>Gyro controller</em> (attitude + buttons) or <em>Second-screen controller</em> (everything). Presets change only the checkboxes.</p>
+<p>A disabled module is ignored by the host: its input is dropped (no uGUI events, no <code>TouchReceived</code> / <code>AttitudeReceived</code> / <code>ButtonsReceived</code>, nothing on the pad) and nothing is sent for it (no buttons, no haptics, no video).</p>
+<p><strong>Touch</strong> (<code>Settings.Touch</code>)</p>
+<ul>
+  <li><strong>Drag Threshold Mode</strong> (default EventSystem) — How far a finger moves before a drag starts: <em>EventSystem</em> (same as the mouse), <em>Pixels</em>, or <em>PhoneMillimeters</em> (the same finger movement on any phone; converted per player from the phone's pixel ratio and screen size).</li>
+  <li><strong>Drag Threshold Mm / Px</strong> (default 1.5 mm / 10 px) — The distance for the chosen mode. Px is also the fallback when a phone's size is unknown.</li>
+  <li><strong>Raycast Only Player Screen</strong> (default on) — A player's touches only hit that player's screen (camera or display area).</li>
+  <li><strong>Alpha threshold</strong> — Shortcut to the <em>Alpha Threshold</em> of every <code>PadPlayRaycaster</code> in the scene (touches pass through transparent pixels).</li>
+  <li><strong>Stale Timeout Seconds</strong> (default 0) — Release a finger that sends nothing for this long (0 = never).</li>
+  <li><strong>More: Send Ui Events, Click Speed Seconds, Player Targets</strong> — uGUI events on/off, double-tap interval, which screen each player touches (step 6).</li>
+</ul>
+<p><strong>Attitude</strong> (<code>Settings.Attitude</code>)</p>
+<ul>
+  <li><strong>Max Extrapolation Ms</strong> (default 150) — How far ahead the attitude is predicted when Wi-Fi packets are late.</li>
+  <li><strong>Correction Ms</strong> (default 50) — How quickly the prediction error is blended out (0 = jump).</li>
+  <li><strong>Delay Buffer Ms</strong> (default 0) — Deliberate delay to interpolate between packets (smoother, later).</li>
+  <li><strong>Smoothing</strong> (default 0) — Extra smoothing of <code>pad.attitude</code> (0 = none, higher = steadier but laggier).</li>
+  <li><strong>Full Style</strong> (default KeepGravity) — How a <em>Full</em> recenter defines forward.</li>
+  <li><strong>Recenter Mode</strong> (default Yaw) — How a <em>Recenter</em> button or the phone's corner long-press resets forward (step 8).</li>
+  <li><strong>Allow Phone Recenter</strong> (default on) — Accept the phone's corner long-press (step 8). Off = only your buttons and code.</li>
+</ul>
+<p><strong>Buttons</strong> (<code>Settings.Buttons</code>)</p>
+<ul>
+  <li><strong>Layout</strong> (default none) — On-screen buttons for every phone (step 10). <em>New</em> creates a layout asset with a stick, A and B.</li>
+  <li><strong>Allow Haptics</strong> (default on) — Off = vibration is never sent (a running vibration stops).</li>
+  <li><strong>Haptic Strength Scale</strong> (default 1) — Multiplies every vibration strength.</li>
+  <li><strong>Haptic Refresh / Duration / Min Change</strong> (default 100 ms / 150 ms / 0.05) — How vibration is resent to the phone (rarely needs changing).</li>
+</ul>
+<p><strong>Video</strong> (<code>Settings.Video</code>)</p>
+<ul>
+  <li><strong>Codec</strong> (default Auto) — <em>Auto</em> = H.264; JPEG for a phone that asks for it (its H.264 decoding is slow), and for everyone when this PC has no H.264 encoder. <em>H264</em> / <em>Jpeg</em> force one (a forced H264 still falls back to JPEG when this PC has no H.264 encoder).</li>
+  <li><strong>Adaptive Video / Min Kbps / Priority / Min Fps / Min Scale</strong> (default on / 300 / Quality / 30 / 0.5) — Lowers the bitrate, then the frame rate or the size, when the Wi-Fi gets worse, and raises them again slowly. <em>Quality</em> keeps the size (frame rate first); <em>Smoothness</em> keeps the frame rate (size first).</li>
+  <li><strong>Total Max Kbps</strong> (default 0) — Upper limit for all phones together; each phone gets at most this divided by the players (0 = none).</li>
+  <li><strong>Jpeg Scale / Fps / Quality</strong> (default 0.5 / 30 / 75) — The JPEG fallback: size as a fraction of the view's size, frame rate, starting quality (20–90; then it follows the bitrate).</li>
+  <li><strong>Pacing Mbps / Max Playout Frames / Use Ltr Recovery</strong> (default 20 / 2 / on) — How fast a frame's pieces are sent (0 = all at once); the most frames a phone waits to smooth uneven arrival (0 = never; it waits only while the arrival is uneven); repair lost video with small recovery frames instead of key frames. <strong>Read when the host starts.</strong></li>
+  <li><strong>Prefer Readback</strong> (default off) — Copy each frame through the CPU even on Direct3D 11 / 12 (a workaround if the GPU path misbehaves; slower).</li>
+  <li><strong>Views</strong> — Every <code>PadPlayView</code> in the scene with its player, size, frame rate, bitrate limit and <em>Match Phone Aspect</em> (step 9). With none, <em>Create a camera and attach</em> adds one.</li>
+</ul>
+<p>Module settings may change while playing, except the three Video values marked above. Codec, Adaptive Video and the JPEG values apply when a player's video (re)starts. Turning <strong>Video</strong> on or off, or changing a View, restarts the affected players' video (from a key frame; the connection and the slot stay).</p>
+<p><strong>Debug</strong> (folded) — the Display 2 / 3 preview of each phone (<code>Settings.Preview</code>), <strong>Open Debugger</strong> and <strong>Add Debug Overlay</strong>. See <a href="/padplay/docs/debugging/">Debugging</a>.</p>
+<p><strong>Connection</strong> (folded; usually left alone)</p>
+<ul>
+  <li><strong>Port</strong> (default 7780; locked in Play mode) — UDP port for everything (join, input, video). If busy, the next free port is used and put in the QR.</li>
+  <li><strong>Game Name</strong> (default <em>product name</em>; locked in Play mode) — Shown on the phone.</li>
+  <li><strong>Host Addresses</strong> (default <em>automatic</em>; locked in Play mode) — IP addresses put in the QR. Set when the PC has several network adapters.</li>
+  <li><strong>Loopback Only</strong> (default off; locked in Play mode) — Listen on 127.0.0.1 only (tests).</li>
+  <li><strong>Verbose Log</strong> (default off; can change while playing) — Logs the connection steps and the join URL to the Console. Handy for the first try.</li>
+  <li><strong>Display Language</strong> (default Auto; can change while playing) — Language of the texts players see (QR caption, Status View). Auto = Japanese on Japanese systems, otherwise English.</li>
+</ul>
+<p>The editor windows and Inspector tooltips can be shown in Japanese: pick <em>Auto</em> / <em>English</em> / <em>日本語</em> at the top right of the Welcome window or in <em>Preferences → PadPlay</em> (Japanese terms: <a href="/padplay/docs/glossary-ja/">Glossary-ja</a>).</p>
+<p>From code the same values are under <code>host.Settings</code>, for example <code>host.Settings.Players.MaxPlayers</code>, <code>host.Settings.SetEnabled(PadPlayModules.Touch, false)</code> or <code>host.Settings.ApplyPreset(PadPlayModulePreset.TouchOnly)</code>. Scenes saved with an older version of the SDK are upgraded when loaded (the values move to their new place).</p>
+<p>Player numbers are <strong>slots starting at 0</strong> (<code>PlayerSlot</code> 0 is "P1" on screen).</p>
+<hr>
+<h2 id="4-show-the-qr-code">4. Show the QR code</h2>
+<p><em>PadPlay Setup</em> (step 3) already did this. By hand:</p>
+<ol>
+  <li><em>GameObject → UI → Raw Image</em> (any Canvas).</li>
+  <li>On the Raw Image: <em>Add Component → PadPlay → QR View</em>.</li>
+  <li>Optional: assign a <strong>Text</strong> or a <strong>TextMeshPro - Text (UI)</strong> to <em>Caption</em> to print the game name under the code (<em>Show Uri</em> adds the join URL; it is long, so players paste it rather than type it).</li>
+</ol>
+<p>The QR View finds the Host in the scene, redraws whenever the join URL changes and hides itself while the Host is stopped. For an on-screen list of connected players, add <em>PadPlay → Status View</em> to a Text or a TextMeshPro text.</p>
+<p><strong>TextMeshPro</strong> works wherever PadPlay writes or reads text (QR View <em>Caption</em>, Status View, Phone Overlay), with nothing to set up: it is on by itself when the project has TextMeshPro (built into uGUI 2.x on Unity 6; <code>com.unity.textmeshpro</code> on Unity 2022.3). For Japanese captions, give the TMP text a font asset that has Japanese characters.</p>
+<p>The QR code carries the PC's address, the UDP port, a token and a fresh key. The key never travels over the network: the phone uses it to encrypt and authenticate everything it sends and receives, so other devices on the Wi-Fi can neither read nor fake the input or the video. It changes every time the host starts. There is no setting to turn encryption off.</p>
+<p>To invalidate the current QR code (for example between matches) call <code>RenewToken()</code>: it makes a new token and key. Phones that already joined stay connected. A joined phone whose Wi-Fi drops shortly after the renewal can still come back to its slot with the old code for <code>host.NetworkSettings.RenewGraceMs</code> (60 s by default, 0 = off); it proves itself with a secret it received when it joined, so a new phone always needs the new QR code. This return is protected by the old code's key and that secret, without a fresh key exchange, so it is weaker than a normal join (a known limitation, to be fixed in 1.x). If you renew the code to keep someone out, set <code>RenewGraceMs</code> to 0.</p>
+<pre><code class="language-csharp">using PadPlay;
+using UnityEngine;
+
+public class Lobby : MonoBehaviour
+{
+    [SerializeField] PadPlayHost host;
+
+    void OnEnable()
+    {
+        host.PlayerReady += OnReady;
+        host.PlayerLeft += OnLeft;
+        host.PlayerRemoved += OnRemoved;
+    }
+
+    void OnDisable()
+    {
+        // Unsubscribe, so a destroyed Lobby is not called (and, with Keep Across Scenes, not kept alive).
+        host.PlayerReady -= OnReady;
+        host.PlayerLeft -= OnLeft;
+        host.PlayerRemoved -= OnRemoved;
+    }
+
+    void OnReady(PadPlayPlayer p) =&gt; Debug.Log($"P{p.PlayerSlot + 1} ready: {p.Device.Model} (resumed: {p.Resumed})");
+    void OnLeft(PadPlayPlayerLeft left) =&gt; Debug.Log($"P{left.PlayerSlot + 1} left ({left.Reason}), may come back");
+    void OnRemoved(PadPlayPlayerRemoved removed) =&gt; Debug.Log($"P{removed.PlayerSlot + 1} is gone ({removed.Reason})");
+
+    public void NewQrCode() =&gt; host.RenewToken();
+
+    public void StartMatch() =&gt; host.AcceptNewPlayers = false;   // players who drop can still come back
+}</code></pre>
+<hr>
+<h2 id="5-connect-the-phone">5. Connect the phone</h2>
+<ol>
+  <li>Install the <strong>PadPlay</strong> app on the phone (see <em>Getting the app</em> below).</li>
+  <li>Press <strong>Play</strong> in Unity.</li>
+  <li>On first run Windows may ask whether Unity may use the network: choose <strong>Allow</strong> (Private networks).</li>
+  <li>In the app, scan the QR code and tap connect. (Without a camera, copy the join URL from the Debugger, <em>Copy</em> next to <em>Join URI</em>, and paste it into the app.) <em>(The app follows the phone's language: the connect button reads "Connect" in English and 「つなぐ」 in Japanese.)</em></li>
+</ol>
+<h3 id="getting-the-app">Getting the app</h3>
+<p>Every player installs the free <strong>PadPlay</strong> app from <a href="https://play.google.com/store/apps/details?id=com.petaf.padplay">Google Play</a> (Android 7.0 or newer). The iPhone version is in preparation. One app works with every PadPlay game, in PadPlay SDK and PadPlay Lite alike.</p>
+<p><strong>Your own app (PadPlay SDK only).</strong> PadPlay SDK also includes the app's source code: <code>Packages/dev.petaf.padplay/PhoneApp~/PadPlayPhoneApp-…-source.zip</code> (the folder does not show in the Unity Project window; open it in Explorer). Unzip it outside your Unity project and build it with Flutter (<code>client/README.md</code> in the zip has the steps), or publish it under your own name, app ID, icon and color (<code>WHITE_LABEL.md</code>). PadPlay Lite does not include the source.</p>
+<p>No phone at hand? <em>Window → PadPlay → Virtual Phones</em> connects simulated phones in the Editor.</p>
+<h3 id="connected">Connected</h3>
+<p><code>PlayerJoined</code> fires when the phone is accepted and gets its slot; <code>PlayerReady</code> fires right after it, when input starts flowing (once per join). If it never becomes ready, see <a href="#11-troubleshooting">Troubleshooting</a>.</p>
+<p>A player slot goes through these states (<code>host.GetPlayerState(slot)</code>):</p>
+<ul>
+  <li><code>Connecting</code> (entered by <code>PlayerJoined</code>) — Slot assigned, input not flowing yet. <code>PlayerJoined.Resumed</code> is true when the same phone came back.</li>
+  <li><code>Ready</code> (entered by <code>PlayerReady</code>) — Input arrives. <code>GetPad(slot)</code> already returns the player's pad.</li>
+  <li><code>Reconnecting</code> (entered by <code>PlayerLeft</code>) — The phone dropped; the slot and the pad are kept for <em>Resume Hold Seconds</em>.</li>
+  <li><code>Gone</code> (entered by <code>PlayerRemoved</code>) — The slot is free for good (<code>bye</code>, <code>stopped</code>, or <code>expired</code>). The pad is already removed: remove the player's character here.</li>
+</ul>
+<p>A phone also gets its old slot back when its app was closed and opened again (the app remembers a device id), as long as it comes back within <em>Resume Hold Seconds</em> and did not disconnect on purpose.</p>
+<p><code>host.AcceptNewPlayers = false</code> refuses new phones (they see "full") while letting dropped players resume. <code>host.ScreenRotationChanged</code> / <code>host.GetScreenRotation(slot)</code> tell you when a player turns the phone sideways.</p>
+<hr>
+<h2 id="6-touch-arrives-as-normal-ugui-events">6. Touch arrives as normal uGUI events</h2>
+<p>You do not need to change your UI code. Touches on the phone are turned into the standard <code>OnPointerDown</code>, <code>OnDrag</code>, <code>OnPointerClick</code>, … events, so <strong>Buttons, Sliders, ScrollRects and your own handlers just work</strong> — and the mouse keeps working at the same time for debugging.</p>
+<p>Only if you want to know <em>who</em> touched, check for <code>PadPlayPointerEventData</code>:</p>
+<pre><code class="language-csharp">using PadPlay;
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+public class WhoTouchedMe : MonoBehaviour, IPointerDownHandler
+{
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if (eventData is PadPlayPointerEventData phone)
+            Debug.Log($"P{phone.PlayerSlot + 1}, finger {phone.FingerId}, at {phone.PhonePosition} on the phone");
+        else
+            Debug.Log("mouse / local touch");
+    }
+}</code></pre>
+<p>By default a phone touches the whole of Display 1. To give each player their own screen (split screen, a second display, or a camera that renders into a RenderTexture), point the player at a camera:</p>
+<pre><code class="language-csharp">host.Touch.SetPlayerTarget(playerSlot: 1, camera: player2Camera);</code></pre>
+<p>or fill <em>Touch → More → Player Targets</em> in the Host Inspector. Touches are then hit-tested only against that player's camera (its Canvases and, with a <code>PhysicsRaycaster</code> on the camera, its 3D objects). <code>PhonePosition</code> is where the finger is on the phone screen (0…1, <strong>y = 0 at the top</strong>); <code>position</code> is the usual pixel position on the target screen.</p>
+<p><strong>Transparent parts of images:</strong> to let touches pass through the transparent pixels of a sprite, replace the Canvas's <code>GraphicRaycaster</code> with <em>PadPlay → Raycaster</em> and enable <strong>Read/Write</strong> on the sprite's texture (see Troubleshooting). It works for the mouse too.</p>
+<hr>
+<h2 id="7-read-the-phone-as-a-gamepad">7. Read the phone as a Gamepad</h2>
+<p>Every ready phone becomes a <code>PadPlayPad</code> device in the Input System. <code>PadPlayPad</code> <strong>is a <code>Gamepad</code></strong>, so existing bindings like <code>&lt;Gamepad&gt;/buttonSouth</code> and <code>&lt;Gamepad&gt;/leftStick</code>, <code>Gamepad.all</code> and <code>PlayerInput</code> work unchanged. On top of the Gamepad it adds:</p>
+<ul>
+  <li><strong>attitude</strong> — <code>&lt;PadPlayPad&gt;/attitude</code>: Quaternion (Unity's left-handed space, calibrated)</li>
+  <li><strong>angularVelocity</strong> — <code>&lt;PadPlayPad&gt;/angularVelocity</code>: Vector3, rad/s</li>
+  <li><strong>custom14 … custom31</strong> — <code>&lt;PadPlayPad&gt;/custom20</code>: Button (game-defined buttons, step 10)</li>
+  <li><strong>playerSlot</strong> — <code>&lt;PadPlayPad&gt;/playerSlot</code>: Integer (from C#, use <code>pad.PlayerSlot</code>)</li>
+  <li><strong>recenter</strong> — <code>&lt;PadPlayPad&gt;/recenter</code>: Button: the player asked to reset forward (step 8). The SDK already re-centers by itself</li>
+</ul>
+<p>Reading it directly from C#:</p>
+<pre><code class="language-csharp">using PadPlay;
+using UnityEngine;
+
+public class PadReader : MonoBehaviour
+{
+    [SerializeField] PadPlayHost host;
+
+    void Update()
+    {
+        PadPlayPad pad = host.GetPad(0);          // P1, or null if not connected
+        if (pad == null || !pad.IsConnected)
+            return;
+
+        if (pad.buttonSouth.wasPressedThisFrame)
+            Debug.Log("A pressed");
+        Vector2 move = pad.leftStick.ReadValue();
+        Quaternion attitude = pad.attitude.ReadValue();
+        transform.rotation = attitude;
+    }
+}</code></pre>
+<p>Notes:</p>
+<ul>
+  <li>The phone shows buttons and sticks <strong>only when the host has a layout</strong> (step 10). <em>PadPlay Setup</em> gives the host a starter layout (left stick, A, B); a host added by hand has none, and its Gamepad buttons stay released until you assign one.</li>
+  <li>While a phone is reconnecting, its device is kept (<code>IsConnected == false</code>, buttons released, attitude frozen) so your <code>PlayerInput</code> pairing survives a Wi-Fi blip. It is removed just before <code>PlayerRemoved</code>.</li>
+  <li>The attitude is identity when the phone is held upright in portrait with the screen facing you. On connect the SDK aligns the yaw so "where the player faces now" is forward. To re-center later: <code>host.Recenter(slot)</code> or <code>pad.Recenter()</code> (step 8).</li>
+</ul>
+<hr>
+<h2 id="8-gyro-camera-and-pointer">8. Gyro camera and pointer</h2>
+<p>For the common case you do not need to read the attitude yourself.</p>
+<p><strong>Gyro camera</strong> — add <em>PadPlay → Gyro Camera</em> to a Camera (or its parent) and set <strong>Player Slot</strong>. Its starting rotation is "forward". Modes (<em>Settings → Mode</em>, changeable while playing):</p>
+<ul>
+  <li><strong>Window</strong> — The phone is a window into the scene: turn the phone, the view turns with it.</li>
+  <li><strong>LookAround</strong> — Yaw and pitch only, no roll; sensitivity and pitch limit are adjustable.</li>
+  <li><strong>Tilt</strong> — Tilting the phone turns the camera at a speed (like a stick). <code>Tilt</code> (−1…1) is also exposed for moving characters.</li>
+</ul>
+<pre><code class="language-csharp">var gyroCamera = GetComponent&lt;PadPlayGyroCamera&gt;();
+gyroCamera.Mode = PadPlayGyroMode.LookAround;
+Vector2 tilt = gyroCamera.Tilt;</code></pre>
+<p><strong>Gyro pointer</strong> — <em>PadPlay → Gyro Pointer</em> turns the phone into a laser pointer: <code>ViewportPosition</code> (viewport space: <strong>y = 0 at the bottom</strong>, center = 0.5, 0.5), <code>GetScreenPosition()</code>, <code>GetRay(camera)</code> and an optional <strong>Reticle</strong> (<code>RectTransform</code>) that follows it.</p>
+<p>Naming: the components are called <em>Gyro</em> (what you add), the data is called <em>attitude</em> (<code>AttitudeReceived</code>, <code>pad.attitude</code>, the <code>Attitude</code> module).</p>
+<p>All tuning values (sensitivity, smoothing, dead zones, re-center blend time) are in <em>Settings</em> and can be tweaked while playing.</p>
+<h3 id="re-centering-make-this-direction-forward">Re-centering ("make this direction forward")</h3>
+<p><strong>Why it is needed.</strong> The phone fuses gyro and accelerometer (Android Game Rotation Vector, iOS Core Motion). Gravity keeps pitch and roll correct, but nothing anchors the <strong>heading (yaw)</strong>, so "forward" slowly drifts over minutes of play (faster near magnets or after quick spins). Restarting the app also changes the phone's yaw reference.</p>
+<p>A re-center resets the player's forward <strong>everywhere at once</strong>: their <code>PadPlayPad</code> attitude and every Gyro Camera / Gyro Pointer reading that player (each blends over its own <em>Recenter Blend Ms</em>, so the view does not jump). Other players are not affected. <code>Recenter Mode</code> <em>Yaw</em> (default) keeps gravity (the horizon stays level); <em>Full</em> makes the whole current pose forward.</p>
+<p>Three ways to give players a re-center button — pick one:</p>
+<ol>
+  <li><strong>No code: a layout button with a role.</strong> In your button layout asset, set the element's <strong>Role</strong> to <em>Recenter</em> (e.g. a Select button labelled "Recenter"). Pressing it re-centers that player. The button still reaches the game as a normal button.</li>
+  <li><strong>One line of code</strong>, e.g. from your pause menu:
+<pre><code class="language-csharp">host.Recenter(playerSlot);                       // Yaw; or host.Recenter(slot, AttitudeCalibrationMode.Full)
+host.RecenterAll();                              // everyone
+pad.Recenter();                                  // same as host.Recenter(pad.PlayerSlot)</code></pre></li>
+  <li><strong>Your own InputAction</strong>: bind <code>&lt;PadPlayPad&gt;/recenter</code>. It is pressed while a <em>Recenter</em> role button is held and for one update when the player long-presses the phone's corner. Use it to react (sound, hint); the SDK has already re-centered.</li>
+</ol>
+<p><strong>Phone-side fallback.</strong> Even without any button, the player can <strong>long-press the top-left corner of the phone screen for 1 second</strong> (a faint crosshair marks it). The phone sends a <code>recenter</code> request; turn <em>Attitude → Allow Phone Recenter</em> off if your game must not allow it.</p>
+<p><strong>Event.</strong> <code>host.Recentered</code> tells you who and why (<code>Reason</code>: Code, Button, LongPress, Connect):</p>
+<pre><code class="language-csharp">host.Recentered += r =&gt; Debug.Log($"P{r.PlayerSlot + 1} recentered by {r.Reason}");</code></pre>
+<p><code>gyroCamera.ResetForward()</code> still re-centers <strong>that component only</strong>. The old <em>Calibrate With Button</em> (Select) option on the Gyro components is now off by default; use a <em>Recenter</em> role button instead.</p>
+<hr>
+<h2 id="9-second-screen-video">9. Second screen (video)</h2>
+<p>To show a picture on the phone — the controller's second screen — add <em>PadPlay → View</em> to any GameObject (or press <em>Create a camera and attach</em> in the Host Inspector's <strong>Video</strong> module). The Video module must be ticked (it is by default):</p>
+<ul>
+  <li><strong>Source Camera</strong>: a camera whose output goes to the phone only (the SDK creates its RenderTexture), <strong>or</strong> <strong>Source Texture</strong>: a RenderTexture you render yourself.</li>
+  <li><strong>Player Slot</strong>: who sees it (<code>-1</code> = everyone gets the same picture).</li>
+  <li>Width / Height (default 1280 × 720), Frame Rate (60), Max Bitrate Kbps (0 = 2500). The host lowers the bitrate, frame rate and size from there when the Wi-Fi gets worse (<em>Video → Adaptive Video</em>).</li>
+  <li><strong>Use As Touch Target</strong> (on): that player's touches land on this camera's view, so tapping the picture on the phone hits the UI / objects shown in it.</li>
+</ul>
+<p>While nobody is watching, the source camera is disabled so it costs nothing.</p>
+<p><strong>How the picture is sent.</strong> H.264 by default, through Windows Media Foundation (the GPU's hardware encoder when one works). The graphics API decides the path: Direct3D 11 and 12 hand the frame to the encoder without leaving the GPU; Vulkan copies it through the CPU (about one frame later); OpenGL, macOS and Linux have no H.264 path and send JPEG. A phone whose H.264 decoding turns out slow asks for JPEG by itself (<em>Codec = Auto</em>). Lost pieces are repaired with forward error correction; what it cannot repair is fixed with a small recovery frame (when the encoder supports it, <em>Use Ltr Recovery</em>) or else a key frame. <code>host.VideoStatus</code> says which path and encoder are used, or why H.264 cannot be used; <code>host.GetVideoChoice(slot, out choice)</code> tells whether a player gets H.264 or JPEG and why.</p>
+<p><strong>Render pipelines.</strong> The frame is taken after every camera has drawn it, so overlays drawn by other cameras into the same texture are included. In the Built-in Render Pipeline a hidden camera does this; in URP (and other Scriptable Render Pipelines) it happens at the end of the frame's rendering (<code>RenderPipelineManager.endContextRendering</code>). Nothing to set up either way. In URP the <em>Source Camera</em> must be a <strong>Base</strong> camera: an Overlay camera only draws as part of its Base camera's stack.</p>
+<hr>
+<h2 id="10-on-screen-buttons-and-haptics">10. On-screen buttons and haptics</h2>
+<h3 id="button-layout">Button layout</h3>
+<ol>
+  <li><em>Assets → Create → PadPlay → Button Layout</em>.</li>
+  <li>Add <strong>Elements</strong>. Each element has an <strong>Id</strong> (<code>South</code>, <code>East</code>, …, <code>DpadUp</code>, <code>Select</code>, <code>Custom14</code>…<code>Custom31</code>, <code>LeftStick</code>, <code>RightStick</code>), a <strong>Shape</strong> (Circle / Rect; sticks are always sticks), <strong>Center</strong> and <strong>Size</strong>, a <strong>Label</strong>, <strong>Opacity</strong>, an optional <strong>Group</strong> and a <strong>Role</strong>. Center and Size are fractions of the video area on the phone, with <strong>(0, 0) at the top-left</strong>. When the player has no video, they are fractions of the <strong>whole phone screen</strong> (inside the safe area). <strong>Orientation</strong> (on the layout) picks how the phone is held while the layout is shown: <em>Landscape</em> (default), <em>Portrait</em> (locked upright, e.g. a one-handed remote without video) or <em>Auto</em> (not locked). Older phone apps show every layout in landscape. Buttons in the same Group (for example a D-pad or ABXY) let a finger slide from one to the next. Role <em>Recenter</em> makes the SDK reset that player's forward when the button is pressed (step 8); <em>None</em> (default) does nothing extra.</li>
+  <li>Assign the asset to the Host: <em>Buttons → Layout</em> in the Host Inspector (everyone), or per player with <code>SetLayout</code>. A host placed by <em>PadPlay Setup</em> starts with the bundled <code>PadPlayDefaultLayout</code> (left stick, A, B). Press <strong>New</strong> next to the field to save an editable copy of it in your <code>Assets</code> (the bundled one is replaced when you update PadPlay).</li>
+</ol>
+<p>Editing the asset while playing updates the phones on the next frame, so you can tune positions by feel.</p>
+<pre><code class="language-csharp">using PadPlay;
+using UnityEngine;
+
+var layout = PadPlayButtonLayout.Create(
+    new PadPlayButtonLayout.Element(PadPlayButtonId.LeftStick, PadPlayButtonShape.Circle,
+        new Vector2(0.15f, 0.7f), new Vector2(0.25f, 0.45f)),
+    new PadPlayButtonLayout.Element(PadPlayButtonId.South, PadPlayButtonShape.Circle,
+        new Vector2(0.85f, 0.75f), new Vector2(0.1f, 0.18f), "A"),
+    new PadPlayButtonLayout.Element(PadPlayButtonId.Custom20, PadPlayButtonShape.Rect,
+        new Vector2(0.5f, 0.9f), new Vector2(0.2f, 0.1f), "Map"));
+
+host.SetLayout(0, layout);       // P1 only; null = back to Settings.Buttons.Layout
+// After changing layout.Elements from code, call layout.MarkChanged().</code></pre>
+<p>The phone app makes every button a little easier to hit: a finger up to 2.5 mm outside a button still presses it (the nearest button wins), and a pressed button lights up and gives a short vibration. This is set in the app, not by the game.</p>
+<p>Short taps are not lost: button changes are also sent on the reliable channel, and a press and release that arrive in the same frame are spread over two frames, so <code>wasPressedThisFrame</code> sees every press.</p>
+<p>Ids 0–13 map to the matching Gamepad buttons. Any id is read as <code>pad.GetButton(PadPlayButtonId.Custom20).isPressed</code> (or <code>pad.GetButton(20)</code>), and game-defined ids are bound as <code>&lt;PadPlayPad&gt;/custom20</code>.</p>
+<h3 id="button-looks">Button looks</h3>
+<p>Every element has a <strong>Style</strong> (fold it open under the element). Left empty, the phone draws its default look. Otherwise:</p>
+<ul>
+  <li><strong>Image</strong> — a picture of the button (of a stick: its base), stretched over it. <strong>Pressed Image</strong> — the picture while pressed (buttons only; empty = Image with the pressed glow around it). <strong>Knob Image</strong> — the stick's knob (sticks only).</li>
+  <li><strong>Custom Colors</strong> — use <em>Color</em> (the fill; of a stick: its base), <em>Pressed Color</em>, <em>Border Color</em> and <em>Label Color</em> instead of the default white and amber. They start at the default look, so tick it and change only what you need. Alpha is multiplied by <em>Opacity</em>.</li>
+  <li><strong>Custom Sizes</strong> — <em>Border Width</em>, <em>Corner Radius</em> (Rect buttons) and <em>Label Size</em>, as shares of the element's short side. <em>Label Size</em> 0 hides the label, for pictures that already have the text.</li>
+</ul>
+<p>How pictures reach the phone:</p>
+<ul>
+  <li>Any imported Texture2D works. When the layout is sent, the PC encodes each picture as PNG. With <em>Read/Write</em> on in its import settings it is read on the CPU; otherwise it is copied through the GPU. Set <em>Compression</em> to <em>None</em> for the crispest picture.</li>
+  <li>The phone draws pictures at most 1024 px on the long side, so larger ones are scaled down before sending. A picture still over 256 KB as PNG is halved until it fits (a warning says so). A layout can use up to 64 pictures and 2 MB in total; pictures beyond that are not sent (a warning says so) and those buttons are drawn with their colors.</li>
+  <li>When a phone connects, it asks only for the pictures it does not have yet and keeps them (per game, in the app's cache). The next time, the buttons show their pictures at once and nothing is sent again. Until a picture arrives (about 100 KB per second, next to the input, which is never held up), the button is drawn with its colors.</li>
+  <li>Transparency is kept, so a round picture with transparent corners looks round. Older phone apps ignore styles and show the default look.</li>
+  <li>Virtual Phones fetch the pictures the same way as a phone, and the Game view's player preview (<em>Settings → Preview</em>) shows them too.</li>
+  <li>Changing a style in the Inspector while playing resends the layout. After changing a texture's pixels from code, call <code>layout.MarkChanged()</code>.</li>
+</ul>
+<pre><code class="language-csharp">var crystal = new PadPlayButtonStyle { Image = zoomTexture, PressedImage = zoomPressedTexture };
+var plank = new PadPlayButtonStyle { Image = woodTexture, CustomColors = true, LabelColor = new Color(1f, 0.95f, 0.84f) };
+var layout = PadPlayButtonLayout.Create(
+    new PadPlayButtonLayout.Element(PadPlayButtonId.South, PadPlayButtonShape.Circle,
+        new Vector2(0.88f, 0.76f), new Vector2(0.17f, 0.3f), style: crystal),
+    new PadPlayButtonLayout.Element(PadPlayButtonId.Select, PadPlayButtonShape.Rect,
+        new Vector2(0.13f, 0.88f), new Vector2(0.2f, 0.14f), "Recenter", role: PadPlayButtonRole.Recenter, style: plank));</code></pre>
+<p>The <a href="#floating-island-aim-on-the-screen-look-through-the-phone">Floating Island</a> sample uses exactly this (<code>Layouts/FloatingIslandButtons</code>, pictures in <code>Textures/FloatingIsland</code>). The <strong>Minimal</strong> sample shows the same without any code: its layout file <code>Layouts/MinimalButtons</code> gives <strong>A</strong> two pictures (<code>Textures/Minimal</code>) and the <strong>stick</strong> its own colors, and <code>MinimalPad.cs</code> reads them as before (<code>buttonSouth</code>, <code>leftStick</code>).</p>
+<h3 id="haptics">Haptics</h3>
+<p><code>PadPlayPad</code> implements the Gamepad rumble API and forwards it to the phone's vibration motor:</p>
+<pre><code class="language-csharp">pad.SetMotorSpeeds(0.6f, 0.6f);   // strength = max(low, high); phones have one motor
+pad.SetMotorSpeeds(0f, 0f);       // stop</code></pre>
+<p><code>PauseHaptics</code>, <code>ResumeHaptics</code>, <code>ResetHaptics</code> and <code>InputSystem.ResetHaptics()</code> work as usual. The vibration continues until you set it to zero (and stops by itself shortly after the Host stops).</p>
+<p>Without the Input System (or with <em>Players → Create Devices</em> off), use the Host:</p>
+<pre><code class="language-csharp">host.SetHaptics(playerSlot: 0, strength: 0.6f);   // same throttling as SetMotorSpeeds
+host.SetHaptics(playerSlot: 0, strength: 0f);     // stop</code></pre>
+<p>For a single buzz of a set length (a hit, a pickup), use <code>Pulse</code>. The phone times it itself, so a hitch in the game does not stretch or cut it, and you do not have to send 0 afterwards. A continuous vibration keeps running: the phone plays the pulse on top and goes back to it when the pulse ends.</p>
+<pre><code class="language-csharp">host.Pulse(playerSlot: 0, durationMs: 250, strength: 1f);   // false if the player is away or haptics are off</code></pre>
+<p>The phone app caps one vibration at 1 second. Older phone apps play a pulse like a <code>SetHaptics</code> command (a running continuous vibration then cuts it short).</p>
+<hr>
+<h2 id="11-troubleshooting">11. Troubleshooting</h2>
+<p>For seeing what each phone shows and what arrives from it — the Display 2 / 3 preview, <em>Window → PadPlay → Debugger</em> and an in-game overlay — see <a href="/padplay/docs/debugging/">Debugging</a>.</p>
+<p><strong>Cannot connect? Open <em>Window → PadPlay → Connection Check</em>.</strong> It checks the items below in this order, says what it found and what to do next, and gives you commands to copy. It only reads: it never changes the firewall, the network or the host. <em>Copy report</em> puts the result on the clipboard (handy for a bug report; it contains no token or key). Network and firewall are checked at any time; the port and the connection attempts while playing. The Welcome window (<em>Window → PadPlay → Welcome</em>) has a short list of the usual causes under <em>Trouble connecting?</em>, with buttons that open Windows' own settings pages (they only open them).</p>
+<ol>
+  <li><strong>Host.</strong> A <code>PadPlayHost</code> is in the scene, running, and <em>Connection → Loopback Only</em> is off. → No host: <em>GameObject → PadPlay → PadPlay Setup</em>. Not running: turn on <em>Auto Start</em> or call <code>host.StartHost()</code>.</li>
+  <li><strong>Network and QR address.</strong> The QR code lists this PC's IPv4 addresses; the phone tries them in order. The first one should be on your <strong>Wi-Fi or Ethernet</strong> adapter, and the phone must be on that same network (not a guest network, no "AP isolation" / privacy separator on the router). The phone's IP address (in its Wi-Fi settings) should start like the PC's, for example both <code>192.168.1.</code>. → A virtual adapter (Hyper-V, WSL, VirtualBox, VMware, Docker) or a VPN (Tailscale, Radmin, ZeroTier, …) comes first, or the QR has no Wi-Fi address: put your Wi-Fi IP in <em>Connection → Host Addresses</em> (or disable that adapter). An address that is no longer this PC's: fix or clear <em>Host Addresses</em> (empty = automatic).</li>
+  <li><strong>Listening port.</strong> The host listens on UDP port 7780 (<em>Connection → Port</em>; if it is busy, the next free port is used and put in the QR). → Nothing listens: stop and press Play again and look for PadPlay errors in the Console.</li>
+  <li><strong>Windows Firewall</strong> — for the <strong>Unity Editor</strong>, and for your <strong>built game</strong> (the last Windows build location) if there is one. They are separate programs and each needs permission. Permission is per program, not per port (everything uses one UDP port).
+<ul>
+  <li><em>Allowed</em>: fine.</li>
+  <li><em>No rule yet</em>: Windows asks on the first connection; choose <strong>Allow</strong> on <strong>Private</strong> networks. If it never asked, or you missed it, see <em>Windows never asked</em> below.</li>
+  <li><em>Blocked</em>: someone pressed <em>Cancel</em> on that dialog, which creates a <strong>Block</strong> rule — Block rules win over Allow rules. Disable it in <em>Windows Defender Firewall → Advanced settings → Inbound Rules</em> (the rule for <code>Unity.exe</code> / your game's exe), then allow the program.</li>
+  <li><em>This network is Public and the program is not allowed on Public networks</em>: phones read the QR code, then stop here. Windows' prompt allows Private networks only (unless Public is ticked too) and leaves a Block rule for Public. Make the Wi-Fi a <strong>Private</strong> network (<em>Settings → Network &amp; internet → Wi-Fi → your network → Private network</em>), or tick <strong>Public</strong> for the program in <em>Allow an app through firewall</em>.</li>
+  <li><em>Only TCP allowed</em>: nothing gets through (PadPlay uses UDP); allow UDP or all protocols.</li>
+  <li><em>Could not read</em>: check by hand in <em>Windows Security → Firewall &amp; network protection → Allow an app through firewall</em>.</li>
+</ul>
+<p>The commands it offers (run them yourself in an <strong>administrator</strong> Command Prompt / PowerShell):</p>
+<pre><code>netsh advfirewall firewall add rule name="PadPlay Unity Editor" dir=in action=allow program="C:\Program Files\Unity\Hub\Editor\&lt;version&gt;\Editor\Unity.exe" enable=yes profile=private</code></pre>
+<pre><code class="language-powershell">Set-NetConnectionProfile -InterfaceAlias "Wi-Fi" -NetworkCategory Private</code></pre>
+<p>Without administrator rights the check cannot tell TCP rules from UDP rules; it then says so.</p></li>
+  <li><strong>Last connection attempt</strong> — what reached the host since it started (also <code>host.Diagnostics.LastJoinAttempt</code>):
+<ul>
+  <li><strong>Nothing reached this PC</strong> — The phone's connection never arrived. Next: Same Wi-Fi (2), the QR address (2), the firewall (4).</li>
+  <li><strong>Old QR code</strong> — The phone used a code from an earlier Play or from before <code>RenewToken()</code> (its token or key does not match). Joined phones get a grace period after <code>RenewToken()</code> (step 4); new phones do not. Next: Scan the QR code that is on screen now.</li>
+  <li><strong>Full</strong> — All <em>Max Players</em> slots are taken, or <em>Accept New Players</em> is off. Next: Raise <em>Max Players</em> or accept new players.</li>
+  <li><strong>Other protocol version</strong> — The phone app and the SDK do not match. Next: Update the app (or the SDK).</li>
+  <li><strong>Joined</strong> — The join worked.</li>
+</ul></li>
+</ol>
+<p>The Debugger (<em>Window → PadPlay → Debugger</em>) has a <strong>Check</strong> button next to the join URL that opens the same window, and its Events list shows every refused join (<em>JoinRejected</em>). <em>Verbose Log</em> prints the connection steps and the join URL to the Console.</p>
+<p><strong>Windows never asked, or you missed the prompt.</strong> The <em>Windows Security Alert</em> does not always appear (it can also open behind other windows), and once it is answered it is not asked again. Allow the program by hand (no administrator command is needed):</p>
+<ol>
+  <li><em>Windows Security → Firewall &amp; network protection → Allow an app through firewall</em> (or the button of the same name under <em>Trouble connecting?</em> in the Welcome window), then <em>Change settings</em>.</li>
+  <li>Find the Unity Editor (<em>Unity 6000.x Editor</em>) or your game and tick <strong>Private</strong>, and <strong>Public</strong> too if your network is Public.</li>
+  <li>Not in the list: <em>Allow another app… → Browse…</em>, pick <code>Unity.exe</code> (or your game's <code>.exe</code>), <em>Network types…</em> → tick Private (and Public), <em>Add</em>.</li>
+</ol>
+<p>Then make sure the network is Private: <em>Settings → Network &amp; internet</em> → your Wi-Fi → <em>Properties</em>.</p>
+<p><strong>Still cannot connect: other usual causes.</strong></p>
+<ul>
+  <li>A VPN, or antivirus software with its own firewall: Windows' settings do not apply to it. Turn the VPN off and allow the Unity Editor / your game in that software.</li>
+  <li>iPhone: allow <em>Local Network</em> for the PadPlay app (<em>Settings → Privacy &amp; Security → Local Network</em>).</li>
+  <li>Office and school networks often stop devices from reaching each other. Try a home Wi-Fi.</li>
+</ul>
+<p><strong>Touch ignores transparent pixels / "texture is not readable" warning.</strong> <code>PadPlayRaycaster</code> needs to read the sprite's pixels. Enable <strong>Read/Write</strong> in the texture's import settings (<em>Advanced → Read/Write</em>); for sprites in a Sprite Atlas enable it on the atlas. Unreadable textures fall back to rectangle hit-testing.</p>
+<p><strong>Touches hit the wrong UI.</strong> A player with a camera target only hits that camera's view. Check <em>Touch → More → Player Targets</em> and <code>PadPlayView.UseAsTouchTarget</code>. <code>RaycastOnlyPlayerScreen = false</code> restores "hit whatever is in front".</p>
+<p><strong>Video is black, slow or blurry.</strong></p>
+<ul>
+  <li>Use Direct3D 11 / 12 (fastest) or Vulkan (one frame later). OpenGL, macOS and Linux send JPEG only.</li>
+  <li>The hardware encoder is tried first, then Windows' software encoder (slower). Only NVIDIA's hardware encoder has been tested so far.</li>
+  <li>The Inspector and <code>host.VideoStatus</code> say which path and encoder are used, or why H.264 cannot be used (then JPEG is sent); <code>host.GetVideoChoice(slot, out choice)</code> tells which one a phone gets and why (for example, the phone asked for JPEG).</li>
+  <li>On a weak Wi-Fi keep <em>Adaptive Video</em> on (it lowers the bitrate, then the frame rate or size), pick the <em>Priority</em> you prefer, or lower the view's <em>Max Bitrate Kbps</em>. A view sent to several players is encoded once, at the quality of the weakest connection.</li>
+  <li>Black even in the Display preview: the source camera or RenderTexture. In PadPlay Lite there is no video.</li>
+</ul>
+<p><strong>"Forward" is off after the player restarts the app.</strong> That is expected (the phone's yaw reference changes, and yaw slowly drifts during play). Re-center (step 8): a layout button with Role <em>Recenter</em>, <code>host.Recenter(slot)</code>, or the player long-presses the top-left corner of the phone screen.</p>
+<p><strong>The phone does not vibrate.</strong> Check that <em>Buttons</em> is ticked and <em>Allow Haptics</em> is on (vibration belongs to the Buttons module) and that <em>Haptic Strength Scale</em> is above 0. On the phone, the system vibration setting or Do Not Disturb can silence it. The Debugger's Events list shows <em>HapticSent</em> when the host sent a vibration.</p>
+<hr>
+<h2 id="12-samples">12. Samples</h2>
+<p>The quickest way: <em>Window → PadPlay → Import All Samples</em> (or <strong>Import all available samples and open the Sample Hub</strong> in the Welcome window). It imports every sample into <code>Assets/Samples</code>, adds their scenes to the Build Settings and opens the Sample Hub. To import one sample: <em>Package Manager → PadPlay → Samples → Import</em>, then open its scene.</p>
+<ul>
+  <li><strong>Sample Hub</strong> (start here) — <code>Scenes/Hub</code>. A menu for every sample. Scan the QR code once, point the phone at a card and press A; <em>Menu</em> on the phone or <em>Esc</em> on the PC comes back, still connected (Keep Across Scenes, Remote Pointers). Includes the mini-game <strong>Target Pop</strong> (<code>Scenes/HubTargetPop</code>). In PadPlay Lite too.</li>
+  <li><strong>Minimal</strong> (the one to copy) — <code>Scenes/Minimal</code>. The shortest PadPlay game: one script of about 35 lines (<code>Scripts/Minimal/MinimalPad.cs</code>). Join with the QR code, press A on the phone to make it buzz, tilt the phone to turn a model, push the stick (<code>pad.leftStick</code>) or drag on the phone (a normal uGUI <code>IDragHandler</code>) to move a dot. Everything else is components in the scene. Its layout file (<code>Layouts/MinimalButtons</code>) also shows <a href="#button-looks">button looks</a> with no code: A is drawn with two pictures and the stick in its own colors. In PadPlay Lite too.</li>
+  <li><strong>Treasure Map</strong> (mini-game) — <code>Scenes/TreasureMap</code>. Two screens, one hunt: walk on the screen with the keyboard while each phone is a paper-style treasure map with only that player's X. Per-player second screen, haptics, choosing modules. The best way to see what PadPlay is for.</li>
+  <li><strong>Floating Island</strong> (mini-game) — <code>Scenes/FloatingIsland</code>. Aim on the screen, look through the phone, shoot with the PC keys: each phone is a zoom lens (<code>PadPlayPoseCamera</code>; its crystal button zooms further in) and the screen shows a glowing ring where it points. Find five lights that only phones can see. <code>PadPlayPoseCamera</code>, <code>PadPlayPhoneOverlay</code> (a crosshair), <code>host.Pulse</code>, buttons drawn with the game's own pictures, PC keys and phones together. Up to two players; needs a layer named PhoneOnly at index 8 (see below).</li>
+  <li><strong>Gyro Window</strong> — <code>Scenes/GyroWindow</code>. Two players look into a 3D room through their phones, each with their own picture (<code>PadPlayGyroCamera</code> + <code>PadPlayView</code>). Point the phone at the screen and press Recenter to start.</li>
+  <li><strong>Room Dive</strong> — <code>Scenes/RoomDive</code>. <strong>2 players only</strong> (one PC + one phone): asymmetric co-op in four colored rooms. The phone player picks a room with the phone's arrow buttons and says which one they are in; click a star in that room to show it to them for a few seconds; they look around with the phone and drag the star to the exit. Touch on 3D objects as standard events, a camera layer the phone does not draw, <code>PadPlayPhoneOverlay</code>, haptics.</li>
+</ul>
+<p><strong>In a URP project.</strong> Treasure Map, Floating Island and Room Dive use the Built-in <em>Standard</em> shader for their 3D objects, which URP draws pink. So when a Scriptable Render Pipeline is active, each sample switches its own renderers, when Play starts, to copies of those materials on the pipeline's <em>Lit</em> shader (color, main texture, smoothness, metallic, emission and transparency are copied); nothing needs converting to play in the Editor. Gyro Window and Minimal use <em>Unlit/Color</em>, which URP draws as is.</p>
+<p><strong>Player builds in URP: one menu, once.</strong> A build only includes the shaders that its materials use, so the samples also need <em>Lit</em> materials in the build. Choose <em>Window → PadPlay → Prepare Samples for URP or HDRP</em> after importing samples: it fills each sample's small <code>&lt;Sample&gt;SrpLitSet</code> asset (in its Materials folder) with <em>Lit</em> materials (in a <code>&lt;Sample&gt;SrpLit</code> folder next to it). The sample's scene refers to that asset, so the <em>Lit</em> shader goes into the build with the scene. <em>Import All Samples</em> (and the Welcome window's <strong>Import all available samples and open the Sample Hub</strong>) runs it for you. Run it again if you import a sample one by one later or switch the project to another pipeline; when everything is ready it writes nothing. Nothing runs on its own when scripts reload or before a build, and project settings such as <em>Always Included Shaders</em> are not touched. Without it the samples still play in the Editor, but in a player build their <em>Standard</em> objects are not drawn, and the player log points to this menu. The material assets are not changed, and in a Built-in project the menu does nothing (the assets stay empty). If you want to edit the materials in a URP project, you can still convert them with <em>Edit → Rendering → Materials → Convert Selected Built-In Materials to Current SRP</em> (avoid <em>Convert All…</em> if your project has Built-in materials you want to keep). The samples' scripts set both <code>_Color</code> and <code>_BaseColor</code>, so highlights work either way. HDRP has not been tested.</p>
+<h3 id="sample-hub-and-target-pop">Sample Hub and Target Pop</h3>
+<p>Open <code>Scenes/Hub</code> and press Play. The screen shows a card for each sample. Scan the QR code once, point the phone at a card and press <strong>A</strong> to open that sample (the mouse works too). The phones stay connected while the scenes change: the Hub's Host has <em>Keep Across Scenes</em> ticked (<a href="/padplay/docs/concepts/#across-scenes">Concepts: Across scenes</a>). In a sample, the small <strong>Menu</strong> button on the phone or <strong>Esc</strong> on the PC returns to the Hub. A grey card means that sample is not imported yet (or, in PadPlay Lite, that it comes with PadPlay SDK only). The cards of Target Pop, Treasure Map and Floating Island are marked <em>MINI-GAME</em>.</p>
+<p><strong>Target Pop</strong> is a small pointer game in the Hub: targets appear on the screen and fade; point the phone at one and press <strong>A</strong> to pop it. Each pop is a point for that player and a short vibration. Rounds last 30 seconds; 1 to 4 players. It shows <a href="/padplay/docs/remote-pointers/">Remote Pointers</a>: the targets are plain uGUI objects with <code>IPointerClickHandler</code>, and <code>PadPlayPointerEventData.PlayerSlot</code> tells who popped them.</p>
+<h3 id="treasure-map-two-screens-one-hunt">Treasure Map (two screens, one hunt)</h3>
+<p>Open <code>Scenes/TreasureMap</code> and press Play. The screen (Game view) shows an island seen from above; each phone becomes <strong>an old paper-style treasure map that only its player sees</strong>. You need both screens: you walk on the screen, and the map is in your hand.</p>
+<p><strong>How to play</strong></p>
+<ul>
+  <li>Scan the QR code with one or two phones. A round starts when the first phone joins and lasts 150 seconds.</li>
+  <li>Walk on the screen with the keyboard: <strong>P1 (the first phone) uses WASD, P2 uses the arrow keys</strong> (or the left stick of a gamepad connected to the PC). The phone has no buttons and takes no touch: just hold it.</li>
+  <li>The map shows the island's landmarks (shore, pond, trees, rocks, pier), a compass and <strong>your treasure (X)</strong>, but <strong>not where you are</strong>. Match the landmarks with the island on the screen to work out where to go. Nobody else sees your X, neither on the screen nor on their phones.</li>
+  <li>Trees, rocks, the pond, the sea and the other player block your way.</li>
+  <li>The map buzzes softly when you are near your treasure and strongly when you find it (just walk onto it). The spot is marked as found and a new X is drawn somewhere else. The player with the most treasures wins the round.</li>
+  <li>There is no way to play without a phone: the maps exist only on the phones. To see them in the Editor, use the Display 2 / 3 preview (<a href="/padplay/docs/debugging/">Debugging</a>).</li>
+</ul>
+<p><strong>What it shows</strong></p>
+<ul>
+  <li><strong>Per-player second screen</strong> — Each player's phone UI (a camera that sees only the UI layer, sent by a <code>PadPlayView</code>) shows the paper map with that player's own X; the screen camera leaves the UI layer out</li>
+  <li><strong>A map drawn from the scene</strong> — <code>TreasureMapLandmark</code> on each island object; <code>TreasureMapPaper</code> draws the paper, ink and burnt edges into a texture at run time (no image files)</li>
+  <li><strong>Haptics without the Input System</strong> — <code>host.SetHaptics(slot, strength)</code></li>
+  <li><strong>Choosing modules</strong> — Buttons and Video ticked, with no button layout (haptics belong to the Buttons module); Touch and Attitude unticked</li>
+</ul>
+<p>All feel values (walking speed, how near counts as "found", vibration strengths, round length, whether the map shows your own position: <em>Show Self On Map</em>) are in <em>TreasureMapGame → Settings</em> and can be changed while playing.</p>
+<h3 id="floating-island-aim-on-the-screen-look-through-the-phone">Floating Island (aim on the screen, look through the phone)</h3>
+<p>Open <code>Scenes/FloatingIsland</code> and press Play. The screen (Game view) shows the whole floating island, slowly circling it; each phone is a <strong>zoom lens</strong> into the same world, in the direction the player points it (<a href="/padplay/docs/pose-camera/">Pose Camera</a>), and <strong>the PC keys shoot</strong>. You need all three: the screen to find where to look, the phone to see what is there, the keyboard to act. Up to two players; one person can play alone with the phone in one hand and the keyboard at the other.</p>
+<p><strong>Before you play.</strong> The hidden lights are on layer 8, which the screen camera leaves out. Name layer 8 <strong>PhoneOnly</strong> in <em>Project Settings → Tags and Layers</em>. Layers work by number, so the sample runs without the name, but it logs a warning once per Play, and objects of your own on layer 8 are hidden from this sample's screen.</p>
+<p><strong>How to play</strong></p>
+<ul>
+  <li>Scan the QR code with one or two phones. The QR board on the screen shows while more players can join.</li>
+  <li>Point the phone at the island. A glowing ring in your player color moves over the island on the screen: the inside of the ring is roughly what your phone shows, zoomed in. A crosshair marks the middle of the phone screen.</li>
+  <li>Shoot with the PC keys: <strong>P1 Space, P2 Enter</strong> (or the south button / right trigger of a gamepad connected to the PC, in the order they were plugged in). The shot goes through the crosshair. <strong>P1 R, P2 Backspace</strong> (gamepad: Select) make the direction the phone faces now the front.</li>
+  <li>The phone also has two buttons, drawn with the sample's own pictures: the <strong>crystal</strong> zooms the lens in (press again to zoom back out; the phone shows <em>Zoom x2.5</em>) and the <strong>wooden plank</strong> makes the direction the phone faces now the front. The phone does not shoot, and touch does nothing: the rest of the phone is the lens.</li>
+  <li>Shoot something to inspect it: its name shows on your phone and it glows in your player color for a moment; the phone buzzes softly.</li>
+  <li>Five lights are hidden around the island, and only phones can see them. On the screen they give themselves away only by <strong>faint sparks</strong>: find a spot on the screen, then check it through the phone. Shoot a light to find it: the phone buzzes strongly and the light appears on the screen too. The screen shows how many were found and what each player shot last.</li>
+  <li>When all five are found, a short celebration plays (a beam of light, spiraling pieces, flowers); after 20 seconds the lights hide again. They also hide again when everyone leaves.</li>
+  <li>Without a phone, use simulated phones (<em>Window → PadPlay → Virtual Phones</em>; right-drag on a phone's screen to turn it) and the keyboard as usual.</li>
+</ul>
+<p><strong>What it shows</strong></p>
+<ul>
+  <li><strong>Pose Camera</strong> — <code>PadPlayPoseCamera</code> + <code>PadPlayView</code> on each player's camera: the PC renders for the phone's orientation and the phone corrects the turn made since that frame. Its field of view is the zoom of the lens</li>
+  <li><strong>Aiming through the phone from the PC</strong> — <code>FloatingIslandGame.Shoot</code> casts a ray through the middle of the Pose Camera (the phone shows the picture turned to its current orientation, so the camera's current forward is the crosshair)</li>
+  <li><strong>Where each phone points, on the screen</strong> — <code>FloatingIslandAim</code> draws a ring where that ray meets the island, sized to what the lens shows; <code>FloatingIslandFrustum</code> draws the view frustum. Both draw on a layer the phone cameras leave out (UI), so only the screen shows them</li>
+  <li><strong>Hints only the screen shows</strong> — <code>FloatingIslandHints</code> draws faint sparks around lights not found yet, on the same UI layer</li>
+  <li><strong>Text and a crosshair fixed to the phone screen</strong> — <code>PadPlayPhoneOverlay</code>: the phone draws them over the video, so they do not move with the correction; its rectangle follows <code>VisibleViewportRect</code></li>
+  <li><strong>Haptics of a set length</strong> — <code>host.Pulse(slot, durationMs, strength)</code> (the phone times it)</li>
+  <li><strong>Objects only phones see</strong> — Layer 8 (PhoneOnly) is left out of the screen camera; a found light moves to <em>Default</em></li>
+  <li><strong>Recentering from code</strong> — <code>host.Recenter(slot)</code> on R / Backspace; the Pose Camera follows it</li>
+  <li><strong>PC keys and phones together</strong> — <code>FloatingIslandControls</code> reads every keyboard and the PC's gamepads (the phones' <code>PadPlayPad</code>s are skipped)</li>
+  <li><strong>Button looks</strong> — <code>Layouts/FloatingIslandButtons</code>: the crystal Zoom button has a picture and a pressed picture (<code>FloatingIslandControls</code> toggles the zoom on its press), the Recenter plank (<em>Role</em> = Recenter, no code) a picture with its own label color (<a href="#button-looks">Button looks</a>)</li>
+  <li><strong>Choosing modules</strong> — Attitude, Buttons and Video ticked; Touch unticked; <em>Max Players</em> 2</li>
+</ul>
+<p>All feel values (the lens zoom, normal and with the crystal, vibration strengths and lengths, how long names and highlights stay, the celebration length) are in <em>FloatingIslandGame → Settings</em> and can be changed while playing. The keys are on <em>FloatingIslandControls</em>, the ring and the sparks on <em>FloatingIslandAim</em> and <em>FloatingIslandHints</em>, the screen camera's turning speed on <em>FloatingIslandOrbit</em>.</p>
+<h3 id="room-dive-2-players-only-one-at-the-pc-one-with-a-phone">Room Dive (2 players only: one at the PC, one with a phone)</h3>
+<p><em>Package Manager → PadPlay → Samples → Room Dive → Import</em>, then open <code>Scenes/RoomDive</code>. <strong>It needs exactly two people</strong>: one at the PC with the mouse, who sees the rooms from above, and one with a phone (the <strong>Diver</strong>), who is inside a room. It cannot be played alone, and a second phone is refused (<em>Max Players</em> 1). Until the phone joins, the screen says so. The screen shows four small rooms from above (Red, Blue, Green, Purple). The phone is a window from inside the room the Diver is in, and <strong>the phone decides the room</strong>: the screen does not show where the Diver is.</p>
+<p><strong>How to play</strong></p>
+<ul>
+  <li>The Diver scans the QR code and dives into the first room. The phone shows the room's name in large letters (<em>RED ROOM</em>).</li>
+  <li><strong>The Diver says which room they are in</strong> ("I'm in the red room!"). The arrow buttons <strong>&lt;</strong> / <strong>&gt;</strong> on the phone change to the previous / next room that still has stars.</li>
+  <li><strong>Stars are drawn only on the screen.</strong> The Diver's phone does not show them.</li>
+  <li><strong>Click a star in the Diver's room to show it to them</strong>: the Diver's phone shows that star for a few seconds (it blinks and fades at the end). Tell each other where it is ("on the shelf to your right!"). A click never moves the Diver: a star in another room is not shown, and that room's label says <em>The phone player is not here</em> for a moment.</li>
+  <li>The Diver tilts the phone to look around, touches the shown star and carries it into the yellow <strong>exit</strong> frame to collect it (a star being carried stays visible). The phone buzzes when a star is shown, softly when a shown star is near the center of the view, and strongly on a collect.</li>
+  <li>When a room is empty, the Diver moves on to the next room with stars by itself.</li>
+  <li>Collect all stars in the four rooms to start the next round. <strong>Select</strong> ("Recenter", Role <em>Recenter</em>) re-centers the view. If the phone drops, its room is kept and the PC player waits until it reconnects.</li>
+</ul>
+<p><strong>What it shows</strong></p>
+<ul>
+  <li><strong>Per-player second screen</strong> — <code>PadPlayView</code> + <code>PadPlayGyroCamera</code> (Window mode) on the Diver's camera.</li>
+  <li><strong>Something only the screen shows</strong> — Stars that are not shown yet are on the built-in <em>UI</em> layer (5), which the Diver's camera leaves out of its culling mask. <code>PhysicsRaycaster</code> also uses the culling mask, so the phone cannot touch them either. No extra layer is needed.</li>
+  <li><strong>Touch on 3D objects as standard events</strong> — <code>RoomDiveStar</code> implements only <code>IBeginDragHandler</code> / <code>IDragHandler</code> / <code>IEndDragHandler</code>; the camera has a <code>PhysicsRaycaster</code>.</li>
+  <li><strong>Who touched</strong> — <code>eventData is PadPlayPointerEventData p</code> → <code>p.PlayerSlot</code> (<code>RoomDiveGame.CanCarry</code>); the mouse never carries stars.</li>
+  <li><strong>The mouse on the screen</strong> — <code>RoomDiveGame</code> finds the room by <code>Camera.pixelRect</code> and the nearest star by <code>WorldToScreenPoint</code>.</li>
+  <li><strong>Text fixed on the phone screen</strong> — <code>PadPlayPhoneOverlay</code> with <code>RoomDivePhone</code> (the room's name in large letters, what to do now, the stars).</li>
+  <li><strong>Buttons</strong> — <code>Layouts/RoomDiveButtons</code>: Recenter = <code>Select</code> with Role <em>Recenter</em>, and <strong>&lt;</strong> / <strong>&gt;</strong> = <code>DpadLeft</code> / <code>DpadRight</code>, read by <code>RoomDiveGame</code> with <code>pad.GetButton(id).wasPressedThisFrame</code> (the Buttons module also carries haptics).</li>
+  <li><strong>Haptics</strong> — <code>pad.SetMotorSpeeds(strength, strength)</code>.</li>
+  <li><strong>Player states</strong> — <code>host.GetPlayerState(slot)</code>: anything but <code>Gone</code> keeps the room, so a dropped Diver is waited for.</li>
+  <li><strong>QR and status</strong> — <code>PadPlayQrView</code> (hidden once the phone joined) and <code>PadPlayStatusView</code>.</li>
+</ul>
+<p>All feel values (how long a shown star stays visible and fades, the click radius on the screen, how long the <em>not here</em> notice stays, vibration strengths, the angle that counts as "near", carry distance, the delay before the next round, and <em>Show Phone Player On Screen</em> to show the Diver's head and room on the screen) are in <em>RoomDiveGame → Settings</em> and can be changed while playing.</p>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></p>
+    <p class="muted">This site uses no cookies, analytics or tracking.</p>
+  </div>
+</footer>
+</body>
+</html>

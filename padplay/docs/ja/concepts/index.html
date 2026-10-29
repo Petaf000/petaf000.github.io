@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>仕組み — PadPlay ドキュメント</title>
+<meta name="description" content="PadPlay SDK のドキュメント(日本語): 仕組み">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/concepts/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/concepts/">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/concepts/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/ja/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="メニュー">
+      <a href="/ja/">ホーム</a>
+      <a href="/ja/products/">製品</a>
+      <a href="/ja/contact/">お問い合わせ</a>
+      <a href="/ja/privacy/">プライバシー</a>
+    </nav>
+    <a class="lang" href="/padplay/docs/concepts/" lang="en" hreflang="en">English</a>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay ドキュメント">
+    <a href="/padplay/docs/ja/" lang="ja">概要</a>
+    <a href="/padplay/docs/ja/quickstart/" lang="ja">クイックスタート</a>
+    <a href="/padplay/docs/ja/concepts/" aria-current="page" lang="ja">仕組み</a>
+    <a href="/padplay/docs/ja/debugging/" lang="ja">デバッグ</a>
+    <a href="/padplay/docs/ja/pose-camera/" lang="ja">Pose Camera</a>
+    <a href="/padplay/docs/ja/remote-pointers/" lang="ja">Remote Pointers</a>
+    <a href="/padplay/docs/ja/api/" lang="ja">API リファレンス</a>
+    <a href="/padplay/docs/glossary-ja/" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="concepts">仕組み</h1>
+<p><em><a href="/padplay/docs/concepts/">English</a></em></p>
+<p>PadPlay SDK は、スマホを第二画面つきのコントローラーにします。ゲームの画面をスマホごとに出すタッチパネルに、ジャイロと画面のボタンが加わります。このページでは、それが <em>どう</em> 組み立てられているか、<em>なぜ</em> そうしたのかを説明します。<a href="/padplay/docs/ja/quickstart/">クイックスタート</a> で見る動きに戸惑わないための背景です。</p>
+<h2 id="where-the-ideas-come-from">考え方の出どころ</h2>
+<p>この SDK は、もとになった学生時代のプロジェクトから生まれました。大きな画面と、自作のコントローラーとジャイロセンサーを付けたタブレットで遊ぶ、2 人協力のゲームです。タブレットを持つ人は、それを傾けて漫画のコマの世界を <em>のぞき込み</em>、ゲームに直接触れて操作しました。これを動かすまでにいくつかの教訓を得ていて、そのひとつひとつが今の SDK の一部になっています:</p>
+<ul>
+  <li>特別なハードウェアがある 1 部屋でしかデバッグできなかった。 → タッチを <strong>uGUI の標準のイベント</strong> として流し込むので、マウスでもまったく同じに動きます。</li>
+  <li>送られてくる絵の上に透明なタッチの層を重ねると、反応がすぐに感じられた。 → スマホのアプリは <strong>2 層</strong>: 奥に映像、手前に透明なタッチの層。</li>
+  <li>窓の大きさや解像度がたびたび変わった。 → タッチは <strong>正規化した座標</strong>(0〜1)で送ります。</li>
+  <li>無線のコントローラーを複数使うと、名前で指定しない限り混線した。 → スマホごとに <strong>プレイヤー枠</strong> を割り当て、<strong>QR コードの中のトークン</strong> で参加できる端末を決めます。</li>
+  <li>マスクした画像がレイを遮り、透明なピクセルにも当たってしまった。 → プレイヤーごとの画面とアルファでの当たり判定を持つ <strong>独自の Raycaster</strong>。</li>
+  <li>コントローラーを独自の Input System のデバイスとして見せていた。 → スマホはそれぞれ <strong><code>PadPlayPad</code></strong> で、これは <code>Gamepad</code> <em>そのもの</em> です。</li>
+  <li>外部の配信ツールと自作のハードウェアは壊れやすかった。 → 映像は SDK 自身が送ります(PadPlay Link、H.264 か JPEG)。ハードウェアの代わりにスマホのセンサーを使います。</li>
+</ul>
+<h2 id="the-big-picture">全体像</h2>
+<pre><code> PHONE (PadPlay app)                            PC (Unity)
+
+ touch layer (front, 0..1) --+                  PadPlayHost (slots, tokens, clocks)
+ buttons (game's layout) ----+-- state ------&gt;    touch     -&gt; your uGUI handlers
+ gyro (rotation vector) -----+   every 8 ms       PadPlayPad -&gt; your InputActions,
+                                 (latest only)                  Gyro Camera / Pointer
+
+ buttons, vibration  &lt;-- reliable messages --   PadPlayHost (layout, haptics, recenter)
+ video layer (back)  &lt;-- H.264 / JPEG, FEC ---  PadPlayView (camera / RenderTexture)</code></pre>
+<h3 id="core-and-unity">Core と Unity</h3>
+<p>パッケージには 2 つのアセンブリがあります(名前が関係するのは、自分の asmdef から参照する時だけです):</p>
+<ul>
+  <li><strong><code>PadPlay.Core</code></strong> アセンブリ — エンジンを参照しない素の C#(C# 9、netstandard2.1): プロトコル、セッション、PadPlay Link(暗号化した 1 つの UDP ポート)、座標の変換、姿勢の計算、時計の同期、QR のエンコード。Unity なしでテストできるものは全部ここに置いているので、後でほかのエンジンからも使えます。</li>
+  <li><strong><code>PadPlay.Unity</code></strong> アセンブリ — Unity に触れるもの全部: <code>PadPlayHost</code>、イベントの流し込み、Raycaster、Input System のデバイス、映像、ジャイロの部品、UI の補助。</li>
+</ul>
+<p>どちらも、使う型を <strong>1 つの名前空間 <code>PadPlay</code></strong> に入れているので、<code>using PadPlay;</code> だけで足ります。Core の一部の型(<code>AttitudeCalibrationMode</code>、<code>ClockSync</code>、<code>DeviceInfo</code>、<code>PadPlayPhoneOverlayItem</code>、<code>PadPlayNetworkSettings</code>)も同じです。Core のそれ以外(<code>TouchPacket</code> などのパケットのエンコーダー、<code>PointerTracker</code>、<code>LinkHost</code>、<code>LinkClient</code>)はパッケージの内部用です。</p>
+<h3 id="modules">モジュール</h3>
+<p>ホストには 4 つのモジュールがあり、Inspector でチェックを入れて使います(<code>host.Settings.Modules</code>、<code>PadPlayModules</code> のフラグの値):<strong>Touch</strong>(タッチ)、<strong>Attitude</strong>(姿勢)、<strong>Buttons</strong>(ボタン。振動を含む)、<strong>Video</strong>(映像)。それぞれに設定のオブジェクトがあります(<code>Settings.Touch</code>、<code>Settings.Attitude</code>、<code>Settings.Buttons</code>、<code>Settings.Video</code>)。</p>
+<p>スマホのアプリは持っているものをいつも全部送ります。モジュールのオン・オフはホスト側で効きます。チェックを外したモジュールの入力は、uGUI・イベント・<code>PadPlayPad</code> に届く前に捨てられ、そのモジュールのためには何も送りません(レイアウトも振動も映像も送りません)。デバッガーは届いたものを数え続けるので、「スマホが何も送っていない」のか「モジュールがオフ」なのかを見分けられます。</p>
+<h2 id="connecting-the-qr-code-and-player-slots">接続: QR コードとプレイヤー枠</h2>
+<pre><code> Unity (PadPlayHost)                                        Phone (PadPlay app)
+
+ StartHost: join URL with a fresh token and key
+ QR code  padplay://join?v=1&amp;h=…&amp;p=7780&amp;t=…&amp;k=…   ------&gt;   scans it
+                &lt;------  UDP Hello (token, device info, capabilities), sealed with k
+ Accept: player slot (PlayerJoined, PlayerReady)  ------&gt;
+                &lt;------  touch / gyro / buttons: the whole state every 8 ms
+                &lt;------  touch down/up, button changes (reliable)
+ layout / haptics / recenter (reliable), video    ------&gt;</code></pre>
+<ul>
+  <li>QR コードには、PC の LAN のアドレス、UDP ポート、<strong>トークン</strong>、鍵 <code>k</code> が入っています。受け入れるのは、今のトークンを示したスマホだけです。<code>RenewToken()</code> で新しいコードになります。参加済みのスマホはそのままです。作り直しの直後に切れた参加済みのスマホは、<code>host.NetworkSettings.RenewGraceMs</code>(60 秒。0 = オフ)の間なら古いコードで自分の枠に戻れますが、それには参加した時に受け取った再開用の秘密の値が要ります。端末の ID だけでは戻れず、新しいスマホにはいつも新しいコードが要ります。この戻り方は鍵の交換をやり直さないので、ふつうの参加より守りが弱くなります(分かっている制限で、1.x で直す予定です)。誰かを締め出すためにコードを作り直す時は、<code>RenewGraceMs</code> を 0 にしてください。</li>
+  <li>受け入れたスマホには、それぞれ <strong>プレイヤー枠</strong>(0、1、2 …)を割り当てます。入力のイベント、<code>PadPlayPointerEventData</code>、<code>PadPlayPad</code> のどれにもその枠の番号が付いているので、2 人の入力が混ざることはありません。</li>
+  <li>スマホが別れのあいさつなしに切れた場合(Wi-Fi が一瞬切れた、アプリが裏に回った・閉じられた)、その枠は<code>ResumeHoldSeconds</code>(60 秒)の間 <strong>取っておきます</strong>。戻ってくると、同じ枠と同じ <code>PadPlayPad</code> のデバイスを受け取ります(<code>Resumed = true</code> の <code>PlayerJoined</code>)。アプリはゲームごとの再開用の鍵と端末の ID を覚えているので、アプリを閉じて起動し直した後でも戻れます。<code>PlayerLeft.Reason</code> で、スマホが抜けた理由が分かります(<code>PadPlayLeaveReason</code>: <code>Bye</code>、<code>Closed</code>、<code>Timeout</code>、<code>Stopped</code> など)。</li>
+  <li>枠が本当に空いた時(プレイヤーが bye を送った、ホストが止まった、取っておく時間が過ぎた)は、<code>PlayerRemoved</code>が出ます(Reason は <code>Bye</code>・<code>Stopped</code>・<code>Expired</code>)。取っておく時間は Core の 1 か所で数えています。<code>GetPlayerState(slot)</code> は<code>Connecting</code>・<code>Ready</code>・<code>Reconnecting</code>・<code>Gone</code> のどれかを返します。</li>
+  <li><code>AcceptNewPlayers = false</code> でロビーを閉じます。新しいスマホは「満員」として断り、取っておいた枠には戻れます。</li>
+  <li>対応しているのは同じ LAN の中だけです。STUN/TURN のサーバーは使いません。</li>
+</ul>
+<h3 id="encryption">暗号化</h3>
+<p>QR コードより後のパケットは、全部 <strong>ChaCha20-Poly1305</strong> で暗号化・認証しています。鍵 <code>k</code> は乱数で、<code>StartHost</code> と <code>RenewToken</code> のたびに作り直し、QR コードの中でしか運ばれません(ネットワークは流れません)。接続ごとにそこから専用の鍵を導き(HKDF-SHA256)、パケットには通し番号が付いているので、書き換えられたパケット・再送されたパケット・別の鍵で封をしたパケットは捨てて数えます。そのため、同じ Wi-Fi にいても QR コードを見ていない人は、タッチ・ボタン・姿勢・映像を読むことも偽ることもできず、プレイヤーの枠を乗っ取ることもできません。隠さないもの: 通信があること、その大きさとタイミング。QR コードを見られる人(見せた相手と同じように参加できます)や、Wi-Fi の妨害は防げません。「参加できない」ことを伝える短い返事 2 つ(プロトコルの版が違う、コードが合わない)だけは暗号化せずに送ります。古い QR コードを使ったスマホにすぐ伝えるためで、ゲームのデータは入っていません。</p>
+<p>暗号化を切る設定は無いので、うっかり暗号化なしでゲームを出してしまうことはありません。暗号は公開されている仕様(RFC 8439、RFC 5869、FIPS 180-4)からパッケージの中に実装していて、外部のコードは使っておらず、パケットごとのメモリの確保もありません。</p>
+<h3 id="state-and-reliable-messages">状態と確実に届くメッセージ</h3>
+<ul>
+  <li><strong>状態(Data)</strong> — 8 ms ごと、再送なし。運ぶもの: タッチ・姿勢・ボタン。毎回今の状態を丸ごと送るので、1 つ失っても次のパケットで置き換わります</li>
+  <li><strong>確実に届くメッセージ</strong> — 受け取りの返事が来るまで再送、順番どおり。運ぶもの: タッチの押した・離した、ボタンの変化(タップや押下を失わないため)、レイアウト、振動、校正、画面の向き、映像の設定</li>
+</ul>
+<p>古いパケットや重なったパケットは、通し番号で捨てます。ゲームのコードには、イベントが順番どおりにメインスレッドで届きます。確実に届くメッセージとして遅れて届いたボタンの押下も 1 回は反映し(その後に今の状態を反映します)、パッドは 1 つのボタンを Input System の1 回の更新につき 1 回までしか変えないので、同じフレームの押した・離したの両方が見えます。</p>
+<h2 id="touch">タッチ</h2>
+<h3 id="two-layers-and-normalized-coordinates">2 つの層と正規化した座標</h3>
+<p>スマホでは、映像は透明なタッチの層の奥にあります。タッチの層はすぐに反応し(指は映像の往復を待ちません)、指の位置を<strong>映像の領域に対する (0, 0)〜(1, 1)</strong> で送ります。上下左右の黒い帯は含まず、<strong>y は下向き</strong>(左上が原点)です。ホストはそれを、そのプレイヤーが見ている物(Display 1、ディスプレイの中の四角形、カメラ)のピクセルに直すので、解像度や窓の大きさが変わってもタッチはずれません。</p>
+<h3 id="injected-as-standard-events">標準のイベントとして流し込む</h3>
+<p>SDK は入力モジュールを置き換え <strong>ません</strong>。指ごとに専用の <code>PointerEventData</code>(<code>PadPlayPointerEventData</code>)を持ち、入力モジュールが呼ぶのと同じ <code>ExecuteEvents</code> のハンドラーを呼びます:<code>OnPointerEnter/Exit/Down/Up/Click</code>、<code>OnBeginDrag/OnDrag/OnEndDrag</code> など。ドラッグ開始距離とクリックのタイミングもいつもどおりです。その結果:</p>
+<ul>
+  <li>今ある Button・Slider・<code>IDragHandler</code> が、変えずに動きます。</li>
+  <li>マウスも同時に、自分のポインターのデータで動きます。スマホなしで開発できます。</li>
+  <li><em>誰が</em> 触ったかは、<code>eventData is PadPlayPointerEventData p</code> を調べて <code>p.PlayerSlot</code> を読みます。</li>
+  <li>ポインターの ID は、マウスやローカルのタッチの ID から遠く離れた所で割り当てるので、ぶつかりません。</li>
+</ul>
+<h3 id="per-player-screens-and-the-raycaster">プレイヤーごとの画面と Raycaster</h3>
+<p>複数のプレイヤーがそれぞれ自分の画面を見ている時(画面の分割、Display 2、スマホに送る映像)、タッチは <em>そのプレイヤー</em> が見ている物にだけ当たる必要があります。振り分けでは、いつもの <code>EventSystem.RaycastAll</code> を行い、そのプレイヤーの画面に属する Raycaster の結果だけを残します(<code>BaseRaycaster.eventCamera</code> で決めます)。</p>
+<p><code>PadPlayRaycaster</code> は <code>GraphicRaycaster</code> と差し替えて使える Raycaster で、<code>Image</code> の <strong>透明なピクセル</strong> への当たりを無視します(<code>AlphaThreshold</code>、既定 0.1)。Screen Space と World Space の Canvas の両方で、マウスにも効きます。</p>
+<h2 id="gamepad-gyro-and-buttons">Gamepad・ジャイロ・ボタン</h2>
+<h3 id="padplaypad-is-a-gamepad">PadPlayPad は Gamepad</h3>
+<p>準備完了になったスマホは、それぞれ Input System のデバイス <code>PadPlayPad : Gamepad</code> になります。<code>Gamepad</code> を継承しているので、今ある<code>&lt;Gamepad&gt;/…</code> のバインド、<code>Gamepad.all</code>、<code>PlayerInput</code> のコントロールスキームがそのまま動きます。加えて、コントロール <code>attitude</code>・<code>angularVelocity</code>・<code>playerSlot</code> と、ゲームが決めるボタン <code>custom14</code>〜<code>custom31</code> があります(ほかの Input System のコントロールと同じく小文字です)。C# の値は PascalCase です(<code>PlayerSlot</code>、<code>IsConnected</code>、<code>ButtonBits</code>、<code>GetButton(id)</code>)。パッドは <code>PlayerReady</code> の直前から<code>PlayerRemoved</code> の直前まであります。ジャイロのコントロールには <em>noisy</em> の印を付けているので、スマホを持っているだけで<code>Gamepad.current</code> を取ってしまうことはありません。デバイスはバックグラウンドでも動くので、PC の窓からフォーカスが外れても入力は届き続けます。振動(<code>SetMotorSpeeds</code>)はスマホのバイブレーションを動かします。</p>
+<h3 id="attitude">姿勢</h3>
+<p>スマホは <strong>Game Rotation Vector</strong>(ジャイロと加速度センサーから求めた、地磁気センサーを使わないクォータニオン。もとのプロジェクトでセンサーに選んだのと同じ方式です)と角速度を送ります。SDK はこれを Unity の左手系に直し(<strong>単位回転 = スマホを縦向きにまっすぐ立て、画面を自分に向けた状態</strong>)、さらに:</p>
+<ul>
+  <li><strong>接続した時にヨーを校正</strong> します(プレイヤーが向いている方向が正面になります)。</li>
+  <li><strong>ネットワークの揺らぎをならします</strong>: 標本にはスマホの時刻が付いています。時計のずれ(パケットが毎回返す時刻の印から測ります)を使って、SDK は少し先まで外挿し、ずれの修正はなじませながら入れるので、パケットがまとめて届いてもカメラがカクつきません。</li>
+</ul>
+<p><code>PadPlayGyroCamera</code> と <code>PadPlayGyroPointer</code> はこの上に乗っています。これらの正面合わせは部品の中だけで効くので、ほかのコードが読むパッドの姿勢は変わりません。</p>
+<p>名前の付け方: 付ける部品は <strong>Gyro</strong>(<code>PadPlayGyroCamera</code>)、データは <strong>attitude</strong>(姿勢。<code>AttitudeReceived</code>・<code>pad.attitude</code>・<code>Attitude</code> のモジュール)と呼んでいます。校正はどれも 1 つの列挙型 <code>AttitudeCalibrationMode</code>(<code>Yaw</code> か <code>Full</code>)を取ります。</p>
+<p>座標: スマホの上の位置(<code>PadPlayPointerEventData.PhonePosition</code>、レイアウト)は <strong>y = 0 が上</strong> です。Gyro Pointer の <code>ViewportPosition</code> は Unity のビューポートの座標で、<strong>y = 0 が下</strong> です。どちらかは名前で分かるようにしています。</p>
+<h3 id="buttons-are-a-layout-the-game-sends">ボタンはゲームが送るレイアウト</h3>
+<p>スマホには決まったボタンの組はありません。ゲームが <strong>レイアウト</strong>(ID・形・中心・大きさ。タッチと同じ 0〜1 の映像の領域の座標)を送り、スマホはそれをタッチの層の上に描きます。ボタンの上で触り始めた指はそのボタンに行きます。ボタンの縁から 2.5 mm 以内なら、一番近いボタンに行きます(これはアプリの設定で、レイアウトの設定ではありません)。それ以外はタッチです。押されたビットとスティックの値は状態に入って戻り、<code>PadPlayPad</code> に入ります。再生中にレイアウトのアセットを変えると送り直すので、位置を手で調整できます。</p>
+<p>要素はそれぞれ <strong>見た目</strong>(色・縁・角・文字の大きさ・画像。<code>PadPlayButtonStyle</code>)も持てます。レイアウトは画像をその PNG のハッシュで指し、スマホはまだ持っていない画像だけを頼みます。画像は同じ暗号の経路で一切れずつ届き(入力と振動を待たせません)、スマホは次につなぐ時のために覚えます。画像が届くまでは、そのボタンを色で描きます(<a href="/padplay/docs/ja/quickstart/#button-looks">クイックスタート: ボタンの見た目</a>)。</p>
+<h2 id="second-screen-video">第二画面(映像)</h2>
+<p><code>PadPlayView</code> は、カメラか RenderTexture を 1 人のプレイヤー(または全員)へ、入力と同じ UDP ポートで PadPlay Link を通して送ります。つながっている間に View を足したり変えたりしても、切り替わるのはそのプレイヤーの映像だけです(接続・枠・パッドはそのままで、<code>PlayerReady</code> はもう一度は出ません)。誰も見ていないカメラは止め、誰も見ていない間は何もエンコードしません。</p>
+<p><strong>コーデック。</strong> Windows Media Foundation の H.264(GPU のハードウェアエンコーダーが使えればそれ、無ければ Windows のソフトウェアエンコーダー)か、JPEG(Unity の JPEG のエンコーダー。スマホのアプリは Flutter で復号します)。<code>Settings.Video.Codec = Auto</code> なら、どのプレイヤーも H.264 で始めます。スマホは H.264 の復号の速さを測り、遅すぎれば(またはアプリがその機種には要ると知っていれば)JPEG を求め、ホストはそのプレイヤーだけを切り替えます。H.264 を使えないホストは、全員に JPEG を送ります。SDK は独自のコーデックを同梱していません(パッケージの README の <em>Video codecs</em> を参照)。<code>host.GetVideoChoice(slot, out choice)</code> で、プレイヤーがどのコーデックを受けていて、その理由が分かります。</p>
+<p><strong>グラフィックス API。</strong> Direct3D 11 と Direct3D 12 は、描いたフレームを GPU から出さずにエンコーダーへ渡します(Direct3D 12 は共有のテクスチャとフェンスを使います)。Vulkan は一度フレームを CPU に読み戻します(1 フレームほど遅れます)。OpenGL・macOS・Linux には H.264 の経路が無く、JPEG で送ります。<code>host.VideoStatus</code> で、経路・エンコーダー・H.264 を使わない理由が分かります。</p>
+<p><strong>弱い Wi-Fi。</strong> フレームの失った断片は、Reed-Solomon の前方誤り訂正(FEC)で直します。訂正の量は、測った損失に合わせて増えます。直せない分は、スマホがまだ持っている古いフレームを参照する小さな復旧フレームで直し(エンコーダーが対応していれば)、それもできない時に初めてキーフレームを使います。スマホは一番新しい完全なフレームを出し、フレームの届き方にむらがある間だけ待ちます(最大 <em>Max Playout Frames</em>)。<em>Adaptive Video</em> がオンなら、ホストはプレイヤーごとの損失・遅れ・受け取れている量を見ています。ネットワークが混んだらすぐにビットレートを下げ、次にフレームレートか大きさ(<em>Priority</em>)を下げ、よくなればゆっくり戻します。複数のプレイヤーに送る View は 1 回だけエンコードし、一番弱い接続に合わせた画質になります。</p>
+<h2 id="across-scenes">シーンをまたぐ</h2>
+<p>既定では、<code>PadPlayHost</code> はそのシーンの中にあります。別のシーンを読むと Host は壊され、スマホは全部切れます。Host(例えばタイトルやメニューのシーンの物)で <strong>Keep Across Scenes</strong>(シーンをまたいで保つ)にチェックを入れると、シーンを切り替えてもスマホはつながったままです。プレイヤー枠も、暗号の鍵も、<code>PadPlayPad</code> のデバイスも同じで、QR コードを読み直す必要もありません。</p>
+<ul>
+  <li>このような最初の Host は、<code>DontDestroyOnLoad</code> の専用の GameObject に <strong>残す Host</strong>(<code>PadPlayHost.KeptHost</code>)を作り、自分の設定をそこに預けます。それ以降は、<em>Keep Across Scenes</em> にチェックがあってもなくても、<strong>読み込んだシーンの Host は、どれも設定を残す Host に預けて</strong> 身を引きます。そのため、どのシーンにも自分の Host があり、そのシーンだけを開いても動き、Host が 2 つになることもありません。</li>
+  <li>残す Host は、シーンの Host の設定を使います。ボタンの <strong>レイアウト</strong> はスマホへ送り直し、<strong>モジュール</strong> も効きます(<em>Video</em> のモジュールが無いシーンでは映像が止まり、新しいシーンに <code>PadPlayView</code> があれば映像が始まります)。<strong>Max Players</strong> は新しいプレイヤーの数を制限します。値を下げても、もう遊んでいる人は切りません。上限より下の枠が空くまで、新しいスマホを満員として断ります。プレイヤーごとのレイアウト(<code>SetLayout</code>)と、前のシーンの Phone Overlay は消します。接続の値(<em>Port</em>、<em>Game Name</em>、<em>Resume Hold Seconds</em>、<code>NetworkSettings</code>)は最初の Host の物のままです。</li>
+  <li>各プレイヤーが最後に <strong>Recenter</strong> した向きも残ります。次のシーンの Remote Pointers や Gyro Pointer はその向きから始まるので、カーソルが真ん中に飛ばず、Recenter し直す必要もありません。</li>
+  <li>シーンの Host のメンバーは全部、残す Host に行くので、シーンの部品と自分のスクリプトは「自分の」Host をそのまま使えます。シーンの Host を通して足したイベントハンドラーは、そのシーンを閉じる時に外します。シーンより長く生きるオブジェクト(<code>DontDestroyOnLoad</code> のマネージャー)は、代わりに <code>PadPlayHost.KeptHost</code>(か <code>host.ActiveHost</code>)に登録してください。</li>
+  <li>わざとスマホを切るには、(どの Host でも)<code>StopHost()</code> を呼ぶか、<code>PadPlayHost.KeptHost.gameObject</code> を壊します。</li>
+</ul>
+<pre><code class="language-csharp">// Menu scene: its Host has Keep Across Scenes ticked. A demo scene has its own Host (any settings).
+SceneManager.LoadScene("Demo");      // phones stay connected; the Demo Host's layout and modules apply
+// ...later, from the demo:
+SceneManager.LoadScene("Menu");      // back to the menu's layout; still the same players
+
+// A manager that lives across scenes listens on the kept Host:
+PadPlayHost.KeptHost.PlayerJoined += p =&gt; Debug.Log($"P{p.PlayerSlot + 1} joined");</code></pre>
+<p>エディタの仮想スマホも、シーンをまたいでつながったままです。PadPlay Lite でも同じように動きます(1 人、映像なし)。</p>
+<h2 id="editions-padplay-sdk-and-padplay-lite">版: PadPlay SDK と PadPlay Lite</h2>
+<p><strong>PadPlay Lite</strong>(無料)は同じパッケージで同じように動きますが、次の物がありません: 2 人以上のプレイヤー(<em>Max Players</em> の上限が 1)、第二画面の映像(<code>PadPlayView</code> とエンコーダーが入っていないので、<em>Video</em> のモジュールは何もしません)、<em>Sample Hub</em>(<em>Target Pop</em> つき)と*Minimal* 以外のサンプル、スマホのアプリのソース。<code>PadPlayEdition.IsLite</code> で、コードからどちらの版で動いているかが分かります。</p>
+<h2 id="tuning-by-feel">触って調整する</h2>
+<p>遅れ・平滑化・感度・デッドゾーンは、机の上では決められません。このような値は全部 Inspector の設定のオブジェクトのフィールドにしてあり(<code>Settings.Touch</code>、<code>Settings.Attitude</code>、<code>Settings.Buttons</code>、ジャイロの部品の <code>Settings</code>、ボタンのレイアウト)、ほとんどは再生中に変えられます。既定の値は出発点で、最終的な答えではありません。調整する間は、Display のプレビューとデバッガー(<a href="/padplay/docs/ja/debugging/">デバッグ</a>)で数字を見てください。</p>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/ja/contact/">お問い合わせ</a> · <a href="/ja/privacy/">プライバシー</a></p>
+    <p class="muted">このサイトは Cookie・アクセス解析・トラッキングを使っていません。</p>
+  </div>
+</footer>
+</body>
+</html>

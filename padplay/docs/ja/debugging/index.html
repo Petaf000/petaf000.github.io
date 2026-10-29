@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>デバッグ — PadPlay ドキュメント</title>
+<meta name="description" content="PadPlay SDK のドキュメント(日本語): デバッグ">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/debugging/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/debugging/">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/debugging/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/ja/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="メニュー">
+      <a href="/ja/">ホーム</a>
+      <a href="/ja/products/">製品</a>
+      <a href="/ja/contact/">お問い合わせ</a>
+      <a href="/ja/privacy/">プライバシー</a>
+    </nav>
+    <a class="lang" href="/padplay/docs/debugging/" lang="en" hreflang="en">English</a>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay ドキュメント">
+    <a href="/padplay/docs/ja/" lang="ja">概要</a>
+    <a href="/padplay/docs/ja/quickstart/" lang="ja">クイックスタート</a>
+    <a href="/padplay/docs/ja/concepts/" lang="ja">仕組み</a>
+    <a href="/padplay/docs/ja/debugging/" aria-current="page" lang="ja">デバッグ</a>
+    <a href="/padplay/docs/ja/pose-camera/" lang="ja">Pose Camera</a>
+    <a href="/padplay/docs/ja/remote-pointers/" lang="ja">Remote Pointers</a>
+    <a href="/padplay/docs/ja/api/" lang="ja">API リファレンス</a>
+    <a href="/padplay/docs/glossary-ja/" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="debugging">デバッグ</h1>
+<p><em><a href="/padplay/docs/debugging/">English</a></em></p>
+<p>Unity エディタから出ずに、3 つの疑問に答えるための道具です:<strong>スマホはつながっているか? スマホから何が届いているか? スマホの画面には何が映っているか?</strong></p>
+<ul>
+  <li><a href="#1-display-preview-each-phones-screen-on-display-2-3-">Display のプレビュー</a>(Game ビュー → <em>Display 2</em>、<em>Display 3</em>、…) — プレイヤーごとのスマホの画面(映像・指・ボタン)を、メインの画面と並べて見る。</li>
+  <li><a href="#2-padplay-debugger">PadPlay デバッガー</a>(<em>Window → PadPlay → Debugger</em>) — 接続の状態、往復の時間、入力の頻度、ボタンのビット、ジャイロ、タッチ、イベントの記録。正面合わせ、振動のテスト、切断。</li>
+  <li><a href="#3-debug-overlay-in-built-games">デバッグ表示</a>(<em>Add Component → PadPlay → Debug Overlay</em>) — <strong>ビルドしたゲーム</strong> に出す小さな状態の表示(F3 で表示・非表示)。</li>
+  <li><a href="#4-reading-the-same-data-from-code"><code>host.Diagnostics</code></a>(C#) — 同じ数字を、自分のコードや道具から読む。</li>
+  <li><strong>接続チェック</strong>(<em>Window → PadPlay → Connection Check</em>) — スマホがつながらない・<code>Connecting</code> のまま進まない理由: QR のアドレスとネットワーク アダプター、ポート、Windows ファイアウォール、最後の接続の試み。読むだけです。<a href="/padplay/docs/ja/quickstart/#11-troubleshooting">クイックスタート §11</a> を参照。</li>
+  <li><a href="#5-trying-it-without-a-phone-virtual-phones">仮想スマホ</a>(<em>Window → PadPlay → Virtual Phones</em>) — エディタの中の仮想のスマホ: タッチはマウス、ボタンはマウスかキー、傾きはマウスで球をドラッグ。スマホは要りません。</li>
+  <li><strong>Input Debugger(Unity)</strong>(<em>Window → Analysis → Input Debugger</em>(ウィンドウ → 解析 → Input Debugger)) — Input System が <code>PadPlayPad</code> のデバイスをどう扱っているか(バインド、アクション、<code>PlayerInput</code>)。</li>
+</ul>
+<p>最初の 4 つはホストを <strong>読むだけ</strong> で、ゲームが受け取る物を変えることはありません。仮想スマホは本物のスマホと同じように入力を送ります。Host の Inspector の <em>Debug</em> の節(<em>Modules</em> と <em>Connection</em> の間)に、プレビューの設定と、デバッガーを開くボタン・デバッグ表示を足すボタンがあります。</p>
+<hr>
+<h2 id="1-display-preview-each-phones-screen-on-display-2-3-">1. Display のプレビュー: スマホごとの画面を Display 2・3… に</h2>
+<p>エディタで再生している間、ホストはスマホごとに映っている物をそれぞれのディスプレイに描きます:<strong>P1 → Display 2、P2 → Display 3</strong>、以下同様です。Display 1(ゲームの画面)には一切触れません。</p>
+<ol>
+  <li>2 つ目(と 3 つ目)の <strong>Game ビュー</strong> を開きます: Game のタブを右クリック → <em>Add Tab → Game</em>。</li>
+  <li>新しい Game ビューの左上のドロップダウンで、それぞれ <strong>Display 2</strong> / <strong>Display 3</strong> を選びます。必要なら大きさをタブレットの解像度(例えば 1920 × 1200)に合わせてください。絵の縦横比は保たれます。</li>
+  <li><strong>再生</strong> してスマホをつなぎます。</li>
+</ol>
+<p>各ディスプレイに見える物:</p>
+<ul>
+  <li><strong>黒</strong> — ディスプレイのうち、スマホの外の部分。</li>
+  <li><strong>濃い灰色</strong> — スマホの画面(縦横比はスマホが知らせた大きさから。スマホが縦向きと知らせない限り横向き)。</li>
+  <li><strong>映像</strong> — そのプレイヤーに送っている <code>PadPlayView</code> のテクスチャ。スマホと同じように上下左右に帯を入れて収めます(映像の縦横比。映像がまだ無い時は 16:9)。ボタンはあるが映像が無いプレイヤーは、スマホのアプリと同じく、スマホの画面全体を使います。</li>
+  <li><strong>重ねの表示</strong> — プレイヤーの指(プレイヤーの色の点)と、そのプレイヤーのレイアウトの画面のボタン。押しているボタンは、押している間プレイヤーの色で光ります(押した後も少なくとも <em>Button Highlight Ms</em> の間光らせることもできます)。スティックのつまみはスティックの値に合わせて動きます。</li>
+  <li><strong>見出し</strong> — プレイヤー、ディスプレイ、状態、スマホの機種、往復の時間。スマホが無い時は <em>waiting for a phone</em> と出ます。</li>
+</ul>
+<p>設定: <em>Host の Inspector → Debug</em>(<code>host.Settings.Preview</code>)。どれも再生中に変えられます。</p>
+<ul>
+  <li><strong>Mode</strong>(既定 EditorOnly) — <code>Off</code>、<code>EditorOnly</code>(ビルドしたゲームでは何も出さない)、<code>EditorAndBuilds</code>(ビルドしたゲームでも、つながっている追加のモニターを有効にして使う)。</li>
+  <li><strong>Player Displays</strong>(既定 2, 3, 4, 5) — プレイヤーごとの Display の番号。要素 0 が P1 です。<code>0</code> でそのプレイヤーを出しません。<code>1</code> は使えません(ゲームの画面のため)。</li>
+  <li><strong>Show Touches / Show Buttons</strong>(既定 オン) — 重ねの表示の部品。</li>
+  <li><strong>Overlay Opacity</strong>(既定 0.6) — 重ねの表示の濃さ。</li>
+  <li><strong>Show Caption</strong>(既定 オン) — 上の文字の行。</li>
+  <li><strong>Button Highlight Ms</strong>(既定 0) — <code>0</code> = 押している間だけ光る(ゲームが読む値)。0 より大きいと、押したボタンは押した後も少なくともこの時間光ります。プレビュー・デバッガー・デバッグ表示に効きます。デバッガーの <em>Min lit ms</em>(最短点灯 ms)でも変えられます。</li>
+</ul>
+<p>仕組み: ホストは表示するプレイヤーごとに(シーンの階層の外に、保存しない形で)、ディスプレイを黒で消すだけのカメラ(<code>cullingMask = 0</code>)と、そのディスプレイの <em>Screen Space – Overlay</em> の Canvas を作ります。Canvas には<code>GraphicRaycaster</code> が無いので、マウスのクリックやスマホのタッチが当たることはありません。映像はエンコードしているのと同じ <code>RenderTexture</code> なので、プレビューのために余分に描くことはありません。</p>
+<hr>
+<h2 id="2-padplay-debugger">2. PadPlay デバッガー</h2>
+<p><em>Window → PadPlay → Debugger</em>(または Host の Inspector の <em>Debug</em> の節の <strong>Open Debugger</strong>)。再生するまでは何も出ません。</p>
+<p><strong>上の帯</strong> — ホスト、動いているかとそのポート、プレイヤーの数、新しいプレイヤーを受け付けているか、<strong>Join URI</strong>(参加 URI)と <em>Copy</em>(カメラでコードを読めない時に、スマホのアプリに貼り付けます)、<strong>QR</strong> の切り替え。</p>
+<p><strong>Players</strong> — ホストが始まってから参加したプレイヤー枠ごとに 1 行:</p>
+<ul>
+  <li><strong>Device</strong> — スマホの機種と OS。</li>
+  <li><strong>State</strong> — <code>Connecting</code>(参加した、まだ入力が流れていない)、<code>Ready</code>、<code>Reconnecting</code>(切れた。枠は <em>Resume Hold Seconds</em> の間取っておく)、<code>Gone</code>(抜けた。理由は括弧の中)。</li>
+  <li><strong>RTT ms</strong> — PadPlay Link の往復の時間: パケットが返す時刻の印から測った、直近の往復の中央値(<code>ClockSync.RoundTripMs</code>)。</li>
+  <li><strong>Clock ms</strong> — スマホの時計 − PC の時計(<code>ClockSync.OffsetMs</code>)。</li>
+  <li><strong>Touch / Gyro / Btn Hz</strong> — スマホからの 1 秒あたりの入力の更新。PadPlay Link はパケットごとに状態を丸ごと送るので、数えているのはパケットではなく変化です: <em>Touch</em> = 押している指が動いた回数(押した・離したは数えない)、<em>Gyro</em> = 新しい姿勢の標本、<em>Btn</em> = ボタンとスティックの変化。Touch と Btn は、何も動かない・変わらない間は 0 です。<code>(off)</code> = 届いているが、モジュールのチェックが外れているのでホストが捨てている。</li>
+  <li><strong>Last in</strong> — 最後に何かの入力が届いてからの秒数。</li>
+  <li><strong>Video</strong> — エンコーダーの今の解像度とフレームレート(ネットワークが遅いと下がります)と、映像のパケットの実測のビットレート(FEC 込み。送る側の統計から 1 秒ごと。H.264 か JPEG)。最後の欄は 1 フレームのエンコードの時間(<code>PadPlayVideoStats.EncodeMsPerFrame</code>)です: そのプレイヤーに送った最近の約 10 フレームについて、描き終えてからエンコードが終わるまでの時間の平均(H.264 は色の変換とエンコーダー、JPEG は GPU からの読み戻しと JPEG のエンコーダー。待ち時間も含みます)。測れない時は <code>—</code> で、マウスを重ねると理由が出ます(そのプレイヤーにまだ 1 フレームも送っていない、またはエンコーダーが時間を返していない)。</li>
+  <li><strong>Rot</strong> — スマホの画面の回転(度)。</li>
+</ul>
+<p><strong>選んだプレイヤーの詳細</strong>(最初の列の <em>P1</em>、<em>P2</em>、… をクリック):</p>
+<ul>
+  <li><strong>Buttons</strong> — ゲームが読む 32 個のボタン(そのプレイヤーの <code>PadPlayPad</code>、デバイスがオフなら <code>ButtonsReceived</code> の値):0〜13 は Gamepad のボタン(A/South … 右スティックの押し込み)、14〜31 は <code>custom14</code>〜<code>custom31</code> です。押しているボタンは、Input Debugger とまったく同じく、押している間プレイヤーの色で描きます。グリッドの下の <em>Min lit ms</em>(= <code>Settings.Preview.ButtonHighlightMs</code>、既定 0)を使うと、押したボタンをその時間、薄い色で光らせたままにできます。各マスの小さな数は <strong>再生を始めてから押された回数</strong> です(見出しには合計が出ます)。ボタンを 10 回タップしたら 10 になるはずです。少なければ、押下がゲームに届く前に失われています。数は合っているのに光ったのが見えなかったなら、描画が遅かっただけです。再生中でこの窓が見えている間は、毎フレーム描き直します。</li>
+  <li><strong>Sticks</strong> — 左右のスティックの値(−1〜1、y は上が +)。</li>
+  <li><strong>Attitude</strong> — スマホの形の箱(画面の面はプレイヤーの色)と、オイラー角と角速度。プレイヤーに <code>PadPlayPad</code> があれば校正後の <code>pad.attitude</code>、無ければスマホの生の姿勢を出します。</li>
+  <li><strong>Touches</strong> — スマホの映像の領域の上の指(0〜1、y = 0 が上)と、その ID。</li>
+  <li><strong>Recenter (yaw / full)</strong> — そのプレイヤーのパッドの正面を合わせ直します(<code>pad.Recenter(...)</code>。<code>Recentered</code> が出ます)。<strong>Test haptics</strong> — <code>host.SetHaptics</code> で 0.3 秒振動させます。<strong>Disconnect</strong> — <code>host.Kick(slot)</code>(枠は取っておきません)。</li>
+</ul>
+<p><strong>Events</strong> — ホストの記録: ホストの開始・停止、参加、再開、準備完了(映像が変わった後にもう一度)、退出、枠の解放、レイアウトの送信、振動の強さの変化(同じ値の繰り返しは記録しません)、校正の送信、画面の回転、断った参加(<em>JoinRejected</em>: bad_token、full、version)。種類・文字・選んだプレイヤーで絞り込めます。<em>Pause</em> で一覧を止めます(ホストは記録を続けます)。<em>Clear</em> で空にします。ホストは最後の 512 件を取っておきます。</p>
+<hr>
+<h2 id="3-debug-overlay-in-built-games">3. デバッグ表示(ビルドしたゲームで)</h2>
+<p>どれかの GameObject に <em>Add Component → PadPlay → Debug Overlay</em>(または Host の Inspector の <strong>Add Debug Overlay</strong>)。プレイヤーの数と、プレイヤーごとの状態・スマホの機種・往復の時間、準備完了のプレイヤーから 1 秒以上何も届かない時の警告、そして(ボタンが押されてからは)光っているボタンと押された回数(<code>buttons: South (12 presses)</code>。デバッガーと同じく少なくとも <em>Button Highlight Ms</em> の間光ります)を小さな箱に描きます。毎フレーム作り直します。IMGUI を使っています(Canvas も EventSystem も使いません)。</p>
+<ul>
+  <li><strong>Host</strong>(既定 <em>シーンから見つける</em>)</li>
+  <li><strong>Toggle Key</strong>(既定 F3) — 表示・非表示を切り替える Input System のキー(<code>None</code> = キーなし)。</li>
+  <li><strong>Visible</strong>(既定 オン) — 始めから表示する。</li>
+  <li><strong>Corner</strong>(既定 TopLeft)</li>
+  <li><strong>Font Size</strong>(既定 18) — 画面の高さが 1080 px の時の大きさ。画面に合わせて拡大・縮小します。</li>
+</ul>
+<hr>
+<h2 id="4-reading-the-same-data-from-code">4. 同じデータをコードから読む</h2>
+<pre><code class="language-csharp">using System.Collections.Generic;
+using PadPlay;
+using UnityEngine;
+
+PadPlayDiagnostics diagnostics = host.Diagnostics;
+foreach (PadPlayPlayerDiagnostics player in diagnostics.Players)
+{
+    Debug.Log($"P{player.PlayerSlot + 1} {player.State} {player.Device.Model} " +
+              $"gyro {player.AttitudeRateHz:F0} Hz, fingers {player.Touches.Count}, buttons {player.Buttons.Bits:X8}");
+}
+
+var events = new List&lt;PadPlayDebugEvent&gt;();
+diagnostics.CopyEvents(events);      // oldest first; diagnostics.TotalEventCount tells you when new ones arrived</code></pre>
+<ul>
+  <li><code>host.Diagnostics</code> — <code>PadPlayDiagnostics</code>: <code>Players</code>、<code>TryGetPlayer(slot, out player)</code>、<code>LastJoinAttempt</code>(<code>JoinAttempt</code>: <code>RemoteAddress</code>、<code>AtMs</code>、<code>Result</code> = Accepted / BadToken(古い QR コード: トークンか鍵が合わない)/ Full / Version、<code>PlayerSlot</code>。null = まだ何もつながっていない)、<code>JoinAttemptCount</code>、<code>EventCount</code>、<code>TotalEventCount</code>、<code>GetEvent(i)</code>、<code>CopyEvents(list)</code>、<code>ClearEvents()</code>、<code>EventCapacity</code>(512)。</li>
+  <li><code>PadPlayPlayerDiagnostics</code> — <code>PlayerSlot</code>、<code>Device</code>、<code>AppVersion</code>、<code>State</code>、<code>LeftReason</code>、<code>JoinedHostMs</code>、<code>ResumeCount</code>、<code>TouchRateHz</code>、<code>AttitudeRateHz</code>、<code>ButtonsRateHz</code>、<code>LastTouchHostMs</code>、<code>LastAttitudeHostMs</code>、<code>LastButtonsHostMs</code>、<code>LastInputHostMs</code>、<code>Touches</code>、<code>HasAttitude</code>、<code>Attitude</code>、<code>HasButtons</code>、<code>Buttons</code>(最後に受け取った状態)、<code>GameButtonBits</code>(今押されているボタン。ゲームが読む値)、<code>TotalButtonPresses</code>、<code>GetButtonPressCount(id)</code>、<code>GetButtonLastPressedHostMs(id)</code>、<code>GetButtonLastReleasedHostMs(id)</code>、<code>IsButtonLit(id, nowMs, minLitMs)</code>、<code>GetLitButtonBits(nowMs, minLitMs)</code>、<code>HasScreenRotation</code>、<code>ScreenRotationDegrees</code>、<code>HapticStrength</code>、<code>LayoutsSent</code>、<code>PacketsReceived</code>(入力の更新。<em>Hz</em> の列と同じ数え方)。時刻は <code>PadPlayHost.NowMs</code> の時計です(−1 = 一度も無い)。</li>
+  <li><code>PadPlayDebugEvent</code> — <code>HostMs</code>、<code>PlayerSlot</code>(−1 = ホスト)、<code>Kind</code>(<code>PadPlayDebugEventKind</code>)、<code>Detail</code>。</li>
+  <li><strong>映像(<code>PadPlayHost</code> の)</strong> — <code>VideoStatus</code>(グラフィックス API の経路、エンコーダー、プレイヤーごとのコーデック、または H.264 を使えない理由。人が読むための英語の文)、<code>GetVideoChoice(slot, out PadPlayVideoCodecChoice)</code>(<code>Codec</code>、列挙型の <code>Reason</code>、<code>Detail</code>)、<code>RequestVideoStats(slot, callback)</code>(<code>PadPlayVideoStats</code>。<em>Video</em> の列の数字)。</li>
+  <li><code>host.Settings.Preview</code> — <code>PadPlayPreviewSettings</code>: <code>Mode</code>(<code>PadPlayPreviewMode</code>)、<code>PlayerDisplays</code>、<code>ShowTouches</code>、<code>ShowButtons</code>、<code>OverlayOpacity</code>、<code>ShowCaption</code>、<code>ButtonHighlightMs</code>(0)、<code>IsActive(isEditor)</code>、<code>GetDisplay(slot)</code>。</li>
+  <li><code>PadPlayDebugOverlay</code> — <code>Host</code>、<code>Visible</code>、<code>ToggleKey</code>、<code>BuildText()</code>。</li>
+</ul>
+<p>入力の数には、チェックを外したモジュールの入力も入っています(届いた後でホストが捨てた物)。そのため、「スマホが何も送っていない」のか「モジュールがオフ」なのかを見分けられます。</p>
+<hr>
+<h2 id="5-trying-it-without-a-phone-virtual-phones">5. スマホなしで試す: 仮想スマホ</h2>
+<p><em>Window → PadPlay → Virtual Phones</em>(または Host の Inspector の <em>Debug</em> の節の <strong>Virtual Phones</strong>)は、エディタで再生している間、仮想のスマホをホストにつなぎます。家庭用ゲーム機のコントローラーのシミュレーターのようなものです。どれも <strong>スマホのアプリと同じ方法で参加する</strong> ので(参加 URI のトークンと鍵、UDP の PadPlay Link: Hello、8 ms ごとの状態、確実に届くメッセージ、映像)、ゲームからは本物のスマホと区別できません。プレイヤー枠、<code>PlayerJoined</code> / <code>PlayerReady</code>、<code>PadPlayPad</code>、uGUI のポインターのイベント、<code>PlayerLeft</code> / <code>PlayerRemoved</code> を受け取ります。本物のスマホも同時に参加できます(例えば本物のスマホが P1、仮想のスマホが P2)。</p>
+<ol>
+  <li><strong>再生</strong> して窓を開き、<strong>Add phone</strong>(スマホを追加)を押します(プレイヤーごとに 1 回。<em>Max Players</em> まで)。</li>
+  <li>スマホにはそれぞれ、そのプレイヤーの画面(そのプレイヤーに送っている <code>PadPlayView</code> のテクスチャ。View が無いか <em>Video</em> のモジュールがオフの時は、灰色で <em>no video</em> と出ます)が出て、その上にそのプレイヤーのレイアウトの画面のボタンが重なります。</li>
+  <li>操作します:</li>
+</ol>
+<ul>
+  <li><strong>タッチ</strong> — 画面の上でマウスの左ボタン = 指 1 本(押す・ドラッグ・離す)。映像の領域の外の位置は、スマホと同じく端に収めます。</li>
+  <li><strong>ピンチ</strong> — <strong>Ctrl + 左ドラッグ</strong>(Mac では Cmd)= 指 2 本。2 本目は画面の真ん中に対して対称に動きます(真ん中から離すと広がります)。画面の上で <strong>マウスホイール</strong> = マウスの位置を中心にした指 2 本が広がり(ホイールを上)、狭まり(ホイールを下)、ホイールを止めて少しすると離れます。窓の各スマホの下に、この操作の説明が出ます。</li>
+  <li><strong>ボタンとスティック</strong> — レイアウトのボタンかスティックの上でマウスの左ボタン。同じ <em>Group</em> のボタンは、押したまま滑らせて移れます。</li>
+  <li><strong>キー</strong> — 選んだスマホ(最後にクリックした物。プレイヤーの色の枠が付きます)に、この窓にフォーカスがある間だけ効きます。既定: Space = A(South)、左 Shift = B(East)、Q = X(West)、E = Y(North)、Z / C = LB / RB、Return = Start、Tab = Select、矢印 = 十字キー、WASD = 左スティック、IJKL = 右スティック。<strong>Keys</strong> で変えられます(PC ごとに保存します)。</li>
+  <li><strong>傾き</strong> — <strong>Yaw</strong>(右に回すと +)、<strong>Pitch</strong>(下を向くと +)、<strong>Roll</strong>(左に傾けると +)。スマホの絵が付いた球をドラッグして回します(縁の近くをドラッグするとロール)。角度は球の下に出ます。値は、正面合わせをする前に、ゲームが <code>pad.attitude</code> から読むオイラー角です。<strong>Reset tilt</strong>(傾きを 0 に)で 0 に戻します(仮想のスマホを正面に向けます。ゲームには伝えません)。<strong>Recenter</strong>(正面合わせ)は、スマホの隅の長押しと同じ要求を送ります。</li>
+  <li><strong>振動</strong> — 振動の命令が効いている間、スマホの枠が光ります(明るいほど強い)。<code>host.Pulse</code> は、続けている振動の上に、その長さだけ光ります。</li>
+  <li><strong>Phone Overlay</strong> — Phone Overlay / <code>host.SetPhoneOverlay</code> で送った文字と板を、絵の上に固定して描きます(リッチテキストはエディタが描く形で出ます)。</li>
+  <li><strong>Disconnect / Reconnect</strong> — <strong>Disconnect</strong>(切断)は、Wi-Fi が落ちたように黙って接続を切ります。枠は <em>Resume Hold Seconds</em> の間取っておき、<strong>Reconnect</strong>(再接続)で同じプレイヤーに戻ります(<code>Resumed</code> の <code>PlayerJoined</code>)。</li>
+  <li><strong>Remove</strong> — <code>bye</code> で抜けます。枠は空き(<code>PlayerRemoved</code>)、スマホは窓から消えます。</li>
+</ul>
+<p>スマホのアプリと同じく、仮想のスマホが送るのは、そのプレイヤーのレイアウトにあるボタンとスティックだけで、ボタンのあるレイアウトを受け取っている間だけです(レイアウトが無いと、キーは何もしません)。画面の回転は知らせないので、ジャイロの部品は傾きの値をそのまま使います。デバッガーでは、参加した端末は <em>PadPlay Virtual Phone</em>(1080 × 2400、横向き)と出ます。</p>
+<p>制限: 指は 2 本まで(ピンチだけ)、本物のセンサーのノイズやネットワークの損失は無く、映像は復号しません(窓はホストがこれから送るテクスチャを描くので、エンコードの問題は本物のスマホでしか見えません)。仮想スマホはエディタの中だけにあります。ビルドしたゲームには何も入らず、再生を止めると閉じます。</p>
+<hr>
+<h2 id="6-which-tool-for-which-problem">6. どの問題にどの道具を使うか</h2>
+<ul>
+  <li><strong>スマホがいつまでもつながらない</strong> — <em>接続チェック</em>(またはデバッガーの <strong>Check</strong> のボタン): 最後の節で、PC に何か届いたか(何も届いていない / 古い QR / 満員)が分かります。ほかの節は、Wi-Fi のアドレス、ポート、ファイアウォールを指します。</li>
+  <li><strong>何も届かない</strong> — Windows ファイアウォールが Unity の UDP をブロックしています(PadPlay は UDP ポートを 1 つ使います。TCP だけを許可する規則では足りません)。<em>接続チェック</em> でファイアウォールの規則が分かります。</li>
+  <li><code>RenewToken()</code> の直後に「古い QR コード」 — 新しいスマホには新しいコードが要ります。参加済みのスマホが古いコードで戻れるのは、<code>host.NetworkSettings.RenewGraceMs</code>(60 秒)の間で、アプリが再開用の秘密の値を残している(入れ直したりデータを消したりしていない)場合だけです。</li>
+  <li><strong>スマホに H.264 ではなく JPEG が届く</strong> — <code>host.VideoStatus</code> / <code>GetVideoChoice(slot, out choice)</code>: 理由は、ホストの設定、この PC で H.264 を使えない(OpenGL、macOS / Linux、エンコーダーなし)、スマホが求めた(H.264 の復号が遅い)のどれかです。</li>
+  <li><code>Ready</code> なのに、ゲームが何にも反応しない — スマホを動かし、触り、押しながら、デバッガーの <em>Hz</em> の列を見ます: 数字が出る → モジュールのチェック(<code>(off)</code>)と自分のコードを確かめます。0 → スマホから何も届いていません(ボタンを送るのは、ボタンのあるレイアウトを受け取った時だけです。Events に <em>LayoutSent</em> があるか見てください)。</li>
+  <li><strong>ボタンが効かない</strong> — デバッガーの <em>Buttons</em> のグリッドが光るか? 光る → 自分のバインド(Input Debugger、<code>&lt;PadPlayPad&gt;/custom20</code>…)。光らない → レイアウトかスマホ。</li>
+  <li><strong>タップを取りこぼしているように見える</strong> — デバッガーの <em>Buttons</em> の押された回数: N 回タップして比べます。N 回 → ゲームはどの押下も受け取っています(コードの読み方を確かめます。例えば <code>FixedUpdate</code> で <code>isPressed</code> を見ている)。少ない → 途中で押下が失われています(Wi-Fi。<em>Btn Hz</em>)。</li>
+  <li><strong>タッチが違う物に当たる</strong> — Display のプレビュー: 点が指の位置にあるか? あれば <em>Touch → Player Targets</em> と <code>PadPlayView.UseAsTouchTarget</code> を確かめます。</li>
+  <li><strong>スマホが黒い、または違う絵が出る</strong> — Display のプレビュー: 送っているのと同じテクスチャです。そこでも黒い → ソースのカメラ / RenderTexture。そこでは正しい → 映像のエンコードかネットワーク(デバッガーの <em>Video</em> の列: fps と kbps)。</li>
+  <li><strong>ジャイロが遅れる・飛ぶ</strong> — デバッガーの <em>Gyro Hz</em>(120 前後のはずです。PadPlay アプリは姿勢を 1 秒に 120 回送ります)と <em>RTT</em>。<em>Attitude</em> の設定を調整します。</li>
+  <li><strong>あるプレイヤーが何度も切れる</strong> — Events: <em>Left</em> / <em>Resumed</em> のくり返しと、その理由(<code>closed</code>、<code>timeout</code>)。</li>
+  <li><strong>振動しない</strong> — Events: <em>HapticSent</em> が出るか? 出ない → <em>Buttons → Allow Haptics</em> / 強さの倍率。出る → スマホ側(マナーモード、振動の設定)。</li>
+  <li><strong>手元にスマホが無い、2 人目が要る</strong> — 仮想スマホ: プレイヤーごとに 1 台足します。</li>
+  <li><strong>Input System の疑問(アクション、<code>PlayerInput</code>、ペアリング)</strong> — Unity の Input Debugger: スマホはそれぞれ <code>PadPlayPad</code> のデバイス(<code>Gamepad</code>)です。</li>
+</ul>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/ja/contact/">お問い合わせ</a> · <a href="/ja/privacy/">プライバシー</a></p>
+    <p class="muted">このサイトは Cookie・アクセス解析・トラッキングを使っていません。</p>
+  </div>
+</footer>
+</body>
+</html>

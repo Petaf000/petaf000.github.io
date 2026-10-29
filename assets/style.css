@@ -182,14 +182,70 @@ li { margin: 4px 0; }
 .policy h2 { font-size: 20px; margin-top: 36px; }
 .policy ul { margin: 8px 0; }
 
+/* 表は短い物だけ(用語の対応・プライバシーの一覧)。文書の長い説明は「名前 — 説明」の箇条書きにしている */
 .table-wrap { overflow-x: auto; margin: 12px 0; -webkit-overflow-scrolling: touch; }
-table { border-collapse: collapse; width: 100%; font-size: 15px; line-height: 1.6; }
-th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
-th { background: var(--soft); }
-td:first-child { min-width: 8em; }
-@media (max-width: 600px) { td, th { min-width: 9em; } }
+table { border-collapse: collapse; width: auto; max-width: 100%; font-size: 15px; line-height: 1.6; }
+th, td { border: 1px solid var(--line); padding: 6px 12px; text-align: left; vertical-align: top; overflow-wrap: break-word; }
+th { background: var(--soft); white-space: nowrap; }
+.stack table { width: 100%; }
+.stack td:first-child { width: 22%; }
+/* 3 列以上の表は、スマホの幅では 1 行を 1 枚のカードに積む(マスの上に列の名前) */
+@media (max-width: 600px) {
+  .stack table, .stack tbody, .stack tr, .stack td { display: block; width: auto; }
+  .stack tr.head { display: none; }
+  .stack tr { border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; margin: 0 0 10px; }
+  .stack td { border: 0; padding: 4px 0; }
+  .stack td:first-child { width: auto; font-weight: 600; }
+  .stack td[data-label]::before { content: attr(data-label); display: block; font-size: 13px; font-weight: 600; color: var(--muted); }
+}
 
 code { font-size: 0.92em; background: var(--soft); padding: 1px 5px; border-radius: 4px; }
+
+/* --- PadPlay の文書(/padplay/docs/。Documentation~ の .md から作る) --- */
+
+main.wrap.wide { max-width: 960px; }
+
+.docs-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 14px;
+  padding: 0 0 14px;
+  margin: 0 0 28px;
+  border-bottom: 1px solid var(--line);
+}
+.docs-nav a { color: var(--muted); text-decoration: none; padding: 2px 0; }
+.docs-nav a:hover { color: var(--ink); }
+.docs-nav a[aria-current="page"] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent); }
+
+.doc { font-size: 16px; }
+.doc h1 { font-size: 32px; }
+.doc h2 { font-size: 22px; margin-top: 44px; scroll-margin-top: 16px; }
+.doc h3 { font-size: 18px; margin: 28px 0 8px; scroll-margin-top: 16px; }
+.doc h4 { font-size: 16px; margin: 20px 0 6px; }
+.doc ul, .doc ol { margin: 8px 0; }
+.doc li + li { margin-top: 6px; }   /* 「名前 — 説明」の箇条書き(表の代わり)を 1 項目ずつ読めるように */
+.doc ol { padding-left: 1.6em; }
+.doc hr { border: 0; border-top: 1px solid var(--line); margin: 36px 0; }
+.doc blockquote {
+  margin: 16px 0;
+  padding: 2px 16px;
+  border-left: 4px solid var(--accent);
+  background: var(--soft);
+  border-radius: 0 10px 10px 0;
+}
+.doc pre {
+  background: var(--soft);
+  border-radius: 10px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  font-size: 13.5px;
+  line-height: 1.5;
+  -webkit-overflow-scrolling: touch;
+}
+.doc pre code { background: none; padding: 0; font-size: inherit; }
+.doc { overflow-wrap: break-word; }
+.doc code { overflow-wrap: anywhere; }   /* 長い名前(host.Settings.ApplyPreset(…) など)がスマホの幅をはみ出さないように */
 
 /* --- フッター --- */
 

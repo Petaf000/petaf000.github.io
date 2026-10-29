@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pose Camera: a window held in the player&#x27;s hands — PadPlay documentation</title>
+<meta name="description" content="PadPlay SDK documentation: Pose Camera: a window held in the player&#x27;s hands">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/pose-camera/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/pose-camera/">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/pose-camera/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/products/">Products</a>
+      <a href="/contact/">Contact</a>
+      <a href="/privacy/">Privacy</a>
+    </nav>
+    <a class="lang" href="/padplay/docs/ja/pose-camera/" lang="ja" hreflang="ja">日本語</a>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay documentation">
+    <a href="/padplay/docs/">Overview</a>
+    <a href="/padplay/docs/quickstart/">Quick Start</a>
+    <a href="/padplay/docs/concepts/">Concepts</a>
+    <a href="/padplay/docs/debugging/">Debugging</a>
+    <a href="/padplay/docs/pose-camera/" aria-current="page">Pose Camera</a>
+    <a href="/padplay/docs/remote-pointers/">Remote Pointers</a>
+    <a href="/padplay/docs/api/">API Reference</a>
+    <a href="/padplay/docs/glossary-ja/" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="pose-camera-a-window-held-in-the-players-hands">Pose Camera: a window held in the player's hands</h1>
+<p><em><a href="/padplay/docs/ja/pose-camera/">日本語</a></em></p>
+<p><strong>PadPlayPoseCamera</strong> rotates a camera with a player's phone and sends what it sees to that phone. The player holds the phone up and looks around the scene through it, like a window. Add one component; the game needs no code for it.</p>
+<p>Rendering, encoding, sending and decoding always take time (typically 50 to 100 ms on Wi-Fi). If the phone turned during that time, a plain video would lag behind the hand. PadPlay hides this: the PC renders a little more than the phone shows (<strong>overscan</strong>), and right before showing a frame the phone turns the picture by how much it turned since that frame was rendered. This is the same idea as "timewarp" in VR headsets.</p>
+<h2 id="set-up">Set up</h2>
+<ol>
+  <li>Put a <strong>PadPlay View</strong> in the scene and set its <strong>Source Camera</strong> to the camera you want on the phone (see <a href="/padplay/docs/quickstart/">Second screen</a>). Set the View's <strong>Player Slot</strong> to the player who holds it.</li>
+  <li>Add <strong>PadPlay → Pose Camera</strong> to the same camera. Set <strong>Player Slot</strong> to the same player.</li>
+  <li>Play and connect the phone. The camera follows the phone; the phone shows the camera.</li>
+</ol>
+<p>The camera's rotation when the scene starts is "forward". On connect, the direction the player faces becomes forward (yaw only; gravity stays down). <code>ResetForward()</code> (this camera only), <code>host.Recenter(slot)</code>, a layout button with Role = Recenter and a long press on the phone's corner do the same.</p>
+<h2 id="settings-and-api">Settings and API</h2>
+<ul>
+  <li><code>Settings.FieldOfView</code> / <code>FieldOfView</code> (default 60) — Vertical field of view of what the phone shows (degrees). Change it to zoom. The camera's <code>fieldOfView</code> is set wider by the overscan.</li>
+  <li><code>Settings.OverscanPercent</code> (default 10) — Extra picture on each side, in percent of the visible size. More hides faster turns, but the visible part gets fewer pixels (10% leaves 83% of the render for the visible part; raise the View's resolution if you need the detail back).</li>
+  <li><code>Settings.PhoneCorrection</code> (default on) — Let the phone turn the picture. Turn off to compare.</li>
+  <li><code>Settings.Predict</code> (default on) — Predict the orientation at render time from the angular velocity (limits: the Host Inspector's <em>Attitude</em> module).</li>
+  <li><code>Settings.FollowScreenRotation</code> (default on) — Follow the phone's display rotation (landscape).</li>
+  <li><code>Settings.RecenterOnConnect</code> / <code>FollowPadRecenter</code> (default on / on) — When forward is reset.</li>
+  <li><code>YawOffsetDegrees</code> (default 0) — Yaw added on top of the phone, e.g. drag to look behind while seated.</li>
+  <li><code>ScreenPointToRay(eventData)</code> — World ray for a phone touch, through <strong>the frame the player was looking at</strong> (see below).</li>
+  <li><code>ScreenPointToRay(phonePosition, poseSeq)</code> — The same from raw values (<code>PadPlayTouch.ViewPoseSeq</code>).</li>
+  <li><code>TryGetView(out PadPlayPoseView)</code> / <code>host.TryGetPoseView(slot, …)</code> — Motion-to-photon and the correction the phone applied.</li>
+  <li><code>VisibleViewportRect</code> / <code>VisiblePixelRect</code> — The part of the picture the phone shows (inside the overscan), in viewport (0 to 1) or camera pixels. The overscan is the same on every side, so the rectangle is centered.</li>
+</ul>
+<p>Defaults are first guesses; tune them by feel on a real phone.</p>
+<h2 id="taps">Taps</h2>
+<p>The phone shows a frame that it turned and cropped. When the player taps, the phone undoes the turn and the crop and sends the point <strong>of that frame</strong> (0 to 1 over the whole rendered image, y = 0 at the top), together with the number of the frame (<code>PadPlayPointerEventData.ViewPoseSeq</code>). The Pose Camera keeps the camera of the last 256 frames, so <code>poseCamera.ScreenPointToRay(eventData)</code> returns the ray the player actually aimed at: at the edges, while zooming and while turning fast.</p>
+<pre><code class="language-csharp">public void OnPointerClick(PointerEventData e)
+{
+    Ray ray = poseCamera.ScreenPointToRay(e);   // PadPlay touches use the frame the player saw
+    if (Physics.Raycast(ray, out RaycastHit hit))
+        Debug.Log("Tapped " + hit.collider.name);
+}</code></pre>
+<p>uGUI on the View's render texture also lines up, because the touch position is a point of the rendered image. Raycasters that use the camera as it is <em>now</em> (for example a <code>PhysicsRaycaster</code> on the camera) can be off by how much the camera moved since that frame; use <code>ScreenPointToRay(eventData)</code> when it matters.</p>
+<h2 id="text-on-the-phone-in-the-picture-or-fixed-to-the-screen">Text on the phone: in the picture or fixed to the screen</h2>
+<p>Anything the camera renders — including a Screen Space - Camera canvas on the Pose Camera — is part of the picture, so the phone turns it with the picture. Keep such UI inside <code>VisibleViewportRect</code> (anchor its RectTransform to it), or it lands in the overscan the phone never shows.</p>
+<p>Text that should <strong>stay still on the phone screen</strong> (a score, "3 / 5 found", a crosshair) belongs in a <strong>Phone Overlay</strong>:</p>
+<ol>
+  <li>Make a RectTransform that stands for the phone's video area — for a Pose Camera, anchor it to <code>VisibleViewportRect</code>.</li>
+  <li>Add <strong>PadPlay → Phone Overlay</strong> to it and set <strong>Player Slot</strong> (−1 = everyone).</li>
+  <li>Put ordinary uGUI <strong>Text</strong> or <strong>TextMeshPro - Text (UI)</strong> (and <strong>Image</strong> for a plain colored board) under it and change them from your scripts as usual.</li>
+</ol>
+<p>The component reads them every <code>RefreshSeconds</code> (0.05 s) and, when something changed, sends them to the phone, which draws them over the video and outside the correction. It sends the text, font size, alignment, bold / italic, color and rich text (<code>&lt;b&gt;</code>, <code>&lt;i&gt;</code>, <code>&lt;color&gt;</code>; other tags are removed); images are sent as solid boards (no sprites — use characters such as <code>+</code> or <code>●</code> for marks). Up to 64 items, 1024 bytes of text each. <em>Hide In Picture</em> (on) makes the layer invisible and click-through in the game's own rendering, so it is not drawn twice. From code: <code>host.SetPhoneOverlay(slot, items)</code> with <code>PadPlayPhoneOverlayItem.CreateText</code> / <code>CreateRect</code> (positions 0 to 1 of the video area, y = 0 at the top). The host keeps the last overlay per player and sends it again when the phone reconnects. It works for any <code>PadPlayView</code>, not only a Pose Camera. Older phone apps ignore it.</p>
+<h2 id="what-the-correction-can-and-cannot-hide">What the correction can and cannot hide</h2>
+<p>Hidden:</p>
+<ul>
+  <li>Turning the phone (looking around), up to the overscan. Faster turns are held at the edge of the rendered picture (the Debug Overlay shows "(edge)") and the rest arrives late.</li>
+</ul>
+<p>Not hidden:</p>
+<ul>
+  <li><strong>Moving</strong> the phone (stepping, leaning). The correction is rotation only.</li>
+  <li>Things <strong>moving in the game</strong> (characters, effects). They are where they were when the frame was rendered.</li>
+  <li>The delay itself for everything else: reaction to taps, sound, game logic.</li>
+  <li>Changes made by the game between render and display: <code>YawOffsetDegrees</code> (dragging), recentering.</li>
+</ul>
+<p>The correction makes the window feel attached to the hand; it does not make the connection faster.</p>
+<h2 id="measuring">Measuring</h2>
+<p>The phone reports, for the frame it shows:</p>
+<ul>
+  <li><strong>motion-to-photon</strong>: the time from the attitude sample the frame was rendered with to the moment the phone builds the frame on screen (both on the phone's clock, so no clock sync is involved; the photons appear about one display refresh later).</li>
+  <li><strong>correction</strong>: how many degrees it turned the picture, and whether it hit the edge.</li>
+</ul>
+<p>They appear in the <strong>Debug Overlay</strong> (<code>window: m2p 48 ms  fix 3.2°</code>) and in <code>host.TryGetPoseView(slot, out var view)</code>.</p>
+<h2 id="trying-it-without-a-phone">Trying it without a phone</h2>
+<p>In <strong>Window → PadPlay → Virtual Phones</strong>, right-drag on a phone's screen to turn it. Set <strong>Delay</strong> (for example 150 ms) to make the game render an old orientation, then switch <strong>Correction</strong> on and off to see the difference. The window shifts and zooms the picture as an approximation (no roll or perspective); a real phone applies the exact projection. A Phone Overlay is drawn on top, fixed. To try a pinch, Ctrl-drag (Cmd on a Mac) for two fingers mirrored around the center, or use the mouse wheel over the screen.</p>
+<h2 id="requirements-and-compatibility">Requirements and compatibility</h2>
+<ul>
+  <li>The phone app must support it (an app that supports it declares it when it connects). Older apps get the same video without the pose: they show the whole overscanned picture and taps map to it as before.</li>
+  <li>The pose is sent only to the player whose Pose Camera rendered the frame.</li>
+  <li>Works with H.264 and the JPEG fallback.</li>
+</ul>
+<h2 id="how-it-works-for-the-curious">How it works (for the curious)</h2>
+<p>Each video frame of a Pose Camera carries 30 extra bytes: the pose number, the time of the attitude sample, the orientation it was rendered with (in the phone's own coordinates), the visible field of view, the overscan and the display rotation. Because the camera's rotation is <em>forward × added yaw × recenter × phone orientation × display rotation</em>, and everything left of the phone orientation is fixed in the world, the difference between the rendered camera and the camera "now" depends only on the phone's own orientations. The phone computes it from its sensor and draws the frame with the matching homography.</p>
+<p>Not to be confused with <strong>Gyro Camera</strong> (<code>PadPlayGyroCamera</code>), which turns any camera (for example the main view) with a phone in Window, Look Around or Tilt mode with smoothing and sensitivity. Its rotation is not a plain function of the phone's orientation, so the phone could not correct it; use Pose Camera for the camera whose picture goes to that phone.</p>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></p>
+    <p class="muted">This site uses no cookies, analytics or tracking.</p>
+  </div>
+</footer>
+</body>
+</html>

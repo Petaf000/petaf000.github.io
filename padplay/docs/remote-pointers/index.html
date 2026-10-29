@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remote Pointers — PadPlay documentation</title>
+<meta name="description" content="PadPlay SDK documentation: Remote Pointers">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/remote-pointers/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/remote-pointers/">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/remote-pointers/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/products/">Products</a>
+      <a href="/contact/">Contact</a>
+      <a href="/privacy/">Privacy</a>
+    </nav>
+    <a class="lang" href="/padplay/docs/ja/remote-pointers/" lang="ja" hreflang="ja">日本語</a>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay documentation">
+    <a href="/padplay/docs/">Overview</a>
+    <a href="/padplay/docs/quickstart/">Quick Start</a>
+    <a href="/padplay/docs/concepts/">Concepts</a>
+    <a href="/padplay/docs/debugging/">Debugging</a>
+    <a href="/padplay/docs/pose-camera/">Pose Camera</a>
+    <a href="/padplay/docs/remote-pointers/" aria-current="page">Remote Pointers</a>
+    <a href="/padplay/docs/api/">API Reference</a>
+    <a href="/padplay/docs/glossary-ja/" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="remote-pointers">Remote Pointers</h1>
+<p><em><a href="/padplay/docs/ja/remote-pointers/">日本語</a></em></p>
+<p>Players point their phone at the screen and a cursor follows; pressing <strong>A</strong> on the phone clicks the uGUI under the cursor. One cursor per connected player, in the player's color. Your UI code does not change: buttons, toggles, sliders and scroll views get the normal <code>OnPointerEnter</code> / <code>OnPointerDown</code> / <code>OnPointerClick</code> / <code>OnDrag</code> events, the same way the mouse and phone touches reach them (<a href="/padplay/docs/concepts/#injected-as-standard-events">Concepts: Touch</a>).</p>
+<p>Use it for menus on the big screen, "point at the screen" mini-games, or any scene where the phone is a remote rather than a touch screen. The Sample Hub and its Target Pop mini-game use it (<a href="/padplay/docs/quickstart/#sample-hub-and-target-pop">Quick Start §12</a>).</p>
+<h2 id="minimal-steps">Minimal steps</h2>
+<ol>
+  <li><strong>Add the component.</strong> <em>GameObject → PadPlay → Remote Pointers</em> (or <em>Add Component → PadPlay → Remote Pointers</em>). It finds the scene's <code>PadPlayHost</code> and adds a host, a QR code and an EventSystem if the scene has none.</li>
+  <li><strong>Choose the layout.</strong> <em>Layout</em> is already set to the bundled <strong>PadPlayRemoteLayout</strong> (Recenter, A, B, −, +, Menu). Keep it, or put your own button layout there. Turn off the host's <strong>Video</strong> module in this scene: the layout is made for a phone held upright without a picture. Its <em>Orientation</em> is <strong>Portrait</strong>, so the phone app locks the screen upright and places the buttons on the whole screen.</li>
+  <li><strong>Done.</strong> Press Play and join with a phone (or <em>Window → PadPlay → Virtual Phones</em>: drag the tilt ball and click <strong>A</strong>).</li>
+</ol>
+<p>When a phone joins, the screen and the phone ask the player once to <strong>point at the center of the screen and press Recenter</strong>. Recenter makes the current direction the center, so the cursor jumps to the middle. It works at any time, e.g. when the cursor has drifted.</p>
+<h2 id="the-bundled-layout">The bundled layout</h2>
+<ul>
+  <li><strong>A</strong> (large) — <code>Press</code> = Gamepad <code>buttonSouth</code>. Presses the UI under the cursor; hold to drag.</li>
+  <li><strong>B</strong> — <code>Back</code> = <code>buttonEast</code>. Nothing by itself: read it for "back" (<code>pad.buttonEast</code>).</li>
+  <li><strong>Recenter</strong> — <code>Recenter</code> = <code>custom14</code>, Role <em>Recenter</em>. Makes the current direction the center (no code needed).</li>
+  <li><strong>Menu</strong> — <code>Menu</code> = <code>startButton</code>. Nothing by itself: read it to return to your menu.</li>
+  <li><strong>−</strong> / <strong>+</strong> — <code>Minus</code> / <code>Plus</code> = <code>leftShoulder</code> / <code>rightShoulder</code>. Nothing by itself: page, zoom, volume…</li>
+</ul>
+<p>Because the ids are Gamepad buttons, <code>&lt;Gamepad&gt;/buttonSouth</code> and other existing bindings see them too. <code>PadPlayRemoteLayout.Create()</code> builds the same layout from code.</p>
+<h2 id="knowing-who-pointed">Knowing who pointed</h2>
+<pre><code class="language-csharp">public void OnPointerClick(PointerEventData eventData)
+{
+    if (eventData is PadPlayPointerEventData p &amp;&amp; p.FingerId == PadPlayRemotePointers.FingerId)
+        Debug.Log($"P{p.PlayerSlot + 1} clicked with the remote pointer");
+}</code></pre>
+<p>Each player's cursor has its own <code>pointerId</code> (<code>PadPlayRemotePointers.GetPointerId(slot)</code>), separate from the mouse and from phone fingers, so two players and the mouse can press different buttons at the same time. From code: <code>remote.GetHovered(slot)</code>, <code>remote.IsPressing(slot)</code>, <code>remote.TryGetScreenPosition(slot, out pos)</code>, <code>remote.TryGetPointer(slot, out gyroPointer)</code> (the <code>PadPlayGyroPointer</code> behind the cursor) and <code>remote.ShowRecenterHint(slot)</code>.</p>
+<h2 id="behavior-worth-knowing">Behavior worth knowing</h2>
+<ul>
+  <li><strong>Disabled UI.</strong> A <code>Selectable</code> with <em>Interactable</em> off stays in its disabled color under a cursor and cannot be clicked (standard uGUI behavior).</li>
+  <li><strong>Selection.</strong> A is also the Gamepad's <em>Submit</em>. So that a button is not pressed twice (once by the cursor, once by the input module's Submit), a press clears the EventSystem selection (<em>Clear Ui Selection</em>). Turn it off only if your UI needs the selection.</li>
+  <li><strong>Touches.</strong> While the component is enabled, phone touches outside the buttons do not reach uGUI (<em>Block Touch Ui</em>); otherwise a finger beside A would click the game's UI on the screen at the finger's position. <code>TouchReceived</code> still fires.</li>
+  <li><strong>Not pointing.</strong> While the phone's direction is unknown (no attitude yet, reconnecting) the cursor is dimmed and presses are cancelled.</li>
+  <li><strong>Screen.</strong> Cursors move over the whole Display 1, or over <em>Target Camera</em>'s area. Only UI on that screen is hit.</li>
+  <li><strong>Time.</strong> Cursors use unscaled time, so they keep working in a paused menu (<code>Time.timeScale = 0</code>).</li>
+  <li><strong>Across scenes.</strong> The layout is set per player while the component is enabled and removed when it is disabled; with <em>Keep Across Scenes</em> each scene can have its own Remote Pointers (or none). The direction a player recentered on is kept by the Host, so after a scene change (or when the phone's display rotates) the cursor stays where the phone points instead of jumping to the center.</li>
+</ul>
+<h2 id="tuning">Tuning</h2>
+<p><em>Settings → Pointer</em> is the shared <code>PadPlayGyroPointerSettings</code>: <em>Horizontal / Vertical Range Degrees</em> (how far to swing from edge to edge), <em>Smoothing</em>, <em>Recenter Blend Ms</em>. <em>Cursor Size</em>, <em>Dimmed Alpha</em>, <em>Hint Seconds</em> change the look. All can be changed while playing; the defaults are starting points.</p>
+<h2 id="how-to-hold-the-phone">How to hold the phone</h2>
+<p>Hold the phone like a remote control: flat, with its top edge pointing at the screen. Point at the middle of the screen and press <strong>Recenter</strong>. With <code>Axis = Auto</code> (default) the pointer aims with the top edge when the phone is held flat and with the back when it is held upright like a window. Twisting your wrist does not move the cursor. By default a swing of about ±20° left/right and ±15° up/down reaches the screen edges (<code>HorizontalRangeDegrees</code> 40, <code>VerticalRangeDegrees</code> 30). Phones have no sensor bar, so the heading slowly drifts over minutes; press Recenter again when the cursor is off. In Virtual Phones, Pitch 90 is the flat (remote) grip.</p>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></p>
+    <p class="muted">This site uses no cookies, analytics or tracking.</p>
+  </div>
+</footer>
+</body>
+</html>

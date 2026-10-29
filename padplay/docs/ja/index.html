@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PadPlay SDK ドキュメント — PadPlay ドキュメント</title>
+<meta name="description" content="PadPlay SDK のドキュメント(日本語): PadPlay SDK ドキュメント">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/ja/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="メニュー">
+      <a href="/ja/">ホーム</a>
+      <a href="/ja/products/">製品</a>
+      <a href="/ja/contact/">お問い合わせ</a>
+      <a href="/ja/privacy/">プライバシー</a>
+    </nav>
+    <a class="lang" href="/padplay/docs/" lang="en" hreflang="en">English</a>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay ドキュメント">
+    <a href="/padplay/docs/ja/" aria-current="page" lang="ja">概要</a>
+    <a href="/padplay/docs/ja/quickstart/" lang="ja">クイックスタート</a>
+    <a href="/padplay/docs/ja/concepts/" lang="ja">仕組み</a>
+    <a href="/padplay/docs/ja/debugging/" lang="ja">デバッグ</a>
+    <a href="/padplay/docs/ja/pose-camera/" lang="ja">Pose Camera</a>
+    <a href="/padplay/docs/ja/remote-pointers/" lang="ja">Remote Pointers</a>
+    <a href="/padplay/docs/ja/api/" lang="ja">API リファレンス</a>
+    <a href="/padplay/docs/glossary-ja/" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="padplay-sdk-documentation">PadPlay SDK ドキュメント</h1>
+<p><em><a href="/padplay/docs/">English</a></em></p>
+<p>PadPlay SDK は、スマホを Unity のゲームの第二画面つきコントローラーにします。タッチパネル・ジャイロ・画面のボタン・振動に加えて、スマホごとにゲームの画面を出せます。まずはクイックスタートから読み、調べたいことが出てきたらこのページに戻ってください。</p>
+<p>このドキュメントはパッケージの中(<code>Packages/dev.petaf.padplay/Documentation~/ja</code>)と、Web の<a href="https://petaf.dev/padplay/docs/ja/">petaf.dev/padplay/docs/ja</a> にあります。エディタでは <em>Window → PadPlay → Welcome</em>(パッケージを入れた後に 1 回だけ自動で開きます)で、最初の手順を確認し、1 クリックでサンプルを入れ、このドキュメントを開けます。メニューの道筋は英語の表示で書いています。Unity エディタを日本語にしている場合の読み替えは、<a href="/padplay/docs/ja/quickstart/">クイックスタート</a> の最初にまとめています。</p>
+<p><strong>必要なもの</strong>: 遊ぶ人それぞれのスマホに、別途 PadPlay アプリが要ります。また、PC とスマホを<strong>同じ Wi-Fi / LAN</strong> につなぐ必要があります(インターネット越しには遊べません)。必要な環境と動作を確かめた環境は <a href="/padplay/docs/ja/quickstart/#1-requirements">クイックスタート §1</a> を見てください。</p>
+<h2 id="pages">ページ</h2>
+<ul>
+  <li><a href="/padplay/docs/ja/quickstart/">クイックスタート</a> — 初めて PadPlay を組み込む時。インポート、Host の追加、スマホの接続、入力の読み取り、サンプル、トラブルシューティング。</li>
+  <li><a href="/padplay/docs/ja/concepts/">仕組み</a> — 中で何が起きているかを知りたい時。プレイヤー枠、トークン、暗号化、状態と確実に届くメッセージ、タッチの流し込み、姿勢、映像、シーンの切り替え。</li>
+  <li><a href="/padplay/docs/ja/debugging/">デバッグ</a> — 入力が届かない時や、スマホごとに何が映っているかを見たい時。</li>
+  <li><a href="/padplay/docs/ja/pose-camera/">Pose Camera</a> — スマホを向けた方向を見回したい時。PC はスマホの向きで描き、描いた後に回った分はスマホが画面の上で補正します。</li>
+  <li><a href="/padplay/docs/ja/remote-pointers/">Remote Pointers</a> — 遊ぶ人がスマホを画面に向けてカーソルを動かし、A で UI を押せるようにしたい時。</li>
+  <li><a href="/padplay/docs/ja/api/">API リファレンス</a> — 型・プロパティ・メソッド・イベントを調べる時。</li>
+  <li><a href="/padplay/docs/glossary-ja/">用語集 / Glossary</a> — エディタを日本語で使っていて(<em>Preferences → PadPlay</em>)、英語の用語との対応を知りたい時。</li>
+  <li><strong>変更履歴</strong> — パッケージのフォルダの <code>CHANGELOG.md</code>(英語)。版ごとの変更点。</li>
+</ul>
+<h2 id="by-task">やりたいことから探す</h2>
+<ul>
+  <li>必要なもの(スマホのアプリ・同じ Wi-Fi・ファイアウォール)と、動作を確かめた環境を知りたい → <a href="/padplay/docs/ja/quickstart/#1-requirements">クイックスタート §1</a></li>
+  <li>まだできないこと、PadPlay Lite で使えない機能を知りたい → <a href="/padplay/docs/ja/quickstart/#what-it-cannot-do-yet">まだできないこと</a>、<a href="/padplay/docs/ja/quickstart/#padplay-lite">PadPlay Lite</a></li>
+  <li>Asset Store からパッケージを入れたい、Lite から有料版に移りたい → <a href="/padplay/docs/ja/quickstart/#2-import-the-package">クイックスタート §2</a></li>
+  <li>スマホのアプリを入れたい → <a href="/padplay/docs/ja/quickstart/#5-connect-the-phone">クイックスタート §5</a></li>
+  <li>全部のサンプルを 1 つのメニュー(Sample Hub)から試したい → <a href="/padplay/docs/ja/quickstart/#12-samples">クイックスタート §12</a></li>
+  <li>1 クリックで Host を置きたい(<em>GameObject → PadPlay → PadPlay Setup</em>)、Inspector の見方を知りたい → <a href="/padplay/docs/ja/quickstart/#3-add-a-padplayhost">クイックスタート §3</a></li>
+  <li>QR コードを出したい、プレイヤーの参加・退出に反応したい → <a href="/padplay/docs/ja/quickstart/#4-show-the-qr-code">クイックスタート §4</a>、<a href="/padplay/docs/ja/quickstart/#5-connect-the-phone">§5</a></li>
+  <li>タッチを uGUI で受けたい、どのプレイヤーが触ったか知りたい → <a href="/padplay/docs/ja/quickstart/#6-touch-arrives-as-normal-ugui-events">クイックスタート §6</a></li>
+  <li>ボタン・スティック・姿勢を Gamepad として読みたい → <a href="/padplay/docs/ja/quickstart/#7-read-the-phone-as-a-gamepad">クイックスタート §7</a></li>
+  <li>スマホでカメラを回したい、スマホで指したい → <a href="/padplay/docs/ja/quickstart/#8-gyro-camera-and-pointer">クイックスタート §8</a></li>
+  <li>スマホを窓のようにしてのぞかせたい(遅れは隠す) → <a href="/padplay/docs/ja/pose-camera/">Pose Camera</a></li>
+  <li>遊ぶ人がスマホで画面を指して、メニューを押せるようにしたい(1 人 1 つのカーソル) → <a href="/padplay/docs/ja/remote-pointers/">Remote Pointers</a></li>
+  <li>スマホに絵を出したい → <a href="/padplay/docs/ja/quickstart/#9-second-screen-video">クイックスタート §9</a></li>
+  <li>スマホの画面に止まって見える文字を出したい(スコア・照準) → <a href="/padplay/docs/ja/pose-camera/#text-on-the-phone-in-the-picture-or-fixed-to-the-screen">Pose Camera: Phone Overlay</a></li>
+  <li>ゲーム専用のボタンをスマホに置きたい、スマホを振動させたい → <a href="/padplay/docs/ja/quickstart/#10-on-screen-buttons-and-haptics">クイックスタート §10</a></li>
+  <li>別のシーンを読んでもスマホをつないだままにしたい(メニュー → ゲーム → メニュー) → <a href="/padplay/docs/ja/concepts/#across-scenes">仕組み: シーンをまたぐ</a></li>
+  <li>暗号化、H.264 / JPEG、Wi-Fi に合わせた映像の調整を知りたい → <a href="/padplay/docs/ja/concepts/#encryption">仕組み: 暗号化</a>、<a href="/padplay/docs/ja/concepts/#second-screen-video">第二画面</a></li>
+  <li>「つながらない」「接続中のまま進まない」(<em>Window → PadPlay → Connection Check</em>)、タッチがずれる、映像が黒い、を直したい → <a href="/padplay/docs/ja/quickstart/#11-troubleshooting">クイックスタート §11</a>、<a href="/padplay/docs/ja/debugging/#6-which-tool-for-which-problem">デバッグ §6</a></li>
+  <li>スマホごとの画面をエディタで見たい → <a href="/padplay/docs/ja/debugging/#1-display-preview-each-phones-screen-on-display-2-3-">デバッグ §1</a></li>
+  <li>接続の状態・入力の頻度・ボタンのビット・イベントを調べたい → <a href="/padplay/docs/ja/debugging/#2-padplay-debugger">デバッグ §2</a></li>
+  <li>ビルドしたゲームに状態の表示を出したい → <a href="/padplay/docs/ja/debugging/#3-debug-overlay-in-built-games">デバッグ §3</a></li>
+  <li>スマホなしで試したい(エディタの中の仮想スマホ) → <a href="/padplay/docs/ja/debugging/#5-trying-it-without-a-phone-virtual-phones">デバッグ §5</a></li>
+</ul>
+<h2 id="main-types">主な型</h2>
+<ul>
+  <li><code>PadPlayHost</code> — <em>Add Component → PadPlay → Host</em>。シーンに 1 つ。接続・プレイヤー・設定(<code>host.Settings</code>)を持ちます。<em>Keep Across Scenes</em>(シーンをまたいで保つ)をオンにすると、シーンを読み込んでもスマホがつながったままです。</li>
+  <li><code>PadPlayQrView</code>、<code>PadPlayStatusView</code> — Raw Image に <em>PadPlay → QR View</em>、Text か TextMeshPro のテキストに <em>Status View</em> を付けます。</li>
+  <li><code>PadPlayPointerEventData</code> — スマホのタッチの <code>PointerEventData</code>(<code>PlayerSlot</code>・<code>FingerId</code>・<code>PhonePosition</code>)。</li>
+  <li><code>PadPlayPad</code> — スマホ 1 台ごとの Input System のデバイス(<code>Gamepad</code> + <code>attitude</code>・<code>angularVelocity</code>・<code>custom14</code>〜<code>custom31</code>)。</li>
+  <li><code>PadPlayGyroCamera</code>、<code>PadPlayGyroPointer</code> — <em>PadPlay → Gyro Camera / Gyro Pointer</em>。</li>
+  <li><code>PadPlayPoseCamera</code> — <em>PadPlay → Pose Camera</em>: スマホの向きに合わせて動くカメラ。映像の遅れはスマホが隠します。</li>
+  <li><code>PadPlayRemotePointers</code>、<code>PadPlayRemoteLayout</code> — <em>GameObject → PadPlay → Remote Pointers</em>: プレイヤーごとに uGUI を押せるカーソルを出します。スマホ側のレイアウトも同梱しています。</li>
+  <li><code>PadPlayView</code> — <em>PadPlay → View</em>: カメラや RenderTexture をスマホへ送ります。</li>
+  <li><code>PadPlayPhoneOverlay</code> — <em>PadPlay → Phone Overlay</em>: uGUI の Text・TextMeshPro のテキスト・Image を、スマホが映像の上に、画面に固定して描きます。</li>
+  <li><code>PadPlayButtonLayout</code> — <em>Assets → Create → PadPlay → Button Layout</em>(アセット → 作成 → PadPlay → Button Layout): スマホに出すボタンとスティック。</li>
+  <li><code>PadPlayRaycaster</code> — <em>PadPlay → Raycaster</em>: 透明なピクセルを無視する <code>GraphicRaycaster</code>。</li>
+  <li><code>PadPlayDebugOverlay</code>、<code>host.Diagnostics</code> — <em>PadPlay → Debug Overlay</em>(デバッグ表示)と、コードから読む診断情報。</li>
+</ul>
+<p>各型のメンバーは <a href="/padplay/docs/ja/api/">API リファレンス</a> にあります。</p>
+<h2 id="phone-app">スマホのアプリ</h2>
+<p>遊ぶ人は無料の <strong>PadPlay</strong> アプリを <a href="https://play.google.com/store/apps/details?id=com.petaf.padplay">Google Play</a> から入れます(Android 7.0 以上)。アプリは 1 つで、PadPlay を使ったどのゲームにもつながります。iPhone 版は準備中です。PadPlay SDK(Lite 以外)には、パッケージの <code>PhoneApp~</code> フォルダにアプリのソースも入っています。アプリを自分でビルドしたり、自分の名前とアイコンで公開したりできます。<a href="/padplay/docs/ja/quickstart/#getting-the-app">クイックスタート §5</a> を見てください。</p>
+<h2 id="support">サポート</h2>
+<ul>
+  <li>質問・不具合の報告: <a href="https://petaf.dev/ja/contact/">petaf.dev/contact</a>(日本語・英語のどちらでもかまいません)。パッケージの版・Unity の版・スマホの機種を書いてください。接続の問題なら*Window → PadPlay → Connection Check → Copy report*(結果をコピー)の結果も添えてください。</li>
+  <li>PadPlay アプリのプライバシーポリシー: <a href="https://petaf.dev/ja/privacy/">日本語</a> / <a href="https://petaf.dev/privacy/">English</a></li>
+</ul>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/ja/contact/">お問い合わせ</a> · <a href="/ja/privacy/">プライバシー</a></p>
+    <p class="muted">このサイトは Cookie・アクセス解析・トラッキングを使っていません。</p>
+  </div>
+</footer>
+</body>
+</html>

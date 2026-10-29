@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pose Camera: プレイヤーの手の中の窓 — PadPlay ドキュメント</title>
+<meta name="description" content="PadPlay SDK のドキュメント(日本語): Pose Camera: プレイヤーの手の中の窓">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/pose-camera/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/pose-camera/">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/pose-camera/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/ja/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="メニュー">
+      <a href="/ja/">ホーム</a>
+      <a href="/ja/products/">製品</a>
+      <a href="/ja/contact/">お問い合わせ</a>
+      <a href="/ja/privacy/">プライバシー</a>
+    </nav>
+    <a class="lang" href="/padplay/docs/pose-camera/" lang="en" hreflang="en">English</a>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay ドキュメント">
+    <a href="/padplay/docs/ja/" lang="ja">概要</a>
+    <a href="/padplay/docs/ja/quickstart/" lang="ja">クイックスタート</a>
+    <a href="/padplay/docs/ja/concepts/" lang="ja">仕組み</a>
+    <a href="/padplay/docs/ja/debugging/" lang="ja">デバッグ</a>
+    <a href="/padplay/docs/ja/pose-camera/" aria-current="page" lang="ja">Pose Camera</a>
+    <a href="/padplay/docs/ja/remote-pointers/" lang="ja">Remote Pointers</a>
+    <a href="/padplay/docs/ja/api/" lang="ja">API リファレンス</a>
+    <a href="/padplay/docs/glossary-ja/" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="pose-camera-a-window-held-in-the-players-hands">Pose Camera: プレイヤーの手の中の窓</h1>
+<p><em><a href="/padplay/docs/pose-camera/">English</a></em></p>
+<p><strong>PadPlayPoseCamera</strong> は、プレイヤーのスマホに合わせてカメラを回し、カメラに映る物をそのスマホへ送ります。プレイヤーはスマホをかざし、窓のようにしてシーンの中を見回します。部品を 1 つ付けるだけで、ゲーム側のコードは要りません。</p>
+<p>描画・エンコード・送信・復号には必ず時間がかかります(Wi-Fi ではふつう 50〜100 ms)。その間にスマホが回ると、ただの映像では手の動きより絵が遅れます。PadPlay はこれを隠します。PC はスマホに見せるより少し広く描き(<strong>オーバースキャン</strong>)、スマホはフレームを出す直前に、そのフレームが描かれてから自分が回った分だけ絵を回します。VR ヘッドセットの「タイムワープ」と同じ考え方です。</p>
+<h2 id="set-up">置き方</h2>
+<ol>
+  <li>シーンに <strong>PadPlay View</strong> を置き、その <strong>Source Camera</strong> に、スマホに映したいカメラを入れます(<a href="/padplay/docs/ja/quickstart/">第二画面</a> を参照)。View の <strong>Player Slot</strong> には、スマホを持つプレイヤーを入れます。</li>
+  <li>同じカメラに <strong>PadPlay → Pose Camera</strong> を付けます。<strong>Player Slot</strong> には同じプレイヤーを入れます。</li>
+  <li>再生してスマホをつなぎます。カメラはスマホについて回り、スマホにはカメラの絵が映ります。</li>
+</ol>
+<p>シーンが始まった時のカメラの回転が「正面」です。接続した時に、プレイヤーが向いている方向が正面になります(ヨーだけ。重力は下のままです)。<code>ResetForward()</code>(このカメラだけ)、<code>host.Recenter(slot)</code>、Role = Recenter のレイアウトのボタン、スマホの隅の長押しでも同じことができます。</p>
+<h2 id="settings-and-api">設定と API</h2>
+<ul>
+  <li><code>Settings.FieldOfView</code> / <code>FieldOfView</code>(既定 60) — スマホに見せる範囲の縦の視野角(度)。変えるとズームします。カメラの <code>fieldOfView</code> は、オーバースキャンの分だけ広く設定されます。</li>
+  <li><code>Settings.OverscanPercent</code>(既定 10) — 上下左右に余分に描く量(見える大きさに対する %)。多いほど速い回転も隠せますが、見える部分のピクセルは減ります(10% なら描いた絵の 83% が見える部分です。細かさが要るなら View の解像度を上げてください)。</li>
+  <li><code>Settings.PhoneCorrection</code>(既定 オン) — スマホに絵を回させます。比べたい時はオフにします。</li>
+  <li><code>Settings.Predict</code>(既定 オン) — 角速度から、描く時点の向きを予測します(上限は Host の Inspector の <em>Attitude</em> のモジュール)。</li>
+  <li><code>Settings.FollowScreenRotation</code>(既定 オン) — スマホの画面の回転(横向き)に合わせます。</li>
+  <li><code>Settings.RecenterOnConnect</code> / <code>FollowPadRecenter</code>(既定 オン / オン) — 正面をいつ合わせ直すか。</li>
+  <li><code>YawOffsetDegrees</code>(既定 0) — スマホの向きに足すヨー。例えば座ったままドラッグで後ろを見る時に使います。</li>
+  <li><code>ScreenPointToRay(eventData)</code> — スマホのタッチのワールドのレイ。<strong>プレイヤーが見ていたフレーム</strong> を通ります(下を参照)。</li>
+  <li><code>ScreenPointToRay(phonePosition, poseSeq)</code> — 同じことを生の値(<code>PadPlayTouch.ViewPoseSeq</code>)から。</li>
+  <li><code>TryGetView(out PadPlayPoseView)</code> / <code>host.TryGetPoseView(slot, …)</code> — 動かしてから画面に出るまでの時間と、スマホがかけた補正。</li>
+  <li><code>VisibleViewportRect</code> / <code>VisiblePixelRect</code> — スマホが見せる部分(オーバースキャンの内側)。ビューポート(0〜1)か、カメラのピクセルで。オーバースキャンは上下左右で同じなので、この四角形は真ん中にあります。</li>
+</ul>
+<p>既定の値は最初の見当です。実機のスマホで触って調整してください。</p>
+<h2 id="taps">タップ</h2>
+<p>スマホが出すのは、回して切り取ったフレームです。プレイヤーがタップすると、スマホは回転と切り取りを元に戻し、<strong>そのフレームの</strong> 点(描いた絵全体に対する 0〜1、y = 0 が上)を、フレームの番号(<code>PadPlayPointerEventData.ViewPoseSeq</code>)と一緒に送ります。Pose Camera は直近 256 フレームのカメラを覚えているので、<code>poseCamera.ScreenPointToRay(eventData)</code> は、プレイヤーが実際に狙ったレイを返します。画面の端でも、ズーム中でも、素早く回している時でも同じです。</p>
+<pre><code class="language-csharp">public void OnPointerClick(PointerEventData e)
+{
+    Ray ray = poseCamera.ScreenPointToRay(e);   // PadPlay touches use the frame the player saw
+    if (Physics.Raycast(ray, out RaycastHit hit))
+        Debug.Log("Tapped " + hit.collider.name);
+}</code></pre>
+<p>View のレンダーテクスチャの上の uGUI も位置が合います。タッチの位置が、描いた絵の上の点だからです。カメラの <em>今の</em> 状態を使う Raycaster(例えばカメラに付けた <code>PhysicsRaycaster</code>)は、そのフレームから後にカメラが動いた分だけずれることがあります。それが問題になる時は<code>ScreenPointToRay(eventData)</code> を使ってください。</p>
+<h2 id="text-on-the-phone-in-the-picture-or-fixed-to-the-screen">スマホの上の文字: 絵の中か、画面に固定か</h2>
+<p>カメラが描く物(Pose Camera の Screen Space - Camera の Canvas も含みます)は全部絵の一部なので、スマホは絵と一緒に回します。そのような UI は <code>VisibleViewportRect</code> の内側に置いてください(RectTransform をそこに合わせてアンカーします)。外に置くと、スマホが決して見せないオーバースキャンの部分に入ってしまいます。</p>
+<p><strong>スマホの画面に止まって見える</strong> べき文字(スコア、「3 / 5 found」、照準)は、<strong>Phone Overlay</strong> に置きます:</p>
+<ol>
+  <li>スマホの映像の領域を表す RectTransform を作ります。Pose Camera なら、<code>VisibleViewportRect</code> に合わせてアンカーします。</li>
+  <li>そこに <strong>PadPlay → Phone Overlay</strong> を付け、<strong>Player Slot</strong> を設定します(−1 = 全員)。</li>
+  <li>その下にふつうの uGUI の <strong>Text</strong> か <strong>TextMeshPro - Text (UI)</strong>(単色の板なら <strong>Image</strong>)を置き、いつもどおりスクリプトから変えます。</li>
+</ol>
+<p>部品は <code>RefreshSeconds</code>(0.05 秒)ごとにそれらを読み、何か変わっていればスマホへ送ります。スマホはそれを映像の上に、補正の外で描きます。送るのは、文字、フォントの大きさ、揃え、太字 / 斜体、色、リッチテキスト(<code>&lt;b&gt;</code>、<code>&lt;i&gt;</code>、<code>&lt;color&gt;</code>。ほかのタグは外します)です。画像は単色の板として送ります(スプライトは送りません。印には <code>+</code> や <code>●</code> のような文字を使ってください)。最大 64 個、それぞれ文字は 1024 バイトまで。<em>Hide In Picture</em>(オン)にすると、ゲーム自身の描画ではこの層が見えず、クリックも抜けるので、二重に描かれません。コードからは <code>host.SetPhoneOverlay(slot, items)</code> と <code>PadPlayPhoneOverlayItem.CreateText</code> / <code>CreateRect</code> を使います(位置は映像の領域に対する 0〜1、y = 0 が上)。ホストはプレイヤーごとに最後のオーバーレイを覚えていて、スマホが再接続すると送り直します。Pose Camera だけでなく、どの <code>PadPlayView</code> でも使えます。古いスマホのアプリはこれを無視します。</p>
+<h2 id="what-the-correction-can-and-cannot-hide">補正で隠せること・隠せないこと</h2>
+<p>隠せること:</p>
+<ul>
+  <li>スマホを回すこと(見回すこと)。オーバースキャンの範囲まで。それより速い回転は、描いた絵の端で止まり(デバッグ表示に "(edge)" と出ます)、残りは遅れて届きます。</li>
+</ul>
+<p>隠せないこと:</p>
+<ul>
+  <li>スマホを <strong>動かす</strong> こと(歩く、身を乗り出す)。補正は回転だけです。</li>
+  <li><strong>ゲームの中で動いている物</strong>(キャラクター、エフェクト)。フレームを描いた時の位置に出ます。</li>
+  <li>それ以外のこと全部の遅れそのもの: タップへの反応、音、ゲームのロジック。</li>
+  <li>描いてから表示するまでの間にゲームが変えたこと: <code>YawOffsetDegrees</code>(ドラッグ)、正面合わせ。</li>
+</ul>
+<p>補正は窓が手にくっついているように感じさせるだけで、接続を速くするわけではありません。</p>
+<h2 id="measuring">測る</h2>
+<p>スマホは、出しているフレームについて次のことを知らせます:</p>
+<ul>
+  <li><strong>動かしてから画面に出るまでの時間</strong>(motion-to-photon): そのフレームを描くのに使った姿勢の標本の時刻から、スマホが画面にフレームを組み立てるまでの時間(どちらもスマホの時計なので、時計の同期は関係しません。実際に光るのは、画面の更新 1 回分ほど後です)。</li>
+  <li><strong>補正</strong>: 絵を何度回したかと、端に当たったか。</li>
+</ul>
+<p>これは <strong>デバッグ表示</strong>(<code>window: m2p 48 ms  fix 3.2°</code>)と、<code>host.TryGetPoseView(slot, out var view)</code> に出ます。</p>
+<h2 id="trying-it-without-a-phone">スマホなしで試す</h2>
+<p><strong>Window → PadPlay → Virtual Phones</strong> で、スマホの画面の上を右ドラッグすると回せます。<strong>Delay</strong>(遅らせる。例えば 150 ms)を設定するとゲームが古い向きで描くので、<strong>Correction</strong>(補正)をオン・オフして違いを見てください。窓では近似として絵をずらし、拡大・縮小します(ロールや遠近は扱いません)。本物のスマホは正確な射影をかけます。Phone Overlay は上に固定して描きます。ピンチを試すには、Ctrl + ドラッグ(Mac では Cmd)で真ん中に対して対称な指 2 本を、または画面の上でマウスホイールを使います。</p>
+<h2 id="requirements-and-compatibility">必要なもの・互換性</h2>
+<ul>
+  <li>スマホのアプリが対応している必要があります(対応しているアプリは、接続する時にそれを知らせます)。古いアプリには、姿勢の情報なしで同じ映像が届きます。オーバースキャンした絵の全体を出し、タップもこれまでどおりその絵に対応します。</li>
+  <li>姿勢の情報は、そのフレームを描いた Pose Camera のプレイヤーにだけ送ります。</li>
+  <li>H.264 でも、JPEG に切り替えた時でも動きます。</li>
+</ul>
+<h2 id="how-it-works-for-the-curious">仕組み(興味のある方へ)</h2>
+<p>Pose Camera の映像のフレームには、30 バイトの情報が付いています: 姿勢の番号、姿勢の標本の時刻、描いた時の向き(スマホ自身の座標で)、見える視野角、オーバースキャン、画面の回転です。カメラの回転は <em>正面 × 足したヨー × 正面合わせ × スマホの向き × 画面の回転</em> で、スマホの向きより左はどれもワールドに固定されているので、描いた時のカメラと「今の」カメラの違いは、スマホ自身の向きだけで決まります。スマホはこれを自分のセンサーから求め、それに合う射影変換(ホモグラフィー)でフレームを描きます。</p>
+<p><strong>Gyro Camera</strong>(<code>PadPlayGyroCamera</code>)とは別物です。こちらは、どのカメラ(例えばメインの画面のカメラ)でも、Window・Look Around・Tilt のモードで、平滑化と感度をかけてスマホに合わせて回します。その回転はスマホの向きだけで決まる関数ではないので、スマホは補正できません。そのスマホへ絵を送るカメラには Pose Camera を使ってください。</p>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/ja/contact/">お問い合わせ</a> · <a href="/ja/privacy/">プライバシー</a></p>
+    <p class="muted">このサイトは Cookie・アクセス解析・トラッキングを使っていません。</p>
+  </div>
+</footer>
+</body>
+</html>

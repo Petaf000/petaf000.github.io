@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API Reference — PadPlay documentation</title>
+<meta name="description" content="PadPlay SDK documentation: API Reference">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/api/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/api/">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/api/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/products/">Products</a>
+      <a href="/contact/">Contact</a>
+      <a href="/privacy/">Privacy</a>
+    </nav>
+    <a class="lang" href="/padplay/docs/ja/api/" lang="ja" hreflang="ja">日本語</a>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay documentation">
+    <a href="/padplay/docs/">Overview</a>
+    <a href="/padplay/docs/quickstart/">Quick Start</a>
+    <a href="/padplay/docs/concepts/">Concepts</a>
+    <a href="/padplay/docs/debugging/">Debugging</a>
+    <a href="/padplay/docs/pose-camera/">Pose Camera</a>
+    <a href="/padplay/docs/remote-pointers/">Remote Pointers</a>
+    <a href="/padplay/docs/api/" aria-current="page">API Reference</a>
+    <a href="/padplay/docs/glossary-ja/" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="api-reference">API Reference</h1>
+<p><em><a href="/padplay/docs/ja/api/">日本語</a></em></p>
+<p>The types and members you use in a game. Everything is in the namespace <code>PadPlay</code> (<code>using PadPlay;</code>). The Inspector tooltips and the XML comments (IntelliSense) say the same in more detail. Guides: <a href="/padplay/docs/quickstart/">Quick Start</a>, <a href="/padplay/docs/concepts/">Concepts</a>, <a href="/padplay/docs/debugging/">Debugging</a>.</p>
+<p>A few types come from the engine-independent core assembly (<code>AttitudeCalibrationMode</code>, <code>ClockSync</code>, <code>DeviceInfo</code>, <code>PadPlayPhoneOverlayItem</code>, <code>PadPlayNetworkSettings</code>, <code>PadPlayVideoCodecChoice</code>); they are in the same namespace <code>PadPlay</code>.</p>
+<p>Player numbers are <strong>slots starting at 0</strong> (<code>playerSlot</code> 0 is "P1" on screen). Events are raised on the main thread.</p>
+<p><strong>Errors and exceptions.</strong> A mistake in what you pass throws at once and changes nothing: <code>ArgumentNullException</code> for a missing object, <code>ArgumentOutOfRangeException</code> for a negative slot given to a method that keeps something for that slot (<code>SetLayout</code>, <code>SetPhoneOverlay</code>, <code>Touch.SetPlayerTarget</code>), <code>ArgumentException</code> for a value the method does not take (an overlay list out of shape, a recenter mode other than <code>Yaw</code> / <code>Full</code>). A call that only depends on what is happening right now never throws: while the host is stopped, or when nobody is on the slot, the phone cannot vibrate or has no video, methods that return <code>bool</code> return <code>false</code> (<code>Pulse</code>, <code>SetHaptics</code>, <code>Recenter</code>, <code>Kick</code>, <code>TryGet…</code>) and the others return <code>null</code>, <code>None</code>, <code>0</code> or an empty list (<code>GetPad</code>, <code>GetClockSync</code>, <code>GetCapabilities</code>, <code>RenewToken</code> while stopped). Numbers with a natural range (strength 0 to 1, pulse length) are clamped. The one call that can fail because of the computer is <code>StartHost()</code>: it throws <code>InvalidOperationException</code> when no UDP port can be opened, and <code>IsRunning</code> stays <code>false</code>. An exception thrown by your own event handler is logged and the host keeps running.</p>
+<h2 id="padplayhost">PadPlayHost</h2>
+<p><em>Add Component → PadPlay → Host</em> (or <em>GameObject → PadPlay → PadPlay Setup</em>). One per scene.</p>
+<h3 id="starting-and-the-qr-code">Starting and the QR code</h3>
+<ul>
+  <li><code>Settings</code> — All Inspector values (<code>PadPlayHostSettings</code>): <code>Players</code>, <code>Modules</code>, <code>Touch</code>, <code>Attitude</code>, <code>Buttons</code>, <code>Video</code>, <code>Preview</code>, <code>Port</code>, <code>GameName</code>, <code>HostAddresses</code>, <code>LoopbackOnly</code>, <code>VerboseLog</code>, <code>DisplayLanguage</code>; <code>IsEnabled(module)</code>, <code>SetEnabled(module, on)</code>, <code>ApplyPreset(preset)</code>.</li>
+  <li><code>AutoStart</code> — Start listening in <code>Start</code> (default on). Off: call <code>StartHost()</code> yourself.</li>
+  <li><code>StartHost()</code>, <code>StopHost()</code> — Start / stop. Stopping disconnects every phone (<code>PlayerLeft</code>, then <code>PlayerRemoved</code> with reason <code>stopped</code>).</li>
+  <li><code>IsRunning</code>, <code>Port</code> — Whether the host listens; the UDP port actually used (0 when stopped).</li>
+  <li><code>JoinUri</code>, <code>JoinUriChanged</code> — The URL in the QR code (null when stopped) and the event when it changes.</li>
+  <li><code>RenewToken()</code> — A new token and key (a new QR code); joined phones stay. Returns the new <code>JoinUri</code> (null while stopped).</li>
+  <li><code>AcceptNewPlayers</code> — Off: new phones are refused as "full"; dropped players can still come back.</li>
+  <li><code>KeepAcrossScenes</code> — Keep the phones connected through scene loads (<a href="/padplay/docs/concepts/#across-scenes">Concepts</a>).</li>
+  <li><code>KeptHost</code> (static), <code>ActiveHost</code> — The Host kept across scenes; the Host that actually runs (the kept one, or this).</li>
+  <li><code>NetworkSettings</code> — Advanced connection values (<code>PadPlayNetworkSettings</code>), read on <code>StartHost</code> (for example <code>RenewGraceMs</code>).</li>
+  <li><code>SdkVersion</code>, <code>ProtocolVersion</code>, <code>NowMs</code> (static) — Package version, protocol version, the host clock in ms.</li>
+</ul>
+<h3 id="players">Players</h3>
+<ul>
+  <li><code>PlayerJoined</code> (<code>PadPlayPlayer</code>) — A phone joined and got a slot (<code>Resumed</code> = it came back). Input does not flow yet.</li>
+  <li><code>PlayerReady</code> (<code>PadPlayPlayer</code>) — Input flows; <code>GetPad(slot)</code> returns its pad. Once per join.</li>
+  <li><code>PlayerLeft</code> (<code>PadPlayPlayerLeft</code>) — The phone dropped (<code>Reason</code>). Unless the reason is <code>Bye</code> or <code>Stopped</code> (<code>PadPlayLeaveReason</code>), the slot is held for <em>Resume Hold Seconds</em>.</li>
+  <li><code>PlayerRemoved</code> (<code>PadPlayPlayerRemoved</code>) — The slot is free for good (<code>Bye</code>, <code>Stopped</code> or <code>Expired</code>). Remove the player's character here.</li>
+  <li><code>PlayerCount</code>, <code>PlayerSlots</code> — Joined phones (not counting reconnecting ones), their slots in ascending order.</li>
+  <li><code>TryGetPlayer(slot, out player)</code> — The joined player (<code>PlayerSlot</code>, <code>Device</code>, <code>AppVersion</code>, <code>Resumed</code>, <code>Capabilities</code>).</li>
+  <li><code>GetPlayerState(slot)</code> — <code>Connecting</code>, <code>Ready</code>, <code>Reconnecting</code> or <code>Gone</code> (<code>PadPlayPlayerState</code>).</li>
+  <li><code>Kick(slot)</code> — Disconnect the phone (the slot is not held).</li>
+  <li><code>GetPad(slot)</code>, <code>PadDevices</code> — The player's <code>PadPlayPad</code> (null if none); all pads.</li>
+  <li><code>GetScreenRotation(slot)</code>, <code>ScreenRotationChanged</code> — The phone's display rotation in degrees.</li>
+  <li><code>GetCapabilities(slot)</code>, <code>GetClockSync(slot)</code> — What the phone app supports; clock offset and round trip.</li>
+  <li><code>Diagnostics</code> — Connection and input data for tools (<a href="/padplay/docs/debugging/#4-reading-the-same-data-from-code">Debugging §4</a>).</li>
+</ul>
+<h3 id="input">Input</h3>
+<ul>
+  <li><code>Touch</code> — The touch dispatcher: <code>SetPlayerTarget(slot, camera)</code> / <code>(slot, display, rect)</code>, <code>ClearPlayerTarget(slot)</code>, <code>PhonePositionToPixel</code>, <code>GetDragThresholdPx(slot)</code>.</li>
+  <li><code>Recenter(slot, mode = Yaw)</code>, <code>RecenterAll(mode)</code> — Make the player's current direction forward, for the pad and every gyro component.</li>
+  <li><code>Recentered</code> (<code>PadPlayRecentered</code>) — Who re-centered and why (<code>Reason</code>: Code, Button, LongPress, Connect).</li>
+  <li><code>TouchReceived</code>, <code>AttitudeReceived</code>, <code>ButtonsReceived</code> — Raw packets. uGUI events and <code>PadPlayPad</code> usually cover them.</li>
+</ul>
+<h3 id="output-to-the-phone">Output to the phone</h3>
+<ul>
+  <li><code>SetLayout(slot, layout)</code>, <code>GetLayout(slot)</code> — The player's on-screen buttons (null = back to <code>Settings.Buttons.Layout</code>).</li>
+  <li><code>SetHaptics(slot, strength)</code> — Continuous vibration, 0 to 1 (0 stops). Same as <code>pad.SetMotorSpeeds</code>.</li>
+  <li><code>Pulse(slot, durationMs, strength = 1)</code> — One vibration of a set length, timed by the phone.</li>
+  <li><code>SetPhoneOverlay(slot, items)</code>, <code>GetPhoneOverlay(slot)</code> — Text and boards drawn by the phone over the video (<code>PadPlayPhoneOverlayItem</code>; usually through <code>PadPlayPhoneOverlay</code>).</li>
+</ul>
+<h3 id="video-padplay-sdk-only">Video (PadPlay SDK only)</h3>
+<ul>
+  <li><code>VideoStatus</code> — How the video is sent (graphics API path, encoder, each player's codec), or why H.264 is not used. Text for people.</li>
+  <li><code>GetVideoChoice(slot, out choice)</code> — H.264 or JPEG for the player, and why (<code>Codec</code>, <code>Reason</code>, <code>Detail</code>).</li>
+  <li><code>RequestVideoStats(slot, callback)</code> — Sending statistics (<code>PadPlayVideoStats</code>).</li>
+  <li><code>TryGetPoseView(slot, out view)</code> — What the phone reports for a Pose Camera frame (motion-to-photon, correction).</li>
+</ul>
+<h2 id="padplaypad">PadPlayPad</h2>
+<p>The Input System device of each phone. <strong>It is a <code>Gamepad</code></strong>, so <code>&lt;Gamepad&gt;/…</code> bindings, <code>Gamepad.all</code> and <code>PlayerInput</code> work.</p>
+<ul>
+  <li><code>attitude</code>, <code>angularVelocity</code> — <code>QuaternionControl</code> (calibrated, Unity's space), <code>Vector3Control</code> (rad/s). Paths <code>&lt;PadPlayPad&gt;/attitude</code>, <code>&lt;PadPlayPad&gt;/angularVelocity</code>.</li>
+  <li><code>recenter</code> — <code>ButtonControl</code>: the player asked to re-center (already applied by the SDK).</li>
+  <li><code>GetButton(id)</code> — A button by <code>PadPlayButtonId</code> or number; 14 to 31 are game-defined (<code>&lt;PadPlayPad&gt;/custom14</code> … <code>custom31</code>).</li>
+  <li><code>ButtonBits</code> — All 32 buttons as bits.</li>
+  <li><code>PlayerSlot</code>, <code>IsConnected</code> — The player; false while the phone is reconnecting.</li>
+  <li><code>Recenter(mode = Yaw)</code> — Same as <code>host.Recenter(PlayerSlot)</code>.</li>
+  <li><code>SetMotorSpeeds(low, high)</code> — Vibration (strength = the larger value). <code>PauseHaptics</code>, <code>ResumeHaptics</code>, <code>ResetHaptics</code> work as usual.</li>
+</ul>
+<h2 id="touch">Touch</h2>
+<p><code>PadPlayPointerEventData</code> (a <code>PointerEventData</code>): <code>PlayerSlot</code>, <code>FingerId</code>, <code>PhonePosition</code> (0 to 1 on the phone, y = 0 at the top), <code>ViewPoseSeq</code> (the Pose Camera frame the player saw). Test <code>eventData is PadPlayPointerEventData p</code> in any uGUI handler.</p>
+<p><code>PadPlayRaycaster</code>: a <code>GraphicRaycaster</code> that ignores transparent pixels (<code>AlphaThreshold</code>, default 0.1).</p>
+<h2 id="components">Components</h2>
+<h3 id="padplayqrview"><code>PadPlayQrView</code></h3>
+<p>On a Raw Image. Main members: <code>Host</code>, <code>Caption</code> (a Text or a TextMeshPro text), <code>Texture</code>, <code>ShownUri</code>, <code>Refresh()</code>.</p>
+<h3 id="padplaystatusview"><code>PadPlayStatusView</code></h3>
+<p>On a Text or a TextMeshPro text. Main members: <code>Host</code>, <code>Target</code> (where it writes; empty = the one on its GameObject), <code>Rows</code>, <code>TryGetRow(slot, out row)</code>, <code>BuildText()</code>.</p>
+<h3 id="padplayview"><code>PadPlayView</code></h3>
+<p>Main members: <code>SourceCamera</code> or <code>SourceTexture</code>, <code>PlayerSlot</code> (<code>AllPlayers</code> = -1, the default), <code>Width</code>, <code>Height</code>, <code>FrameRate</code>, <code>MaxBitrateKbps</code>, <code>MatchPhoneAspect</code>, <code>UseAsTouchTarget</code>. PadPlay SDK only.</p>
+<h3 id="padplaygyrocamera"><code>PadPlayGyroCamera</code></h3>
+<p>Main members: <code>PlayerSlot</code>, <code>Mode</code> (<code>Window</code>, <code>LookAround</code>, <code>Tilt</code>), <code>Settings</code>, <code>Tilt</code>, <code>Rotation</code>, <code>BaseRotation</code>, <code>ResetForward()</code> (this camera only).</p>
+<h3 id="padplaygyropointer"><code>PadPlayGyroPointer</code></h3>
+<p>Main members: <code>PlayerSlot</code>, <code>Settings</code>, <code>ViewportPosition</code> (y = 0 at the bottom), <code>IsPointing</code>, <code>GetScreenPosition()</code>, <code>GetRay(camera)</code>, <code>Reticle</code>, <code>ResetForward()</code> (this pointer only).</p>
+<h3 id="padplayposecamera"><code>PadPlayPoseCamera</code></h3>
+<p>Main members: <code>PlayerSlot</code>, <code>FieldOfView</code>, <code>Settings</code>, <code>YawOffsetDegrees</code>, <code>VisibleViewportRect</code>, <code>VisiblePixelRect</code>, <code>ScreenPointToRay(eventData)</code>, <code>TryGetView(out view)</code>, <code>ResetForward()</code> (this camera only). See <a href="/padplay/docs/pose-camera/">Pose Camera</a>.</p>
+<h3 id="padplayphoneoverlay"><code>PadPlayPhoneOverlay</code></h3>
+<p>Main members: <code>PlayerSlot</code> (<code>AllPlayers</code> = -1), <code>HideInPicture</code>, <code>RefreshSeconds</code>, <code>Refresh()</code>.</p>
+<h3 id="padplayremotepointers"><code>PadPlayRemotePointers</code></h3>
+<p>Main members: <code>Layout</code>, <code>TargetCamera</code>, <code>Settings</code>, <code>GetPointerId(slot)</code> (static), <code>GetHovered(slot)</code>, <code>IsPressing(slot)</code>, <code>TryGetScreenPosition(slot, out pos)</code>, <code>TryGetPointer(slot, out pointer)</code>, <code>ShowRecenterHint(slot)</code>. See <a href="/padplay/docs/remote-pointers/">Remote Pointers</a>.</p>
+<h3 id="padplaydebugoverlay"><code>PadPlayDebugOverlay</code></h3>
+<p>Main members: <code>Host</code>, <code>Visible</code>, <code>ToggleKey</code>, <code>BuildText()</code>.</p>
+<h2 id="button-layouts">Button layouts</h2>
+<p><code>PadPlayButtonLayout</code> (<em>Assets → Create → PadPlay → Button Layout</em>): <code>Elements</code>, <code>Orientation</code> (<code>Landscape</code>, <code>Portrait</code>, <code>Auto</code>), <code>MarkChanged()</code> after changing <code>Elements</code> from code, <code>Create(params Element[])</code>. <code>PadPlayButtonLayout.Element</code>: <code>Id</code> (<code>PadPlayButtonId</code>), <code>Shape</code> (<code>Circle</code>, <code>Rect</code>), <code>Center</code>, <code>Size</code> (0 to 1, (0, 0) at the top left), <code>Label</code>, <code>Opacity</code>, <code>Group</code>, <code>Role</code> (<code>None</code>, <code>Recenter</code>), <code>Style</code>. <code>PadPlayButtonStyle</code> (how an element looks on the phone; empty = the default look): <code>Image</code>, <code>PressedImage</code>, <code>KnobImage</code> (Texture2D, sent as PNG once), <code>CustomColors</code> with <code>Color</code>, <code>PressedColor</code>, <code>BorderColor</code>, <code>LabelColor</code>, <code>CustomSizes</code> with <code>BorderWidth</code>, <code>CornerRadius</code>, <code>LabelSize</code>, <code>IsEmpty</code>. <code>PadPlayRemoteLayout</code>: the bundled remote layout (<code>Create()</code>, button ids <code>Press</code>, <code>Back</code>, <code>Recenter</code>, <code>Menu</code>, <code>Minus</code>, <code>Plus</code>).</p>
+<h2 id="editions">Editions</h2>
+<p><code>PadPlayEdition</code>: <code>IsLite</code>, <code>Name</code> ("PadPlay SDK" or "PadPlay Lite"), <code>LiteMaxPlayers</code> (1), <code>ClampMaxPlayers(requested)</code>.</p>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></p>
+    <p class="muted">This site uses no cookies, analytics or tracking.</p>
+  </div>
+</footer>
+</body>
+</html>

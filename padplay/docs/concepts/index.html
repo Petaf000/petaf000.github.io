@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concepts — PadPlay documentation</title>
+<meta name="description" content="PadPlay SDK documentation: Concepts">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/concepts/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/concepts/">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/concepts/">
+<meta name="theme-color" content="#15171C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="logo" href="/" aria-label="Petaf home"><img src="/assets/mark.svg" alt="" width="36" height="36"><span>PETAF</span></a>
+    <nav class="nav" aria-label="Main">
+      <a href="/">Home</a>
+      <a href="/products/">Products</a>
+      <a href="/contact/">Contact</a>
+      <a href="/privacy/">Privacy</a>
+    </nav>
+    <a class="lang" href="/padplay/docs/ja/concepts/" lang="ja" hreflang="ja">日本語</a>
+  </div>
+</header>
+<main class="wrap wide">
+
+  <nav class="docs-nav" aria-label="PadPlay documentation">
+    <a href="/padplay/docs/">Overview</a>
+    <a href="/padplay/docs/quickstart/">Quick Start</a>
+    <a href="/padplay/docs/concepts/" aria-current="page">Concepts</a>
+    <a href="/padplay/docs/debugging/">Debugging</a>
+    <a href="/padplay/docs/pose-camera/">Pose Camera</a>
+    <a href="/padplay/docs/remote-pointers/">Remote Pointers</a>
+    <a href="/padplay/docs/api/">API Reference</a>
+    <a href="/padplay/docs/glossary-ja/" lang="ja">用語集</a>
+  </nav>
+  <article class="doc">
+<h1 id="concepts">Concepts</h1>
+<p><em><a href="/padplay/docs/ja/concepts/">日本語</a></em></p>
+<p>PadPlay SDK turns a phone into a controller with a second screen: a touch screen that shows its own view of the game, plus a gyro and on-screen buttons. This page explains <em>how</em> it is put together and <em>why</em>, so the behavior you see in <a href="/padplay/docs/quickstart/">Quick Start</a> is not a surprise.</p>
+<h2 id="where-the-ideas-come-from">Where the ideas come from</h2>
+<p>The SDK grew out of the student project that inspired it — a two-player co-op game played on a big screen plus a tablet with a hand-made controller and a gyro sensor. On the tablet, one player looked <em>into</em> the comic-panel world by tilting it, and touched the game directly. Making that work taught a handful of lessons, and each of them is now a part of the SDK:</p>
+<ul>
+  <li>Debugging was only possible with the special hardware in one room. → Touch is injected as <strong>standard uGUI events</strong>, so the mouse works identically.</li>
+  <li>A transparent touch layer over the streamed picture felt instant. → The phone app has <strong>two layers</strong>: video behind, a transparent touch layer in front.</li>
+  <li>Window size and resolution kept changing. → Touch is sent as <strong>normalized coordinates</strong> (0…1).</li>
+  <li>Several wireless controllers cross-talked unless each was addressed by name. → Each phone gets a <strong>player slot</strong>; a <strong>token in the QR code</strong> decides who may join.</li>
+  <li>Masked images blocked rays and transparent pixels were hit. → A <strong>custom raycaster</strong> with per-player screens and alpha hit testing.</li>
+  <li>The controller was exposed as a custom Input System device. → Each phone is a <strong><code>PadPlayPad</code></strong>, which <em>is a</em> <code>Gamepad</code>.</li>
+  <li>External streaming tools and custom hardware were fragile. → Video is streamed by the SDK itself (PadPlay Link, H.264 or JPEG); the phone's own sensors replace the hardware.</li>
+</ul>
+<h2 id="the-big-picture">The big picture</h2>
+<pre><code> PHONE (PadPlay app)                            PC (Unity)
+
+ touch layer (front, 0..1) --+                  PadPlayHost (slots, tokens, clocks)
+ buttons (game's layout) ----+-- state ------&gt;    touch     -&gt; your uGUI handlers
+ gyro (rotation vector) -----+   every 8 ms       PadPlayPad -&gt; your InputActions,
+                                 (latest only)                  Gyro Camera / Pointer
+
+ buttons, vibration  &lt;-- reliable messages --   PadPlayHost (layout, haptics, recenter)
+ video layer (back)  &lt;-- H.264 / JPEG, FEC ---  PadPlayView (camera / RenderTexture)</code></pre>
+<h3 id="core-and-unity">Core and Unity</h3>
+<p>The package has two assemblies (the names matter only when your own asmdef references them):</p>
+<ul>
+  <li><strong><code>PadPlay.Core</code></strong> assembly — plain C# (C# 9, netstandard2.1, no engine references): the protocol, sessions, PadPlay Link (one encrypted UDP port), coordinate mapping, attitude math, clock sync, QR encoding. Everything that can be tested without Unity lives here, so other engines can reuse it later.</li>
+  <li><strong><code>PadPlay.Unity</code></strong> assembly — everything that touches Unity: <code>PadPlayHost</code>, event injection, the raycaster, the Input System device, video, gyro components and UI helpers.</li>
+</ul>
+<p>Both put the types you use in <strong>one namespace, <code>PadPlay</code></strong>, so <code>using PadPlay;</code> is all you need, including for the few from Core (<code>AttitudeCalibrationMode</code>, <code>ClockSync</code>, <code>DeviceInfo</code>, <code>PadPlayPhoneOverlayItem</code>, <code>PadPlayNetworkSettings</code>). The rest of Core (packet encoders such as <code>TouchPacket</code>, <code>PointerTracker</code>, <code>LinkHost</code>, <code>LinkClient</code>) is internal to the package.</p>
+<h3 id="modules">Modules</h3>
+<p>The host has four modules, ticked in its Inspector (<code>host.Settings.Modules</code>, a <code>PadPlayModules</code> flags value): <strong>Touch</strong>, <strong>Attitude</strong>, <strong>Buttons</strong> (including haptics) and <strong>Video</strong>. Each has its own settings object (<code>Settings.Touch</code>, <code>Settings.Attitude</code>, <code>Settings.Buttons</code>, <code>Settings.Video</code>).</p>
+<p>The phone app always sends everything it has; the module switch works on the host side. An unticked module's input is dropped before it reaches uGUI, the events or the <code>PadPlayPad</code>, and nothing is sent for it (no layout, no vibration, no video). The Debugger still counts what arrives, so "the phone sends nothing" and "the module is off" look different.</p>
+<h2 id="connecting-the-qr-code-and-player-slots">Connecting: the QR code and player slots</h2>
+<pre><code> Unity (PadPlayHost)                                        Phone (PadPlay app)
+
+ StartHost: join URL with a fresh token and key
+ QR code  padplay://join?v=1&amp;h=…&amp;p=7780&amp;t=…&amp;k=…   ------&gt;   scans it
+                &lt;------  UDP Hello (token, device info, capabilities), sealed with k
+ Accept: player slot (PlayerJoined, PlayerReady)  ------&gt;
+                &lt;------  touch / gyro / buttons: the whole state every 8 ms
+                &lt;------  touch down/up, button changes (reliable)
+ layout / haptics / recenter (reliable), video    ------&gt;</code></pre>
+<ul>
+  <li>The QR code contains the PC's LAN address, the UDP port, a <strong>token</strong> and a key <code>k</code>. Only phones presenting the current token are accepted. <code>RenewToken()</code> makes a new code; already-joined phones stay. A joined phone that drops right after a renewal may still come back to its slot with the old code for <code>host.NetworkSettings.RenewGraceMs</code> (60 s; 0 = off), but only with the resume secret it received when it joined: the device id alone is not enough, and new phones always need the new code. This return has no fresh key exchange, so it is weaker than a normal join (a known limitation, to be fixed in 1.x); set <code>RenewGraceMs</code> to 0 if you renew the code to keep someone out.</li>
+  <li>Each accepted phone gets a <strong>player slot</strong> (0, 1, 2 …). Every input event, every <code>PadPlayPointerEventData</code> and every <code>PadPlayPad</code> carries that slot, so two players never mix.</li>
+  <li>If a phone drops without saying goodbye (Wi-Fi blip, app sent to background or closed), its slot is <strong>held</strong> for <code>ResumeHoldSeconds</code> (60 s). When it comes back it gets the same slot and the same <code>PadPlayPad</code> device (<code>PlayerJoined</code> with <code>Resumed = true</code>). The app keeps a per-game resume key and a device id, so this also works after the app was closed and started again. <code>PlayerLeft.Reason</code> tells you why a phone left (<code>PadPlayLeaveReason</code>: <code>Bye</code>, <code>Closed</code>, <code>Timeout</code>, <code>Stopped</code>, …).</li>
+  <li>When the slot is free for good — the player said bye, the host stopped, or the hold time ran out — <code>PlayerRemoved</code> fires (Reason <code>Bye</code>, <code>Stopped</code> or <code>Expired</code>). The hold time is counted in Core, in one place; <code>GetPlayerState(slot)</code> returns <code>Connecting</code>, <code>Ready</code>, <code>Reconnecting</code> or <code>Gone</code>.</li>
+  <li><code>AcceptNewPlayers = false</code> closes the lobby: new phones are refused as "full", held slots can still resume.</li>
+  <li>Only the same LAN is supported. No STUN/TURN servers are used.</li>
+</ul>
+<h3 id="encryption">Encryption</h3>
+<p>Every packet after the QR code is encrypted and authenticated with <strong>ChaCha20-Poly1305</strong>. The key <code>k</code> is random, made anew on every <code>StartHost</code> and <code>RenewToken</code>, and only travels inside the QR code — never over the network. Each connection derives its own keys from it (HKDF-SHA256), and every packet carries a sequence number, so packets that were changed, replayed or sealed with another key are dropped and counted. Someone on the same Wi-Fi who has not seen the QR code can therefore neither read nor fake touches, buttons, the attitude or the video, nor take over a player's slot. What it does not hide: that traffic exists, its size and timing. It does not protect against people who can see the QR code (they can join, like anyone you show it to) or against jamming the Wi-Fi. Only two short "cannot join" answers (other protocol version; a code that does not match) are sent unencrypted, so that a phone with an old QR code is told so at once; they carry no game data.</p>
+<p>There is no setting that turns encryption off, so a game cannot ship without it by mistake. The cryptography is implemented in the package from the public specifications (RFC 8439, RFC 5869, FIPS 180-4), with no third-party code and no allocation per packet.</p>
+<h3 id="state-and-reliable-messages">State and reliable messages</h3>
+<ul>
+  <li><strong>state (Data)</strong> — every 8 ms, no retransmission. Carries: touch, attitude, buttons — the whole current state each time, so a lost packet is replaced by the next</li>
+  <li><strong>reliable messages</strong> — resent until acknowledged, ordered. Carries: touch down/up and button changes (so a tap or a press is never lost), layout, haptics, calibration, screen orientation, video settings</li>
+</ul>
+<p>Old or duplicated packets are dropped by sequence number. Your code only sees the events in order, on the main thread. A button press that arrives late as a reliable message is still applied once (then the current state), and the pad changes a given button at most once per Input System update, so a press and release in the same frame are both seen.</p>
+<h2 id="touch">Touch</h2>
+<h3 id="two-layers-and-normalized-coordinates">Two layers and normalized coordinates</h3>
+<p>On the phone the video sits behind a transparent touch layer. The touch layer reacts immediately (the finger does not wait for the video round trip) and reports each finger as <strong>(0, 0)–(1, 1) relative to the video area</strong>, letterbox excluded, with <strong>y pointing down</strong> (top-left origin). The Host maps it to pixels of whatever that player is looking at — Display 1, a rectangle of a display, or a camera — so resolution and window size never shift touches.</p>
+<h3 id="injected-as-standard-events">Injected as standard events</h3>
+<p>The SDK does <strong>not</strong> replace your input module. For each finger it keeps its own <code>PointerEventData</code> (<code>PadPlayPointerEventData</code>) and calls the same <code>ExecuteEvents</code> handlers an input module would: <code>OnPointerEnter/Exit/Down/Up/Click</code>, <code>OnBeginDrag/OnDrag/OnEndDrag</code>, … with the usual drag threshold and click timing. Consequences:</p>
+<ul>
+  <li>Existing Buttons, Sliders and <code>IDragHandler</code>s work without changes.</li>
+  <li>The mouse keeps working at the same time, with its own pointer data. You can develop without a phone.</li>
+  <li>To know <em>who</em> touched, test <code>eventData is PadPlayPointerEventData p</code> and read <code>p.PlayerSlot</code>.</li>
+  <li>Pointer ids are allocated far away from mouse and local-touch ids, so they never collide.</li>
+</ul>
+<h3 id="per-player-screens-and-the-raycaster">Per-player screens and the raycaster</h3>
+<p>When several players each see their own view (split screen, Display 2, or a video sent to their phone), a touch must only hit what <em>that</em> player sees. The dispatcher runs the normal <code>EventSystem.RaycastAll</code> and then keeps only results from raycasters that belong to the player's screen (decided by <code>BaseRaycaster.eventCamera</code>).</p>
+<p><code>PadPlayRaycaster</code> is a drop-in <code>GraphicRaycaster</code> that additionally ignores hits on <strong>transparent pixels</strong> of an <code>Image</code> (<code>AlphaThreshold</code>, default 0.1). It works for Screen Space and World Space canvases and for the mouse.</p>
+<h2 id="gamepad-gyro-and-buttons">Gamepad, gyro and buttons</h2>
+<h3 id="padplaypad-is-a-gamepad">PadPlayPad is a Gamepad</h3>
+<p>Each ready phone becomes an Input System device <code>PadPlayPad : Gamepad</code>. Inheriting from <code>Gamepad</code> means existing <code>&lt;Gamepad&gt;/…</code> bindings, <code>Gamepad.all</code> and <code>PlayerInput</code> control schemes work unchanged. It adds the controls <code>attitude</code>, <code>angularVelocity</code>, <code>playerSlot</code> and game-defined buttons <code>custom14</code>…<code>custom31</code> (lower-case, like other Input System controls); C# values are PascalCase (<code>PlayerSlot</code>, <code>IsConnected</code>, <code>ButtonBits</code>, <code>GetButton(id)</code>). The pad exists from just before <code>PlayerReady</code> until just before <code>PlayerRemoved</code>. Gyro controls are marked <em>noisy</em>, so holding the phone does not steal <code>Gamepad.current</code>. The device runs in the background, so input keeps arriving when the PC window loses focus. Rumble (<code>SetMotorSpeeds</code>) drives the phone's vibration.</p>
+<h3 id="attitude">Attitude</h3>
+<p>The phone sends its <strong>Game Rotation Vector</strong> (a quaternion fused from gyro and accelerometer, without the magnetometer — the same choice the original project made with its sensor) and angular velocity. The SDK converts it to Unity's left-handed space, where <strong>identity = phone upright in portrait, screen facing you</strong>, and:</p>
+<ul>
+  <li><strong>calibrates yaw on connect</strong> (the direction the player faces becomes forward);</li>
+  <li><strong>smooths over network jitter</strong>: samples carry the phone's timestamp; with the clock offset (measured from the timestamps that every packet echoes back) the SDK extrapolates a short way and blends corrections in, so the camera does not stutter when packets bunch up.</li>
+</ul>
+<p><code>PadPlayGyroCamera</code> and <code>PadPlayGyroPointer</code> sit on top of this. Their re-centering is local to the component, so it does not change the pad's attitude that other code reads.</p>
+<p>Naming: components you add are called <strong>Gyro</strong> (<code>PadPlayGyroCamera</code>); the data is called <strong>attitude</strong> (<code>AttitudeReceived</code>, <code>pad.attitude</code>, the <code>Attitude</code> module). Every calibration takes one enum, <code>AttitudeCalibrationMode</code> (<code>Yaw</code> or <code>Full</code>).</p>
+<p>Coordinates: phone positions (<code>PadPlayPointerEventData.PhonePosition</code>, layouts) have <strong>y = 0 at the top</strong>; the gyro pointer's <code>ViewportPosition</code> is Unity viewport space with <strong>y = 0 at the bottom</strong>. The names say which.</p>
+<h3 id="buttons-are-a-layout-the-game-sends">Buttons are a layout the game sends</h3>
+<p>The phone has no fixed button set. The game sends a <strong>layout</strong> — ids, shapes, centers and sizes in the same 0…1 video-area coordinates as touch — and the phone draws it above the touch layer. Fingers that start on a button go to the button — or within 2.5 mm of its edge, to the nearest button (a setting of the app, not of the layout); all others are touches. Pressed bits and stick values come back in the state and land in the <code>PadPlayPad</code>. Changing the layout asset while playing resends it, so positions can be tuned by hand.</p>
+<p>Each element can also carry a <strong>style</strong>: colors, border, corners, label size and pictures (<code>PadPlayButtonStyle</code>). The layout names pictures by a hash of their PNG; the phone asks only for the ones it does not keep yet, receives them over the same encrypted channel one piece at a time (input and haptics are never held up), and keeps them for the next connection. Until a picture arrives the button is drawn with its colors (<a href="/padplay/docs/quickstart/#button-looks">Quick Start: Button looks</a>).</p>
+<h2 id="second-screen-video">Second screen (video)</h2>
+<p><code>PadPlayView</code> streams a camera or RenderTexture to one player (or to everyone) over PadPlay Link, on the same UDP port as the input. Adding or changing a view while connected only switches that player's video (the connection, the slot and the pad stay; <code>PlayerReady</code> does not fire again). Cameras that nobody watches are disabled, and nothing is encoded while nobody watches.</p>
+<p><strong>Codec.</strong> H.264 from Windows Media Foundation (the GPU's hardware encoder when one works, otherwise Windows' software encoder), or JPEG (Unity's own JPEG encoder; the phone app decodes it with Flutter). With <code>Settings.Video.Codec = Auto</code>, every player starts with H.264; the phone measures how fast it decodes H.264 and asks for JPEG when it is too slow (or when the app knows the model needs it), and the host switches that player only. A host without H.264 sends JPEG to everyone. The SDK bundles no codec of its own (see <em>Video codecs</em> in the package README). <code>host.GetVideoChoice(slot, out choice)</code> tells which codec a player gets and why.</p>
+<p><strong>Graphics APIs.</strong> Direct3D 11 and Direct3D 12 hand the rendered frame to the encoder without leaving the GPU (Direct3D 12 through a shared texture and fence). Vulkan reads the frame back to the CPU first (about one frame later). OpenGL, macOS and Linux have no H.264 path and send JPEG. <code>host.VideoStatus</code> shows the path, the encoder and the reason when H.264 is not used.</p>
+<p><strong>Weak Wi-Fi.</strong> Lost pieces of a frame are repaired with Reed-Solomon forward error correction, which grows with the measured loss. What cannot be repaired is fixed with a small recovery frame that refers to an older frame the phone still has (when the encoder supports it), and only then with a key frame. The phone shows the newest complete frame and waits (at most <em>Max Playout Frames</em>) only while frames arrive unevenly. With <em>Adaptive Video</em> the host watches each player's loss, delay and received rate: it lowers the bitrate at once when the network is congested, then the frame rate or the size (<em>Priority</em>), and raises them again slowly. A view sent to several players is encoded once, at the quality of the weakest connection.</p>
+<h2 id="across-scenes">Across scenes</h2>
+<p>By default a <code>PadPlayHost</code> lives in its scene: loading another scene destroys it and every phone is disconnected. Tick <strong>Keep Across Scenes</strong> on the Host (for example in your title or menu scene) to keep the phones connected while you switch scenes — same player slots, same encryption keys, same <code>PadPlayPad</code> devices, no QR code to scan again.</p>
+<ul>
+  <li>The first such Host creates a <strong>kept Host</strong> on its own GameObject in <code>DontDestroyOnLoad</code> (<code>PadPlayHost.KeptHost</code>) and hands its settings to it. From then on, the <strong>Host of every scene you load hands its settings to the kept Host</strong> and steps aside — whether or not it has <em>Keep Across Scenes</em> ticked. So each scene keeps its own Host, works when opened on its own, and never ends up with two.</li>
+  <li>The kept Host uses the settings of the scene's Host: the button <strong>layout</strong> is sent to the phones again, <strong>modules</strong> apply (a scene without the <em>Video</em> module stops the video; a <code>PadPlayView</code> in the new scene starts it), and <strong>Max Players</strong> limits new players. Lowering it does not disconnect anyone already playing; new phones are refused as full until a slot below the limit is free. Per-player layouts (<code>SetLayout</code>) and phone overlays from the previous scene are cleared. The connection values (<em>Port</em>, <em>Game Name</em>, <em>Resume Hold Seconds</em>, <code>NetworkSettings</code>) stay those of the first Host.</li>
+  <li>Where each player last <strong>recentered</strong> is kept too: Remote Pointers or a Gyro Pointer in the next scene starts from it, so the cursor does not jump to the center and the player does not have to recenter again.</li>
+  <li>Every member of a scene's Host goes to the kept Host, so the scene's components and your scripts keep using "their" Host. Event handlers added through a scene's Host are removed when that scene unloads. Objects that outlive scenes (a <code>DontDestroyOnLoad</code> manager) should subscribe to <code>PadPlayHost.KeptHost</code> (or <code>host.ActiveHost</code>) instead.</li>
+  <li>To drop the phones on purpose, call <code>StopHost()</code> (on any of them), or destroy <code>PadPlayHost.KeptHost.gameObject</code>.</li>
+</ul>
+<pre><code class="language-csharp">// Menu scene: its Host has Keep Across Scenes ticked. A demo scene has its own Host (any settings).
+SceneManager.LoadScene("Demo");      // phones stay connected; the Demo Host's layout and modules apply
+// ...later, from the demo:
+SceneManager.LoadScene("Menu");      // back to the menu's layout; still the same players
+
+// A manager that lives across scenes listens on the kept Host:
+PadPlayHost.KeptHost.PlayerJoined += p =&gt; Debug.Log($"P{p.PlayerSlot + 1} joined");</code></pre>
+<p>The Editor's Virtual Phones stay connected across scenes too. In PadPlay Lite it works the same (one player, no video).</p>
+<h2 id="editions-padplay-sdk-and-padplay-lite">Editions: PadPlay SDK and PadPlay Lite</h2>
+<p><strong>PadPlay Lite</strong> (free) is the same package and works the same way, but leaves out: more than one player (<em>Max Players</em> is capped at 1), second-screen video (<code>PadPlayView</code> and the encoder are not included, so the <em>Video</em> module does nothing), the samples other than <em>Sample Hub</em> (with <em>Target Pop</em>) and <em>Minimal</em>, and the phone app source code. <code>PadPlayEdition.IsLite</code> tells your code which one it runs in.</p>
+<h2 id="tuning-by-feel">Tuning by feel</h2>
+<p>Latency, smoothing, sensitivity and dead zones cannot be judged on paper. Every such value is a field in an Inspector settings object (<code>Settings.Touch</code>, <code>Settings.Attitude</code>, <code>Settings.Buttons</code>, the gyro components' <code>Settings</code>, the button layout) and most can be changed while playing. Defaults are starting points, not final answers. Use the Display preview and the Debugger (<a href="/padplay/docs/debugging/">Debugging</a>) to see the numbers while you tune.</p>
+  </article>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; 2026 Petaf · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></p>
+    <p class="muted">This site uses no cookies, analytics or tracking.</p>
+  </div>
+</footer>
+</body>
+</html>

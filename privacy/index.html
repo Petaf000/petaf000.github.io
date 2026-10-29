@@ -36,7 +36,7 @@
   <h1>PadPlay Privacy Policy</h1>
 <ul>
   <li>Published: 2026-10-10</li>
-  <li>Last updated: 2026-10-09 (revised for the switch to PadPlay Link; added the input test, the bonus mini game and "Send feedback")</li>
+  <li>Last updated: 2026-10-15 (added the iPhone permission and how to delete data on iPhone)</li>
   <li>Provided by: Petaf (ぺタフ)</li>
   <li>Contact: <a class="mail" href="mailto:petaf570@gmail.com">petaf570@gmail.com</a></li>
 </ul>
@@ -52,17 +52,17 @@
   <li>QR codes are read <strong>entirely on your device</strong>; no images are stored or sent (section 5).</li>
 </ul>
 <h2 id="s2">2. How the App uses device features</h2>
-<div class="table-wrap"><table>
-  <tr><th>Feature / permission</th><th>What for</th><th>Stored or sent</th></tr>
-  <tr><td>Camera</td><td>Only to read the QR code shown by the game.</td><td>Frames are analyzed on the device. <strong>No photos or videos are stored or sent</strong> (section 5). You can paste the URL instead if you deny the camera.</td></tr>
-  <tr><td>Gyroscope / accelerometer</td><td>To use the tilt and rotation of your phone as game input, and in the input test and the mini game.</td><td>Sent to the connected game (section 3). In the input test and the mini game it is only shown on the screen, never sent. Not stored.</td></tr>
-  <tr><td>Touch and on-screen buttons</td><td>Game input, and in the input test and the mini game.</td><td>Same as above.</td></tr>
-  <tr><td>Network (local network)</td><td>To connect directly to the game PC on the same Wi-Fi / local network (PadPlay Link, a dedicated UDP protocol).</td><td>Section 3</td></tr>
-  <tr><td>Wi-Fi low-latency mode (Android)</td><td>Only while you play (while the pad screen is open), to reduce delay. Released when you leave.</td><td>—</td></tr>
-  <tr><td>Vibration</td><td>Signals from the game, feedback when you press a button, and in the input test and the mini game.</td><td>—</td></tr>
-  <tr><td>Microphone</td><td><strong>Not used.</strong> The App does not request microphone access and records nothing.</td><td>—</td></tr>
-  <tr><td>Bluetooth</td><td><strong>Not used.</strong> The App does not request Bluetooth permissions.</td><td>—</td></tr>
-  <tr><td>Location, contacts, photos, files</td><td><strong>Not used.</strong></td><td>—</td></tr>
+<div class="table-wrap stack"><table>
+  <tr class="head"><th>Feature / permission</th><th>What for</th><th>Stored or sent</th></tr>
+  <tr><td data-label="Feature / permission">Camera</td><td data-label="What for">Only to read the QR code shown by the game.</td><td data-label="Stored or sent">Frames are analyzed on the device. <strong>No photos or videos are stored or sent</strong> (section 5). You can paste the URL instead if you deny the camera.</td></tr>
+  <tr><td data-label="Feature / permission">Gyroscope / accelerometer</td><td data-label="What for">To use the tilt and rotation of your phone as game input, and in the input test and the mini game.</td><td data-label="Stored or sent">Sent to the connected game (section 3). In the input test and the mini game it is only shown on the screen, never sent. Not stored.</td></tr>
+  <tr><td data-label="Feature / permission">Touch and on-screen buttons</td><td data-label="What for">Game input, and in the input test and the mini game.</td><td data-label="Stored or sent">Same as above.</td></tr>
+  <tr><td data-label="Feature / permission">Network (local network)</td><td data-label="What for">To connect directly to the game PC on the same Wi-Fi / local network (PadPlay Link, a dedicated UDP protocol). On iPhone, the App asks for "Local Network" access the first time you connect.</td><td data-label="Stored or sent">Section 3</td></tr>
+  <tr><td data-label="Feature / permission">Wi-Fi low-latency mode (Android)</td><td data-label="What for">Only while you play (while the pad screen is open), to reduce delay. Released when you leave.</td><td data-label="Stored or sent">—</td></tr>
+  <tr><td data-label="Feature / permission">Vibration</td><td data-label="What for">Signals from the game, feedback when you press a button, and in the input test and the mini game.</td><td data-label="Stored or sent">—</td></tr>
+  <tr><td data-label="Feature / permission">Microphone</td><td data-label="What for"><strong>Not used.</strong> The App does not request microphone access and records nothing.</td><td data-label="Stored or sent">—</td></tr>
+  <tr><td data-label="Feature / permission">Bluetooth</td><td data-label="What for"><strong>Not used.</strong> The App does not request Bluetooth permissions.</td><td data-label="Stored or sent">—</td></tr>
+  <tr><td data-label="Feature / permission">Location, contacts, photos, files</td><td data-label="What for"><strong>Not used.</strong></td><td data-label="Stored or sent">—</td></tr>
 </table></div>
 <h2 id="s3">3. Information sent to the connected game</h2>
 <p>When you connect, the App sends the following directly to the game PC written in the QR code. Nothing goes through a server on the internet run by the provider.</p>
@@ -84,7 +84,7 @@
   <li>Records of the bonus mini game (your fastest time and how many times you cleared it), in the same place as the device ID.</li>
 </ul>
 <p>Nothing else is stored (the on-screen button layout is received from the game each time you connect). QR images and game video are not stored.</p>
-<p><strong>How to delete</strong>: uninstall the App, or on Android go to Settings → Apps → PadPlay → Storage → Clear data. After that, your next connection is treated as a new player.</p>
+<p><strong>How to delete</strong>: uninstall the App (on iPhone, delete the App), or on Android go to Settings → Apps → PadPlay → Storage → Clear data. After that, your next connection is treated as a new player.</p>
 <h2 id="s5">5. Reading QR codes</h2>
 <p>On both Android and iOS, the App reads QR codes with an open-source library built into the App (zxing-cpp, the C++ port of ZXing). All camera frames are analyzed on the device. <strong>Camera frames, scan results and device information are never sent to the provider or to any third party such as Google or Apple.</strong> The contents of the QR code (the address of the game PC, a one-time token and the encryption key) are used only to connect to that game.</p>
 <h2 id="s6">6. Sharing with third parties</h2>
