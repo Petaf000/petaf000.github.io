@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Use the phone like a zoom lens | PadPlay</title>
+<meta name="description" content="The phone turns a camera whose picture it shows: hold it up to look around, hold A to zoom.">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/recipe/peek/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/recipe/peek/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/recipe/peek/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>Use the phone like a zoom lens</h1><p>The phone turns a camera whose picture it shows: hold it up to look around, hold A to zoom.</p><p>Add a lens camera, then Add Component → PadPlay → View</p><p>On the same camera: Add Component → PadPlay → Gyro Camera</p><p>Add the ZoomLens script below to the same camera</p><pre>using PadPlay;
+using UnityEngine;
+
+// Next to PadPlayGyroCamera: hold A on the phone to zoom in like a telescope.
+public class ZoomLens : MonoBehaviour
+{
+    [SerializeField] PadPlayHost host;
+    [SerializeField] PadPlayGyroCamera lens;
+    [SerializeField] float wideDegrees = 60f;
+    [SerializeField] float zoomDegrees = 15f;
+
+    void Update()
+    {
+        PadPlayPad pad = host.GetPad(lens.PlayerSlot);
+        bool zoom = pad != null &amp;&amp; pad.IsConnected &amp;&amp; pad.buttonSouth.isPressed;
+        float target = zoom ? zoomDegrees : wideDegrees;
+        lens.FieldOfView = Mathf.Lerp(lens.FieldOfView, target, 1f - Mathf.Exp(-10f * Time.deltaTime));
+    }
+}</pre><p>When the Gyro Camera&#x27;s Inspector says the phone hides the delay, you are set. Press Play and hold up the phone: it shows where it points, and zooms while A is held. The TV keeps showing the usual camera.</p><ul><li><a href="/padplay/docs/api/PadPlayGyroCamera/FieldOfView/">PadPlayGyroCamera.FieldOfView</a></li><li><a href="/padplay/docs/api/PadPlayGyroCamera/IsCorrectingDelay/">PadPlayGyroCamera.IsCorrectingDelay</a></li><li><a href="/padplay/docs/api/PadPlayGyroCamera/ScreenPointToRay/">PadPlayGyroCamera.ScreenPointToRay</a></li><li><a href="/padplay/docs/api/PadPlayGyroCamera/VisibleViewportRect/">PadPlayGyroCamera.VisibleViewportRect</a></li><li><a href="/padplay/docs/fix/video/">The picture is black or broken</a></li><li><a href="/padplay/docs/fix/recenter/">Forward drifts</a></li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>

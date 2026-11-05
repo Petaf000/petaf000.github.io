@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Picture is black, broken or slow | PadPlay</title>
+<meta name="description" content="The picture is being repaired Newer app versions compare their picture with the PC&#x27;s every few seconds and ask for a key frame when they differ. Players see no message.">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/fix/video/smear/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/fix/video/smear/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/fix/video/smear/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>Picture is black, broken or slow</h1><h2>The picture is being repaired</h2><ol><li>Newer app versions compare their picture with the PC&#x27;s every few seconds and ask for a key frame when they differ. Players see no message.</li><li>The repairs are counted in host.RequestVideoStats (PictureRecoveries) and in PadPlay Debug&#x27;s report.</li><li>On a PC where the picture keeps breaking after repairs, the SDK switches to readback by itself (the same slower but reliable path as Prefer Readback). The reason shows in PadPlay Debug&#x27;s video status and report. To stop it, turn off Host › Video › Auto Prefer Readback.</li></ol><ul><li><a href="/padplay/docs/api/PadPlayHost/RequestVideoStats/">host.RequestVideoStats</a></li><li><a href="/padplay/docs/settings/AutoPreferReadback/">AutoPreferReadback</a></li><li><a href="/padplay/docs/settings/PreferReadback/">PreferReadback</a></li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>

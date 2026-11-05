@@ -36,7 +36,7 @@
   <h1>PadPlay Privacy Policy</h1>
 <ul>
   <li>Published: 2026-10-10</li>
-  <li>Last updated: 2026-10-30 (added the button pictures that games send and the App keeps in its cache)</li>
+  <li>Last updated: 2026-11-05 (added "Report a problem")</li>
   <li>Provided by: Petaf (ぺタフ)</li>
   <li>Contact: <a class="mail" href="mailto:petaf570@gmail.com">petaf570@gmail.com</a></li>
 </ul>
@@ -46,7 +46,8 @@
   <li>The App has <strong>no accounts</strong>. It does not collect your name, email address, phone number, location, contacts or photos.</li>
   <li>The App communicates <strong>only with the game PC you choose by scanning its QR code (or pasting its URL)</strong>, usually a PC on the same Wi-Fi / local network, directly and without going through any server of the provider (section 3).</li>
   <li><strong>All of that communication is encrypted.</strong> The key is in the QR code and changes every time the game starts (section 3).</li>
-  <li>The provider (Petaf) runs no servers and <strong>does not receive your information</strong>. The App sends nothing to the provider or to any other company, including Google and Apple.</li>
+  <li>The provider (Petaf) runs no servers and <strong>does not receive your information</strong>, except when you send an email yourself (section 6). The App sends nothing to the provider or to any other company, including Google and Apple.</li>
+  <li>"Report a problem" shows the whole report on the screen first, and <strong>you decide in your mail app whether to send it</strong>. The App never sends it by itself (section 6).</li>
   <li><strong>No ads, no in-app purchases, no usage analytics, no tracking, and no analytics, crash-reporting or advertising SDKs in the App.</strong></li>
   <li>The <strong>input test and the bonus mini game, which work without a PC, run entirely on your device and send nothing</strong> (sections 2 and 4).</li>
   <li>QR codes are read <strong>entirely on your device</strong>; no camera images are stored or sent (section 5).</li>
@@ -76,7 +77,7 @@
   <li><strong>Connection status</strong>: how the video is arriving (delay, jitter, loss rate, received bitrate) and how fast this device can display it. Used to adapt the video quality and format (H.264 or JPEG) to your network and device automatically.</li>
 </ul>
 <p>The App receives the game's video, the layout of the on-screen buttons, the pictures of those buttons (PNG) and vibration signals from the game. The video is only displayed, never stored. The button pictures are kept in the cache described in section 4.</p>
-<p><strong>On the game side</strong>: the PadPlay component built into games (PadPlay SDK) keeps this information in memory only while you are connected and for a short time after a disconnect (60 seconds by default, to give you the same player back). It does not write it to files or send it to the internet. However, each game is made by its own developer, who decides how the game handles what it receives. See the privacy policy of the game you play.</p>
+<p><strong>On the game side</strong>: the PadPlay component built into games (PadPlay SDK) keeps this information in memory only while you are connected and for a short time after a disconnect (5 minutes by default, to give you the same player back). It does not write it to files or send it to the internet. However, each game is made by its own developer, who decides how the game handles what it receives. See the privacy policy of the game you play.</p>
 <p><strong>Encryption</strong>: everything the App exchanges with the game PC (the connection handshake, the device ID and device information, input, video, vibration and so on) goes over PadPlay Link, PadPlay's own UDP protocol, and is <strong>all encrypted</strong> (ChaCha20-Poly1305). The key is in the QR code on the game's screen, changes every time the game starts, and is never sent over the network. Someone on the same Wi-Fi who has not scanned the QR code cannot read the contents, impersonate your input or alter it. The only unencrypted messages are short replies from the game PC saying "this QR code is out of date" or "the app version does not match"; they contain no information about your device or you. The size and timing of the traffic cannot be hidden, and anyone who sees the QR code on the game's screen can connect the same way.</p>
 <h2 id="s4">4. Information stored on your device</h2>
 <p>The App stores the following only in its own storage on your device. It is not sent to the provider or to anyone else.</p>
@@ -86,6 +87,7 @@
   <li>Records of the bonus mini game (your fastest time and how many times you cleared it), in the same place as the device ID.</li>
   <li><strong>Pictures of on-screen buttons</strong> that a game sent (PNG images made by the game's developer, for example a button drawn as a gem), in the App's cache folder (the cache folder of the App on Android, the Caches folder on iPhone), so that the next time you connect to that game it does not have to send them again. They are kept per game (in a folder whose name is calculated from the game's name in its QR code), with a small index of which pictures each game has and which were used most recently. The cache is limited to 8 MB per game, 32 MB in total and 16 games; past a limit, the least recently used pictures (or games) are deleted first. Each picture is checked when it is read, and a damaged one is deleted and received again. These pictures are not information about you and are never sent to the provider or anyone else. The system may also clear this cache by itself when storage runs low; the pictures are then simply received again.</li>
 </ul>
+<p>What "Report a problem" uses (how the last connection went, the connection numbers and the App's recent log) is kept only in the App's memory and is not saved to a file. It is gone when the App closes (section 6).</p>
 <p>Nothing else is stored. The layout of the on-screen buttons is received from the game each time you connect and is not stored. QR images and game video are not stored.</p>
 <p><strong>How to delete</strong>: uninstall the App (on iPhone, delete the App), or on Android go to Settings → Apps → PadPlay → Storage → Clear data. After that, your next connection is treated as a new player. To delete only the button pictures on Android, choose Clear cache instead (the device ID and the records stay).</p>
 <h2 id="s5">5. Reading QR codes</h2>
@@ -93,6 +95,15 @@
 <h2 id="s6">6. Sharing with third parties</h2>
 <p>The provider does not receive your information and therefore does not share it with anyone. The only information that leaves the App is described in section 3 (the game PC you choose).</p>
 <p><strong>About "Send feedback"</strong>: when you tap "Send feedback", your device's mail app opens with the address (the contact in section 9) and a draft (the App's version, whether it is a test build, and the type of OS) filled in. The App itself sends nothing; you decide in your mail app whether to send it and what to write. If you send an email, the provider uses it only to reply and to improve the App, and does not pass it to anyone else.</p>
+<p><strong>About "Report a problem"</strong>: when you tap "Report a problem" (in "About" and in the help shown when the App cannot connect), the App puts together a report for finding the cause of a problem and <strong>shows all of it on the screen</strong>. The report contains:</p>
+<ul>
+  <li>the App's version, the phone model (for example "Google Pixel 8"; the name the owner gave the phone is not read), the OS version, the screen size and the language;</li>
+  <li>whether Wi-Fi, a VPN and airplane mode are on, and on Android 12 and later the Wi-Fi band (2.4 GHz, 5 GHz, ...) and signal strength;</li>
+  <li>the name of the last game you connected to, how the connection went (when it connected, dropped or reconnected) and the cause the App found when it could not connect;</li>
+  <li>connection and video numbers (delay, losses, frames and so on) and the App's recent log;</li>
+  <li>a <strong>report number</strong>: an 8-character value worked out from the game's QR code, used only to match the report with the game's report on the PC. It changes every time the game starts and does not identify you or your device.</li>
+</ul>
+<p>IP addresses have their last number hidden (for example "192.168.10.x"), and internet addresses and the QR code's join token and encryption key are removed. <strong>The Wi-Fi name, your location and the device ID (section 3) are not in it</strong> (the App does not read the Wi-Fi name or your location). "Send by email" only opens your mail app with the address (the contact in section 9) and the report as a draft. You decide in your mail app whether to send it, what to add and what to delete. "Copy" only puts the report on the clipboard so you can give it to, for example, the developer of the game you play. If you send a report, the provider uses it only to find and fix the cause of the problem and to reply, and does not pass it to anyone else. Reports and the emails they came in are deleted 90 days after the problem is resolved.</p>
 <h2 id="s7">7. Children</h2>
 <p>The App is not directed at children under 13.</p>
 <h2 id="s8">8. Changes to this policy</h2>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>操作や映像が遅れる | PadPlay</title>
+<meta name="description" content="どの区間で遅れているかを見ます PadPlay Debug の状態タブでプレイヤーを選ぶと、詳細の下に「区間ごとの遅れ」が出ます。値は最近数秒の中央値です。">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/fix/lag/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/fix/lag/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/fix/lag/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/ja/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>操作や映像が遅れる</h1><h2>どの区間で遅れているかを見ます</h2><ol><li>PadPlay Debug の状態タブでプレイヤーを選ぶと、詳細の下に「区間ごとの遅れ」が出ます。値は最近数秒の中央値です。</li><li>入力は「スマホ → PC」と「PC → ゲーム」、映像は「符号化」「送信」「通信」「表示」に分かれます。入力は、スマホで押すか離すと測れます。</li><li>一番長い区間はオレンジの帯と ▲ で示され、その下の 1 行に直し方が出ます。</li><li>映像の「通信」と「表示」はスマホが測るので、新しい版のアプリが要ります。「通信」は、スマホが測った時間から「符号化」と「送信」を引いた目安です。</li><li>エディターの QR でつないだスマホでは、上の帯にも「入力の遅れ: … ms」「映像の遅れ: … ms」と出ます。遊ぶ人とビルドしたゲームには出ません。</li></ol><ul><li><a href="/padplay/docs/ja/fix/video/slow/">video/slow</a></li><li><a href="/padplay/docs/ja/api/PadPlayView/Width-Height/">PadPlayView.Width / Height</a></li><li><a href="/padplay/docs/ja/api/PadPlayView/MaxBitrateKbps/">PadPlayView.MaxBitrateKbps</a></li><li><a href="/padplay/docs/ja/settings/PacingMbps/">PacingMbps</a></li><li><a href="/padplay/docs/ja/settings/MaxPlayoutFrames/">MaxPlayoutFrames</a></li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>

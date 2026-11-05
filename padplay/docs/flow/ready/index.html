@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ready — Lifecycle | PadPlay</title>
+<meta name="description" content="Input starts and the pad works. Spawn the character here.">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/flow/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/flow/ready/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/flow/ready/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>Lifecycle</h1><p>What happens from a phone joining to leaving. Pick a stage to see its events and API.</p><ol><li><h2>Show QR code</h2><p>The Host starts listening and QR View shows the code. When this PC is found to block phones, a strip appears under it.</p><ul><li><a href="/padplay/docs/api/PadPlayHost/AutoStart/">host.AutoStart</a></li><li><a href="/padplay/docs/api/PadPlayHost/JoinUriChanged/">host.JoinUriChanged</a></li><li><a href="/padplay/docs/api/PadPlayHost/ConnectionHint/">host.ConnectionHint</a></li><li><a href="/padplay/docs/api/PadPlayQrView/">PadPlayQrView</a></li><li><a href="/padplay/docs/fix/console/">console</a></li></ul></li><li><h2>Join</h2><p>The player gets a slot. No input yet.</p><ul><li><a href="/padplay/docs/api/PadPlayHost/PlayerJoined/">host.PlayerJoined</a></li><li><a href="/padplay/docs/api/PadPlayHost/GetPlayerState/">host.GetPlayerState</a></li><li><a href="/padplay/docs/api/PadPlayHost/cmp-joinready/">joinready</a></li></ul></li><li><h2>Ready</h2><p>Input starts and the pad works. Spawn the character here.</p><ul><li><a href="/padplay/docs/api/PadPlayHost/PlayerReady/">host.PlayerReady</a></li><li><a href="/padplay/docs/api/PadPlayHost/GetPad/">host.GetPad</a></li><li><a href="/padplay/docs/recipe/two/">two</a></li></ul></li><li><h2>Buttons</h2><p>The button layout is sent: Settings.Buttons.Layout for everyone, SetLayout for one player.</p><ul><li><a href="/padplay/docs/settings/Layout/">Layout</a></li><li><a href="/padplay/docs/api/PadPlayHost/SetLayout/">host.SetLayout</a></li><li><a href="/padplay/docs/api/PadPlayButtonLayout/">PadPlayButtonLayout</a></li></ul></li><li><h2>Input</h2><p>Touches arrive as uGUI events; buttons and gyro through PadPlayPad.</p><ul><li><a href="/padplay/docs/api/PadPlayPointerEventData/PlayerSlot/">PadPlayPointerEventData.PlayerSlot</a></li><li><a href="/padplay/docs/api/PadPlayPad/attitude/">pad.attitude</a></li><li><a href="/padplay/docs/api/PadPlayPad/GetButton/">pad.GetButton</a></li><li><a href="/padplay/docs/api/PadPlayHost/Recentered/">host.Recentered</a></li><li><a href="/padplay/docs/fix/lag/">lag</a></li></ul></li><li><h2>Video</h2><p>A View sends a camera&#x27;s picture to the player&#x27;s phone. It lowers quality on weak Wi-Fi, and the phone asks for a repair when the picture breaks.</p><ul><li><a href="/padplay/docs/api/PadPlayView/SourceCamera/">PadPlayView.SourceCamera</a></li><li><a href="/padplay/docs/api/PadPlayView/PlayerSlot/">PadPlayView.PlayerSlot</a></li><li><a href="/padplay/docs/api/PadPlayHost/ConnectionQualityChanged/">host.ConnectionQualityChanged</a></li><li><a href="/padplay/docs/api/PadPlayHost/RequestVideoStats/">host.RequestVideoStats</a></li><li><a href="/padplay/docs/fix/lag/">lag</a></li></ul></li><li><h2>Drops</h2><p>Wi-Fi dropped or the app went to the background. The slot and the pad stay.</p><ul><li><a href="/padplay/docs/api/PadPlayHost/PlayerLeft/">host.PlayerLeft</a></li><li><a href="/padplay/docs/api/PadPlayPad/IsConnected/">pad.IsConnected</a></li><li><a href="/padplay/docs/settings/ResumeHoldSeconds/">ResumeHoldSeconds</a></li></ul></li><li><h2>Comes back</h2><p>Back within Resume Hold Seconds (default 300 s): the same slot, and Resumed is true.</p><ul><li><a href="/padplay/docs/api/PadPlayHost/PlayerJoined/">host.PlayerJoined</a></li><li><a href="/padplay/docs/api/PadPlayHost/PlayerReady/">host.PlayerReady</a></li></ul></li><li><h2>Gone</h2><p>Timed out (Expired), Disconnect in the app or Kick (Bye), or the host stopped (Stopped). Remove the character here.</p><ul><li><a href="/padplay/docs/api/PadPlayHost/PlayerRemoved/">host.PlayerRemoved</a></li><li><a href="/padplay/docs/api/PadPlayHost/Kick/">host.Kick</a></li><li><a href="/padplay/docs/api/PadPlayHost/cmp-leftremoved/">leftremoved</a></li></ul></li></ol></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>

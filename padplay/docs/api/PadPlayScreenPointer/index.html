@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PadPlayScreenPointer — API reference | PadPlay</title>
+<meta name="description" content="Turns one player&#x27;s &quot;point on the screen&quot; and &quot;pressed or not&quot; into standard uGUI pointer events (Enter, Exit, Down, Up, Click, drags). For pressing UI with something other than a finger on the phone, such as a Gyro Pointer cursor. A plain C# class, not a component; it draws nothing and reads no input. Main thread only.">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/api/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/api/PadPlayScreenPointer/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/api/PadPlayScreenPointer/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>API reference</h1><p>Every PadPlay type, member and setting on one page. Filter by name or meaning.</p><h2>PadPlayScreenPointer</h2><p>Turns one player&#x27;s &quot;point on the screen&quot; and &quot;pressed or not&quot; into standard uGUI pointer events (Enter, Exit, Down, Up, Click, drags). For pressing UI with something other than a finger on the phone, such as a Gyro Pointer cursor. A plain C# class, not a component; it draws nothing and reads no input. Main thread only.</p><ul><li><a href="/padplay/docs/api/PadPlayScreenPointer/Process/"><code>Process</code></a> — Call once per frame.</li><li><a href="/padplay/docs/api/PadPlayScreenPointer/Cancel/"><code>Cancel</code></a> — Ends the press without a click and clears hover. Call it when your component is disabled or the player leaves.</li><li><a href="/padplay/docs/api/PadPlayScreenPointer/OverClickable/"><code>OverClickable</code></a> — Whether something clickable is under the point, the object under it, and whether it is pressed. For the cursor&#x27;s look.</li><li><a href="/padplay/docs/api/PadPlayScreenPointer/Data/"><code>Data</code></a> — The event data it sends. null before the first Process.</li><li><a href="/padplay/docs/api/PadPlayScreenPointer/GetPointerId/"><code>GetPointerId</code></a> — The pointerId per player. It never overlaps the mouse or phone fingers, so several players and the mouse can press different buttons at once. FingerId in its events is always -1.</li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>

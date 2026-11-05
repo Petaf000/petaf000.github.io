@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PadPlayGyroPointer — API reference | PadPlay</title>
+<meta name="description" content="Point the phone at the screen like a remote and where it points becomes a point on screen, for crosshairs and menu cursors. Twisting the wrist does not move it.">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/api/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/api/PadPlayGyroPointer/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/api/PadPlayGyroPointer/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>API reference</h1><p>Every PadPlay type, member and setting on one page. Filter by name or meaning.</p><h2>PadPlayGyroPointer</h2><p>Point the phone at the screen like a remote and where it points becomes a point on screen, for crosshairs and menu cursors. Twisting the wrist does not move it.</p><ul><li><a href="/padplay/docs/api/PadPlayGyroPointer/PlayerSlot/"><code>PlayerSlot</code></a> — Whose phone points, as a slot number. For two or more players, add one component per player.</li><li><a href="/padplay/docs/api/PadPlayGyroPointer/ViewportPosition/"><code>ViewportPosition</code></a> — The point, 0 to 1 like the viewport (y = 0 at the bottom). (0.5, 0.5) is forward; it stops at the edges.</li><li><a href="/padplay/docs/api/PadPlayGyroPointer/IsPointing/"><code>IsPointing</code></a> — Whether the last update read the phone&#x27;s attitude. false with nobody on the slot, while reconnecting, or before the first attitude. Fade the cursor and cancel presses while false.</li><li><a href="/padplay/docs/api/PadPlayGyroPointer/GetRay/"><code>GetRay</code></a> — A ray from camera through the point, to hit 3D objects.</li><li><a href="/padplay/docs/api/PadPlayGyroPointer/GetScreenPosition/"><code>GetScreenPosition</code></a> — The point in screen pixels (origin at the bottom left).</li><li><a href="/padplay/docs/api/PadPlayGyroPointer/Reticle/"><code>Reticle</code></a> — Optional UI that follows the point: its anchors are set to the point within its parent.</li><li><a href="/padplay/docs/api/PadPlayGyroPointer/ResetForward/"><code>ResetForward</code></a> — Makes the current pose the center for this pointer only (blends over Recenter Blend Ms). For the whole player, use host.Recenter.</li><li><a href="/padplay/docs/api/PadPlayGyroPointer/Settings-Axis/"><code>Settings.Axis</code></a> — Which way of the phone points. DeviceTop: the short edge with the camera, like a remote (the same held flat or tilted). TopEdge: the display&#x27;s top edge. Back: the back. Auto: chosen at each recenter (flat = top edge, upright = back).</li><li><a href="/padplay/docs/api/PadPlayGyroPointer/Settings-HorizontalRangeDegrees/"><code>Settings.HorizontalRangeDegrees</code></a> — How far to swing the phone to move the point edge to edge, left–right and bottom–top. Smaller = more sensitive.</li><li><a href="/padplay/docs/api/PadPlayGyroPointer/Settings-Reference/"><code>Settings.Reference</code></a> — What becomes the center on recenter. Full: where the phone points now (both axes). Yaw: left–right only; level is the center height.</li><li><a href="/padplay/docs/api/PadPlayGyroPointer/Settings-Smoothing/"><code>Settings.Smoothing</code></a> — Smoothing (0 to 0.99) and the blend time in ms after a recenter. Small shakes show on a pointer, so a stronger value than for the camera may suit it.</li><li><a href="/padplay/docs/api/PadPlayGyroPointer/Settings-FollowPadRecenter/"><code>Settings.FollowPadRecenter</code></a> — FollowPadRecenter: follow the player&#x27;s recenter. CalibrateOnConnect: recenter on join and resume. FollowScreenRotation: swinging right moves right in landscape too.</li><li><a href="/padplay/docs/api/PadPlayGyroPointer/TryGetForward/"><code>TryGetForward</code></a> — Keeps the point in place across scenes: read this pointer&#x27;s forward with TryGetForward, keep it, and give it to the next scene&#x27;s pointer with StartFrom before its first frame. ForwardCount changes with every new forward.</li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>

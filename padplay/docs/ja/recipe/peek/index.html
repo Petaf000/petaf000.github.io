@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>スマホを望遠レンズのように使う | PadPlay</title>
+<meta name="description" content="スマホの向きでカメラを回し、その絵をスマホに映します。かざして見回し、A を押している間ズームします。">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/recipe/peek/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/recipe/peek/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/recipe/peek/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/ja/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>スマホを望遠レンズのように使う</h1><p>スマホの向きでカメラを回し、その絵をスマホに映します。かざして見回し、A を押している間ズームします。</p><p>レンズ用のカメラを置き、Add Component → PadPlay → View を追加する</p><p>同じカメラに Add Component → PadPlay → Gyro Camera を追加する</p><p>下のスクリプト ZoomLens を同じカメラに追加する</p><pre>using PadPlay;
+using UnityEngine;
+
+// Next to PadPlayGyroCamera: hold A on the phone to zoom in like a telescope.
+public class ZoomLens : MonoBehaviour
+{
+    [SerializeField] PadPlayHost host;
+    [SerializeField] PadPlayGyroCamera lens;
+    [SerializeField] float wideDegrees = 60f;
+    [SerializeField] float zoomDegrees = 15f;
+
+    void Update()
+    {
+        PadPlayPad pad = host.GetPad(lens.PlayerSlot);
+        bool zoom = pad != null &amp;&amp; pad.IsConnected &amp;&amp; pad.buttonSouth.isPressed;
+        float target = zoom ? zoomDegrees : wideDegrees;
+        lens.FieldOfView = Mathf.Lerp(lens.FieldOfView, target, 1f - Mathf.Exp(-10f * Time.deltaTime));
+    }
+}</pre><p>Gyro Camera の Inspector に、スマホが遅れを隠していると出ていれば準備できています。再生してスマホをかざすと、向けた方向が映ります。A を押している間ズームします。テレビには、いつものカメラの絵が出たままです。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayGyroCamera/FieldOfView/">PadPlayGyroCamera.FieldOfView</a></li><li><a href="/padplay/docs/ja/api/PadPlayGyroCamera/IsCorrectingDelay/">PadPlayGyroCamera.IsCorrectingDelay</a></li><li><a href="/padplay/docs/ja/api/PadPlayGyroCamera/ScreenPointToRay/">PadPlayGyroCamera.ScreenPointToRay</a></li><li><a href="/padplay/docs/ja/api/PadPlayGyroCamera/VisibleViewportRect/">PadPlayGyroCamera.VisibleViewportRect</a></li><li><a href="/padplay/docs/ja/fix/video/">映像が黒い・乱れる</a></li><li><a href="/padplay/docs/ja/fix/recenter/">正面がずれる</a></li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>

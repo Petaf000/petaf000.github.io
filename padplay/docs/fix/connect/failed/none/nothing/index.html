@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phones cannot connect | PadPlay</title>
+<meta name="description" content="Nothing from the phone reaches the PC Check that the phone&#x27;s IP address starts like the PC&#x27;s (e.g. both 192.168.1.). If not, they are on different Wi-Fi.">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/fix/connect/failed/none/nothing/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/fix/connect/failed/none/nothing/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/fix/connect/failed/none/nothing/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>Phones cannot connect</h1><h2>Nothing from the phone reaches the PC</h2><ol><li>Check that the phone&#x27;s IP address starts like the PC&#x27;s (e.g. both 192.168.1.). If not, they are on different Wi-Fi.</li><li>Guest Wi-Fi and Wi-Fi with AP isolation (privacy separator) don&#x27;t work.</li><li>Turn off the phone&#x27;s VPN. On iPhone, allow PadPlay in Settings → Privacy &amp; Security → Local Network.</li><li>On a PC where a Hyper-V, WSL, Docker or VPN adapter comes first, put the Wi-Fi IP address in Host › Connection › Host Addresses.</li><li>Still unclear? Deep check at the bottom of the Connection tab watches for 20 s whether anything reaches the PC (Windows Editor only).</li></ol><ul><li><a href="/padplay/docs/settings/HostAddresses/">HostAddresses</a></li><li><a href="/padplay/docs/api/PadPlayDeepCheck/">PadPlayDeepCheck</a></li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>

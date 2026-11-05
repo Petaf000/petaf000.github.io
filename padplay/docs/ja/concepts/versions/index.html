@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>版の違うアプリと SDK — 仕組み | PadPlay</title>
+<meta name="description" content="1 つのアプリで、どの PadPlay のゲームにもつながります。版の違うアプリと SDK が組んだ時は、どちらも知らない物を読み飛ばし、新しい機能はそれを知っている相手にだけ使います。片方だけが新しくても、今までどおりに動きます。">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/concepts/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/concepts/versions/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/concepts/versions/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/ja/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>仕組み</h1><p>通信は安全か、何が外に出るか、どう動くかを 1 ページにまとめています。細かい所はリンク先にあります。</p><h2>データの流れ</h2><p>ゲームが始まると、PC の画面に QR コードが出ます。QR には PC のアドレスとポート、その時だけのトークンと暗号の鍵が入っています。スマホのアプリは QR を読み、その PC にだけ参加を申し込みます。</p><p>受け入れたスマホには、プレイヤーの枠(P1・P2 …)が決まります。その後に届くタッチ・ジャイロ・ボタンには、どれも枠の番号が付きます。</p><p>タッチ・ジャイロ・ボタンは、今の状態を 8 ms ごとに丸ごと送ります。1 つ落ちても次の 1 つで置き換わるので、待ち合わせが起きません。指やボタンを押した・離した、ボタンの配置、振動は、届いたという返事が来るまで送り直すので、落ちません。</p><p>映像は、カメラか RenderTexture の絵を H.264 か JPEG にして送ります。途中で欠けた分は、一緒に送る誤り訂正(FEC)で直します。</p><ul><li><a href="/padplay/docs/ja/flow/">flow</a></li><li><a href="/padplay/docs/ja/api/PadPlayPointerEventData/PlayerSlot/">PadPlayPointerEventData.PlayerSlot</a></li><li><a href="/padplay/docs/ja/api/PadPlayPad/">PadPlayPad</a></li><li><a href="/padplay/docs/ja/api/PadPlayView/">PadPlayView</a></li><li><a href="/padplay/docs/ja/settings/Modules/">Modules</a></li></ul><h2>通信の安全と暗号化</h2><ul><li>QR コードより後のやりとりは、すべて ChaCha20-Poly1305 で暗号化し、書き換えられていないかを確かめます。</li><li>鍵は 32 バイトの乱数です。ホストを始めるたびと、QR を作り直すたびに新しくなります。鍵は QR の中にだけあり、ネットワークには一度も流れません。</li><li>つながりごとに、その鍵から別の鍵を作ります(HKDF-SHA256)。パケットには通し番号があり、書き換えた物・録って流し直した物・別の鍵で封をした物は捨てます。</li><li>そのため、同じ Wi-Fi にいても QR を見ていない人は、タッチ・ボタン・ジャイロ・映像を読むことも偽ることもできず、プレイヤーの枠を奪うこともできません。</li><li>暗号を切る設定はないので、うっかり暗号なしでゲームを出すことはありません。暗号は公開の仕様(RFC 8439・RFC 5869・FIPS 180-4)をもとに SDK の中に書いたもので、外部のコードを使っていません。</li></ul><p>守れない物もあります。通信があることと、その大きさ・時刻は見えます。QR を見た人は、遊ぶ人と同じように参加できます。Wi-Fi の妨害は防げません。暗号化しないのは「アプリの版が合わない」「QR が古い」と知らせる短い返事 2 つだけで、ゲームのデータは入っていません。</p><p>QR を作り直すと、新しいスマホには新しい QR が要ります。作り直してから 60 秒は、参加していたスマホが前の QR で自分の枠に戻れます。誰かを締め出すために作り直すゲームでは、RenewGraceMs を 0 にします。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayHost/RenewToken/">host.RenewToken</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/NetworkSettings/">host.NetworkSettings</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/AcceptNewPlayers/">host.AcceptNewPlayers</a></li><li><a href="/padplay/docs/ja/fix/connect/rejected/oldqr/">connect/rejected/oldqr</a></li></ul><h2>外に出る物</h2><p>PC とスマホは、同じ Wi-Fi・LAN の中で直接つながります。インターネット・サーバー・アカウントは使わず、インターネット越しには遊べません。</p><p>SDK はインターネットに何も送りません。スマホから届く物(操作・機種名と OS・画面の大きさ・アプリが作った乱数の端末 ID)はメモリにだけ持ち、ファイルに書くのは報告を保存した時だけです。</p><p>Announce On LAN がオンの間は、つながらない時の手がかりにするため、同じ Wi-Fi に短い知らせを出します。中身は参加には使えない名前・ポート・PC のアドレスだけです。</p><p>スマホのアプリも、QR で選んだ PC のほかには何も送りません。広告・解析・クラッシュ報告の部品は入っていません。QR は端末の中で読み、カメラの画像を保存も送信もしません。</p><p>問題の報告(エディター・ゲーム・スマホ)は、ボタンを押した時にだけ作ります。名前とアドレスは伏せ、送るかどうかはその人が決めます。</p><ul><li><a href="/padplay/docs/ja/settings/AnnounceOnLan/">AnnounceOnLan</a></li><li><a href="/padplay/docs/ja/fix/report/">report</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/CreateSupportReport/">host.CreateSupportReport</a></li></ul><p><a href="/ja/privacy/">PadPlay アプリのプライバシーポリシー</a></p><h2>Windows の設定と管理者権限</h2><p>ビルドしたゲームは管理者権限を求めず、Windows の設定も変えません。ファイアウォールなどがスマホを止めている時は、遊ぶ人がボタンを押すと Windows の設定の画面を開くだけで、変えるのは遊ぶ人です。</p><p>ファイアウォールの規則は、インストールの時に足すのが確実です。Windows でビルドすると、ビルドのフォルダの横に、Steam 用の installscript.vdf と、自分のインストーラーに書く netsh の行を書き出します。</p><p>エディターの中でだけ、PadPlay Debug の接続タブから、確かめた上で規則を足したり消したりできます。その時は Windows の管理者の確認が出ます。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayPcFix/">PadPlayPcFix</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/FixConnectionHintAsync/">host.FixConnectionHintAsync</a></li><li><a href="/padplay/docs/ja/fix/connect/failed/fw/">connect/failed/fw</a></li></ul><h2>作りの層</h2><p>パッケージは 2 つのアセンブリに分かれています。PadPlay.Core はエンジンを参照しない C#(C# 9・netstandard2.1)で、通信と暗号・プレイヤーの枠・座標の変換・ジャイロの計算・時計合わせ・QR を受け持ちます。Unity なしで試せる物は、全部ここにあります。</p><p>PadPlay.Unity は Unity に触れる物です。PadPlayHost、uGUI へのイベントの流し込み、Raycaster、Input System のデバイス PadPlayPad、映像の取り込みと符号化、ジャイロの部品があります。使う型はどちらも名前空間 PadPlay にあるので、using PadPlay; だけで足ります。</p><p>Unity の Input System と uGUI のほかに、パッケージは要りません。H.264 は Windows の Media Foundation で符号化し、コーデックのライブラリは入れていません。</p><p>スマホのアプリは Flutter で、通信の部分は C++ です。PC の C# とスマホの C++ は同じテスト用のバイト列で確かめているので、やりとりは同じです。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayHost/">PadPlayHost</a></li><li><a href="/padplay/docs/ja/api/PadPlayPointerEventData/">PadPlayPointerEventData</a></li><li><a href="/padplay/docs/ja/api/PadPlayRaycaster/">PadPlayRaycaster</a></li><li><a href="/padplay/docs/ja/api/PadPlayPad/">PadPlayPad</a></li></ul><h2>無料版と有料版</h2><p>PadPlay Lite(無料)と PadPlay SDK(有料)の動きの違いは、映像(第二画面)の有無だけです。Lite には PadPlayView が無く、映像を使う見本 4 つも入っていません。</p><p>人数・タッチ・ジャイロ・ボタン・振動・暗号は同じで、時間の制限や透かしはありません。有料版には、自分の名前で出せるスマホのアプリのソースも入っています。どちらの版で動いているかは、コードから PadPlayEdition.IsLite で分かります。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayEdition/">PadPlayEdition</a></li><li><a href="/padplay/docs/ja/api/PadPlayView/">PadPlayView</a></li></ul><h2>版の違うアプリと SDK</h2><p>1 つのアプリで、どの PadPlay のゲームにもつながります。版の違うアプリと SDK が組んだ時は、どちらも知らない物を読み飛ばし、新しい機能はそれを知っている相手にだけ使います。片方だけが新しくても、今までどおりに動きます。</p><p>通信の取り決めの版そのものが違う時だけは、つながらず、スマホに「PadPlay アプリを更新してください。」と出ます。</p><ul><li><a href="/padplay/docs/ja/fix/app/">app</a></li><li><a href="/padplay/docs/ja/fix/connect/rejected/version/">connect/rejected/version</a></li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>

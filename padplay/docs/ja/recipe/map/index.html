@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>プレイヤーごとの地図を手元に出す | PadPlay</title>
+<meta name="description" content="プレイヤーごとに用意したカメラの絵を、その人のスマホにだけ送ります。">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/recipe/map/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/recipe/map/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/recipe/map/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/ja/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>プレイヤーごとの地図を手元に出す</h1><p>プレイヤーごとに用意したカメラの絵を、その人のスマホにだけ送ります。</p><p>地図用のカメラをプレイヤーの人数分置く(Culling Mask は UI のレイヤーだけ)</p><p>その子に Canvas(Screen Space - Camera)と地図の UI を置く</p><p>カメラに Add Component → PadPlay → View を追加する</p><p>メインカメラの Culling Mask から UI のレイヤーを外す</p><pre>using PadPlay;
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+// On a map UI element: a tap on the phone is an ordinary uGUI click.
+public class MapPin : MonoBehaviour, IPointerClickHandler
+{
+    [SerializeField] PadPlayHost host;
+
+    public void OnPointerClick(PointerEventData e)
+    {
+        if (e is PadPlayPointerEventData p)
+            host.Pulse(p.PlayerSlot, 80);   // short buzz for whoever tapped
+    }
+}</pre><p>スマホを 2 台つなぐと、それぞれに別の地図が出ます。テレビ側には地図は出ません。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayView/SourceCamera/">PadPlayView.SourceCamera</a></li><li><a href="/padplay/docs/ja/api/PadPlayView/PlayerSlot/">PadPlayView.PlayerSlot</a></li><li><a href="/padplay/docs/ja/api/PadPlayView/UseAsTouchTarget/">PadPlayView.UseAsTouchTarget</a></li><li><a href="/padplay/docs/ja/api/PadPlayPointerEventData/PlayerSlot/">PadPlayPointerEventData.PlayerSlot</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/Pulse/">host.Pulse</a></li><li><a href="/padplay/docs/ja/fix/video/">映像が黒い・乱れる</a></li><li><a href="/padplay/docs/ja/fix/input/touch/">タップしても反応しない</a></li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>

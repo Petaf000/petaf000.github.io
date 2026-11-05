@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>y 軸の向きの違い — API リファレンス | PadPlay</title>
+<meta name="description" content="y 軸の向きの違い">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/api/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/api/PadPlayGyroPointer/cmp-yaxis/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/api/PadPlayGyroPointer/cmp-yaxis/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/ja/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>API リファレンス</h1><p>PadPlay のすべての型・メンバー・設定項目をこのページにまとめています。名前や意味で絞り込めます。</p><h2>PadPlayGyroPointer</h2><p>スマホをリモコンのように画面へ向けると、指した所が画面の上の点になります。照準や、画面のメニューを指すカーソルに使います。手首をひねっても点は動きません。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/PlayerSlot/"><code>PlayerSlot</code></a> — どのプレイヤーのスマホで指すかを、枠の番号で指定します。2 人以上なら、プレイヤーごとにこの部品を付けます。</li><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/ViewportPosition/"><code>ViewportPosition</code></a> — 指している点です。ビューポートと同じ 0〜1 で、y = 0 が下です。(0.5, 0.5) が正面で、画面の端で止まります。</li><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/IsPointing/"><code>IsPointing</code></a> — 直前の更新でスマホの向きを読めたかどうかです。枠に誰もいない、再接続を待っている、まだ姿勢が届いていない、のどれかのときは false です。false の間は、カーソルを薄くしたり押す操作を取り消したりします。</li><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/GetRay/"><code>GetRay</code></a> — camera から、指している点を通るレイを返します。3D のオブジェクトとの当たり判定に使います。</li><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/GetScreenPosition/"><code>GetScreenPosition</code></a> — 指している点をスクリーンのピクセル(左下が原点)で返します。</li><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/Reticle/"><code>Reticle</code></a> — 点についてくる UI です(任意)。親の RectTransform の中で、アンカーを点の位置に合わせて動かします。</li><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/ResetForward/"><code>ResetForward</code></a> — このポインターだけ、今の向きを真ん中にします(Recenter Blend Ms かけて移ります)。プレイヤー全体を合わせ直すなら host.Recenter を使います。</li><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/Settings-Axis/"><code>Settings.Axis</code></a> — スマホのどの方向で指すかを決めます。DeviceTop はカメラのある短い辺で指します(リモコンと同じで、寝かせても傾けても変わりません)。TopEdge は表示の上の辺、Back は背面です。Auto は正面合わせのたびに、平らに持っていれば上の辺、立てていれば背面を選びます。</li><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/Settings-HorizontalRangeDegrees/"><code>Settings.HorizontalRangeDegrees</code></a> — 点を左右の端から端まで、上下の端から端まで動かすのに、スマホを振る角度です。小さいほど敏感です。</li><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/Settings-Reference/"><code>Settings.Reference</code></a> — 正面合わせのときに何を真ん中にするかを決めます。Full は今指している方向(左右と上下)を真ん中にします。Yaw は左右だけを合わせ、高さは水平が真ん中になります。</li><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/Settings-Smoothing/"><code>Settings.Smoothing</code></a> — 向きのなめらかさ(0〜0.99)と、合わせ直した後に前の点から移る時間(ms)です。ポインターは小さな揺れが目立つので、カメラより強めでもかまいません。</li><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/Settings-FollowPadRecenter/"><code>Settings.FollowPadRecenter</code></a> — FollowPadRecenter がオンなら、プレイヤーの正面合わせに合わせてこのポインターも合わせ直します。CalibrateOnConnect がオンなら、参加・復帰したときに合わせ直します。FollowScreenRotation がオンなら、スマホを横にしても、右へ振れば点が右へ動きます。</li><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/TryGetForward/"><code>TryGetForward</code></a> — シーンを変えても、点を同じ所に保つための API です。今のポインターの正面を TryGetForward で取っておき、次のシーンのポインターの最初のフレームより前に StartFrom で渡します。ForwardCount は正面が変わるたびに増えます。</li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>

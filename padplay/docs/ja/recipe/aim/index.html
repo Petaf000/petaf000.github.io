@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ジャイロで狙って撃つ | PadPlay</title>
+<meta name="description" content="スマホを向けた先に照準を出し、A ボタンで撃ちます。">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/recipe/aim/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/recipe/aim/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/recipe/aim/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/ja/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>ジャイロで狙って撃つ</h1><p>スマホを向けた先に照準を出し、A ボタンで撃ちます。</p><p>Add Component → PadPlay → Gyro Pointer を追加する</p><p>照準にする UI の Image を Reticle に入れる</p><p>下のスクリプト GyroShooter を同じ GameObject に追加する</p><pre>using PadPlay;
+using UnityEngine;
+
+public class GyroShooter : MonoBehaviour
+{
+    [SerializeField] PadPlayHost host;
+    [SerializeField] PadPlayGyroPointer pointer;
+    [SerializeField] Camera cam;
+
+    void Update()
+    {
+        PadPlayPad pad = host.GetPad(pointer.PlayerSlot);
+        if (pad == null || !pointer.IsPointing)
+            return;
+        if (!pad.buttonSouth.wasPressedThisFrame)
+            return;
+
+        if (Physics.Raycast(pointer.GetRay(cam), out RaycastHit hit))
+            host.Pulse(pointer.PlayerSlot, 80);   // hit: short buzz
+    }
+}</pre><p>スマホの上の端を画面に向けると照準が動きます。ずれてきたら、スマホの画面の左上の隅を 1 秒長押しします。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/GetRay/">PadPlayGyroPointer.GetRay</a></li><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/IsPointing/">PadPlayGyroPointer.IsPointing</a></li><li><a href="/padplay/docs/ja/api/PadPlayGyroPointer/cmp-yaxis/">yaxis</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/Pulse/">host.Pulse</a></li><li><a href="/padplay/docs/ja/fix/recenter/">照準がずれる</a></li><li><a href="/padplay/docs/ja/fix/input/buttons/">A ボタンが反応しない</a></li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>

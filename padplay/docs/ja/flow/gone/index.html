@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>退出 — 全体の流れ | PadPlay</title>
+<meta name="description" content="時間切れ(Expired)、アプリで「切る」か Kick(Bye)、Host の停止(Stopped)のどれかです。キャラクターを消すのはここです。">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/flow/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/flow/gone/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/flow/gone/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/ja/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>全体の流れ</h1><p>スマホが参加してから離れるまでの流れです。段階を選ぶと、そこで届くイベントと API を表示します。</p><ol><li><h2>QR コードを出す</h2><p>Host が待ち受けを始め、QR View が QR コードを出します。PC がスマホを止めていると分かったときは、QR の下に帯が出ます。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayHost/AutoStart/">host.AutoStart</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/JoinUriChanged/">host.JoinUriChanged</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/ConnectionHint/">host.ConnectionHint</a></li><li><a href="/padplay/docs/ja/api/PadPlayQrView/">PadPlayQrView</a></li><li><a href="/padplay/docs/ja/fix/console/">console</a></li></ul></li><li><h2>参加</h2><p>プレイヤーの枠が決まります。入力はまだ届きません。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayHost/PlayerJoined/">host.PlayerJoined</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/GetPlayerState/">host.GetPlayerState</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/cmp-joinready/">joinready</a></li></ul></li><li><h2>準備完了</h2><p>入力が届き始め、パッドが使えます。キャラクターを出すのはここです。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayHost/PlayerReady/">host.PlayerReady</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/GetPad/">host.GetPad</a></li><li><a href="/padplay/docs/ja/recipe/two/">two</a></li></ul></li><li><h2>ボタン配置</h2><p>スマホにボタン配置を送ります。全員に同じなら Settings.Buttons.Layout、1 人だけ変えるなら SetLayout です。</p><ul><li><a href="/padplay/docs/ja/settings/Layout/">Layout</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/SetLayout/">host.SetLayout</a></li><li><a href="/padplay/docs/ja/api/PadPlayButtonLayout/">PadPlayButtonLayout</a></li></ul></li><li><h2>入力</h2><p>タッチは uGUI のイベントとして、ボタンとジャイロは PadPlayPad として届きます。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayPointerEventData/PlayerSlot/">PadPlayPointerEventData.PlayerSlot</a></li><li><a href="/padplay/docs/ja/api/PadPlayPad/attitude/">pad.attitude</a></li><li><a href="/padplay/docs/ja/api/PadPlayPad/GetButton/">pad.GetButton</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/Recentered/">host.Recentered</a></li><li><a href="/padplay/docs/ja/fix/lag/">lag</a></li></ul></li><li><h2>映像</h2><p>View がカメラの絵をそのプレイヤーのスマホへ送ります。Wi-Fi が弱いと自分で画質を下げ、崩れたらスマホが立て直しを頼みます。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayView/SourceCamera/">PadPlayView.SourceCamera</a></li><li><a href="/padplay/docs/ja/api/PadPlayView/PlayerSlot/">PadPlayView.PlayerSlot</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/ConnectionQualityChanged/">host.ConnectionQualityChanged</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/RequestVideoStats/">host.RequestVideoStats</a></li><li><a href="/padplay/docs/ja/fix/lag/">lag</a></li></ul></li><li><h2>通信が切れる</h2><p>Wi-Fi が切れたときや、アプリが裏に回ったときです。枠とパッドは残ります。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayHost/PlayerLeft/">host.PlayerLeft</a></li><li><a href="/padplay/docs/ja/api/PadPlayPad/IsConnected/">pad.IsConnected</a></li><li><a href="/padplay/docs/ja/settings/ResumeHoldSeconds/">ResumeHoldSeconds</a></li></ul></li><li><h2>復帰</h2><p>Resume Hold Seconds(既定 300 秒)のうちに戻れば、同じ枠に戻ります。Resumed は true です。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayHost/PlayerJoined/">host.PlayerJoined</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/PlayerReady/">host.PlayerReady</a></li></ul></li><li><h2>退出</h2><p>時間切れ(Expired)、アプリで「切る」か Kick(Bye)、Host の停止(Stopped)のどれかです。キャラクターを消すのはここです。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayHost/PlayerRemoved/">host.PlayerRemoved</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/Kick/">host.Kick</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/cmp-leftremoved/">leftremoved</a></li></ul></li></ol></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>

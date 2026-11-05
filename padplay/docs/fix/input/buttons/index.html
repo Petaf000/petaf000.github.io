@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Input doesn&#x27;t arrive | PadPlay</title>
+<meta name="description" content="Buttons don&#x27;t reach the game Check that the phone shows buttons. A Host added by hand has no layout; set Buttons › Layout (PadPlay Setup adds a stick, A and B).">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/fix/input/buttons/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/fix/input/buttons/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/fix/input/buttons/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>Input doesn&#x27;t arrive</h1><h2>Buttons don&#x27;t reach the game</h2><ol><li>Check that the phone shows buttons. A Host added by hand has no layout; set Buttons › Layout (PadPlay Setup adds a stick, A and B).</li><li>GetPad returns null until PlayerReady.</li><li>PadPlay Debug&#x27;s Status tab names where the presses stop. &quot;Buttons arrive, but this project does not use the Input System&quot;: set Project Settings › Player › Active Input Handling to Both or Input System Package (New).</li><li>&quot;…Gamepad, but no Input Action reads it&quot;: check that your actions are enabled and bound to the Gamepad. With PlayerInput, check that the phone&#x27;s pad is paired to it.</li></ol><ul><li><a href="/padplay/docs/api/PadPlayHost/GetPad/">host.GetPad</a></li><li><a href="/padplay/docs/settings/Layout/">Layout</a></li><li><a href="/padplay/docs/api/PadPlayDiagnostics/ButtonPressesReceived/">PadPlayDiagnostics.ButtonPressesReceived</a></li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PadPlayDebugOverlay — API reference | PadPlay</title>
+<meta name="description" content="Shows player count, each player&#x27;s state, round trip and held buttons in a corner of a built game. While shown, the report key saves a support report and copies it. Use it to get reports from players. It uses no Canvas, so your UI is unaffected.">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/api/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/api/PadPlayDebugOverlay/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/api/PadPlayDebugOverlay/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>API reference</h1><p>Every PadPlay type, member and setting on one page. Filter by name or meaning.</p><h2>PadPlayDebugOverlay</h2><p>Shows player count, each player&#x27;s state, round trip and held buttons in a corner of a built game. While shown, the report key saves a support report and copies it. Use it to get reports from players. It uses no Canvas, so your UI is unaffected.</p><ul><li><a href="/padplay/docs/api/PadPlayDebugOverlay/ToggleKey/"><code>ToggleKey</code></a> — The key that shows and hides it (an Input System Key), and whether it is shown. Key.None = no key.</li><li><a href="/padplay/docs/api/PadPlayDebugOverlay/ReportKey/"><code>ReportKey</code></a> — While shown, this key saves a report. The overlay then shows &quot;Report saved and copied. Send it to the game&#x27;s developer: &quot; and the file&#x27;s path (in the host&#x27;s Display Language). SaveReport() does the same.</li><li><a href="/padplay/docs/api/PadPlayDebugOverlay/BuildText/"><code>BuildText</code></a> — The text shown. Apart from the report lines and the key hint it is English. A Gyro Camera player gets a line such as window: m2p 48 ms  fix 3.2°.</li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=9801d3a359"></script>
+<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+</body>
+</html>
