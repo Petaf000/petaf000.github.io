@@ -475,3 +475,13 @@ main.wrap.wide { max-width: 960px; }
 @media (max-width: 480px) {
   .video-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* トップの見出しの段(文字だけ)と、製品 1 つの札(絵 1 枚 + 名前 + 一言) */
+.hero-solo { padding-top: 72px; padding-bottom: 80px; }
+.hero-solo .lead { max-width: 36em; }
+.products-home h2 { margin: 0 0 24px; }
+.product-card { margin-top: 8px; }
+.product-name { font-size: 32px; margin: 0; }
+.product-name a { color: inherit; text-decoration: none; }
+.product-name a:hover { text-decoration: underline; text-underline-offset: 6px; }
+@media (max-width: 960px) { .hero-solo { padding-top: 48px; padding-bottom: 56px; } }
