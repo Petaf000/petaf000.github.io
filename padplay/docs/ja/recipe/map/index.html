@@ -10,7 +10,7 @@
 <link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/recipe/map/">
 <meta name="theme-color" content="#f7f4ee">
 <link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=8f5210e072">
 <style>.js #main > .fb { display: none; }</style>
 <script>document.documentElement.classList.add("js");</script>
 
@@ -24,7 +24,7 @@
     <button class="langbtn" id="langbtn" type="button"></button>
   </div>
 </header>
-<main id="main"><div class="fb"><h1>プレイヤーごとの地図を手元に出す</h1><p>プレイヤーごとに用意したカメラの絵を、その人のスマホにだけ送ります。</p><p>地図用のカメラをプレイヤーの人数分置く(Culling Mask は UI のレイヤーだけ)</p><p>その子に Canvas(Screen Space - Camera)と地図の UI を置く</p><p>カメラに Add Component → PadPlay → View を追加する</p><p>メインカメラの Culling Mask から UI のレイヤーを外す</p><pre>using PadPlay;
+<main id="main"><div class="fb"><h1>プレイヤーごとの地図を手元に出す</h1><p>プレイヤーごとに用意したカメラの絵を、その人のスマホにだけ送ります。</p><p><a href="https://www.youtube.com/watch?v=BJ7z3pZILdE">動画: プレイヤーごとの地図を手元に出す (2:52)</a></p><p>地図用のカメラをプレイヤーの人数分置く(Culling Mask は UI のレイヤーだけ)</p><p>その子に Canvas(Screen Space - Camera)と地図の UI を置く</p><p>カメラに Add Component → PadPlay → View を追加する</p><p>メインカメラの Culling Mask から UI のレイヤーを外す</p><pre>using PadPlay;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -44,7 +44,8 @@ public class MapPin : MonoBehaviour, IPointerClickHandler
   <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
 </div>
 <div class="toast" id="toast" role="status"></div>
-<script src="/padplay/docs/_app/data.js?v=f7c961d733"></script>
-<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+<script src="/padplay/docs/_app/data.js?v=99edc0dd45"></script>
+<script src="/padplay/docs/_app/app.js?v=61513b1a61"></script>
+<script src="/assets/video.js?v=369aaae253"></script>
 </body>
 </html>

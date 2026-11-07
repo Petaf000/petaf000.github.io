@@ -10,7 +10,7 @@
 <link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/start/">
 <meta name="theme-color" content="#f7f4ee">
 <link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=6a5909c4e0">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=8f5210e072">
 <style>.js #main > .fb { display: none; }</style>
 <script>document.documentElement.classList.add("js");</script>
 
@@ -24,7 +24,7 @@
     <button class="langbtn" id="langbtn" type="button"></button>
   </div>
 </header>
-<main id="main"><div class="fb"><h1>5 分ではじめる</h1><p>空のプロジェクトから、スマホで動かすまでの手順です。</p><h2>必要なもの</h2><ul><li>遊ぶ人のスマホに無料の PadPlay アプリ(まもなく Google Play と App Store に出ます)</li><li>PC とスマホを同じ Wi-Fi に</li><li>Windows 10 / 11、Unity 2022.3.62f3 以降</li></ul><ol><li><h2>パッケージを入れる</h2><p><code>Window → Package Manager → My Assets → PadPlay SDK → Download → Import</code></p><p>Welcome のウィンドウが開きます。Input System の警告が出たら「Set to Both…」を押し、エディターを再起動します。</p></li><li><h2>シーンに置く</h2><p><code>GameObject → PadPlay → PadPlay Setup</code></p><p>Host・QR コード・プレイヤーの一覧・EventSystem がまとめて入ります。</p></li><li><h2>再生する</h2><p>Game ビューの右下に QR コードが出ます。</p><p>Windows の確認画面が出たら、「許可」を押します(Windows によっては「アクセスを許可する」)。</p><p>QR コードの下に帯が出たら、その文のとおりにボタンを押します。</p></li><li><h2>スマホをつなぐ</h2><p>PadPlay アプリで QR コードを読み、「つなぐ」を押します。</p><p>スマホにスティックと A・B のボタンが出ます。スマホの画面から、ゲームの UI も押せます。</p></li><li><h2>入力を読む</h2><p>下のスクリプトを GameObject に追加します。A を押すと Console に出ます。</p><pre>using PadPlay;
+<main id="main"><div class="fb"><h1>5 分ではじめる</h1><p>空のプロジェクトから、スマホで動かすまでの手順です。</p><p><a href="https://www.youtube.com/watch?v=pRRvgGNN_zQ">動画: 入れて 1 分で動かす (1:19)</a></p><h2>必要なもの</h2><ul><li>遊ぶ人のスマホに無料の PadPlay アプリ(まもなく Google Play と App Store に出ます)</li><li>PC とスマホを同じ Wi-Fi に</li><li>Windows 10 / 11、Unity 2022.3.62f3 以降</li></ul><ol><li><h2>パッケージを入れる</h2><p><code>Window → Package Manager → My Assets → PadPlay SDK → Download → Import</code></p><p>Welcome のウィンドウが開きます。Input System の警告が出たら「Set to Both…」を押し、エディターを再起動します。</p></li><li><h2>シーンに置く</h2><p><code>GameObject → PadPlay → PadPlay Setup</code></p><p>Host・QR コード・プレイヤーの一覧・EventSystem がまとめて入ります。</p></li><li><h2>再生する</h2><p>Game ビューの右下に QR コードが出ます。</p><p>Windows の確認画面が出たら、「許可」を押します(Windows によっては「アクセスを許可する」)。</p><p>QR コードの下に帯が出たら、その文のとおりにボタンを押します。</p></li><li><h2>スマホをつなぐ</h2><p>PadPlay アプリで QR コードを読み、「つなぐ」を押します。</p><p>スマホにスティックと A・B のボタンが出ます。スマホの画面から、ゲームの UI も押せます。</p></li><li><h2>入力を読む</h2><p>下のスクリプトを GameObject に追加します。A を押すと Console に出ます。</p><pre>using PadPlay;
 using UnityEngine;
 
 public class PadReader : MonoBehaviour
@@ -46,7 +46,8 @@ public class PadReader : MonoBehaviour
   <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
 </div>
 <div class="toast" id="toast" role="status"></div>
-<script src="/padplay/docs/_app/data.js?v=f7c961d733"></script>
-<script src="/padplay/docs/_app/app.js?v=95eb7a3750"></script>
+<script src="/padplay/docs/_app/data.js?v=99edc0dd45"></script>
+<script src="/padplay/docs/_app/app.js?v=61513b1a61"></script>
+<script src="/assets/video.js?v=369aaae253"></script>
 </body>
 </html>

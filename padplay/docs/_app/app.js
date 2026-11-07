@@ -9,7 +9,8 @@ const D = window.PADPLAY_DOCS;
 const J = id => D[id];
 const BASE = D.base, PROTO = !!D.proto;
 const API = J("data-api"), REC = J("data-recipes"), FIX = J("data-fix"), START = J("data-start"),
-      FLOW = J("data-flow"), CON = J("data-concepts"), MENUS = J("data-menus"), MSG = J("data-messages"), IDX = J("data-search"), IMG = J("data-images");
+      FLOW = J("data-flow"), CON = J("data-concepts"), MENUS = J("data-menus"), MSG = J("data-messages"), IDX = J("data-search"), IMG = J("data-images"),
+      VIDEOS = J("data-videos") || {};
 
 const UI = {
   ja: { home: "ホーム", start: "はじめる", make: "作り方", fix: "困ったときは", api: "API リファレンス", flow: "全体の流れ", concepts: "仕組み",
@@ -115,6 +116,19 @@ function ref(r) {
 }
 const refLink = r => { const x = ref(r); return `<a href="${href(x.h)}">${x.k === "api" ? `<code>${esc(x.n).replace(/\./g, ".<wbr>")}</code>` : esc(x.n)}</a>`; };
 const img = name => IMG[name] || "";
+// a video: our own still and a play button. /assets/video.js swaps it for the YouTube player (youtube-nocookie.com) only when pressed;
+// until then nothing is loaded from YouTube. withTitle: show the video title under it (when it differs from the page title).
+// Ctrl / middle click opens the video on YouTube as a normal link.
+function video(name, withTitle) {
+  const v = VIDEOS[name];
+  if (!v) return "";
+  const x = v[lang], ja = lang === "ja";
+  const label = ja ? `「${x.title}」を再生する(${v.len})` : `Play “${x.title}” (${v.len})`;
+  return `<div class="vid" data-a="video">
+    <div class="yt" data-yt="${esc(x.id)}" data-title="${esc(x.title)}"><a class="yt-poster" role="button" href="https://www.youtube.com/watch?v=${esc(x.id)}" aria-label="${esc(label)}"><img src="${esc(v.img)}" alt="" width="800" height="450" loading="lazy"><span class="yt-play" aria-hidden="true"></span></a></div>
+    <p class="vid-cap"><b>${ja ? "動画で見る" : "Watch the video"}</b>${withTitle ? `<span>${esc(x.title)}</span>` : ""}<span class="meta">${esc(v.len)}</span></p>
+  </div>`;
+}
 const SEARCH_ICON = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
 
 // --- home: intro, two tabs (get started / API) that open under the buttons, then troubleshooting ---
@@ -191,6 +205,7 @@ function wireTabs() {
 function panelStart() {
   const need = START[0], rest = START.slice(1);
   return `<div class="page">
+    <div>${video("quickstart", true)}
     <ol class="steps">${rest.map((s, i) => `<li data-a="s${i + 1}">${num(i + 1)}<div>
       <h3>${esc(t(s.t))}</h3><div class="body">
       ${s.menu ? `<div class="menuline"><span class="menu">${esc(s.menu)}</span><button class="cbtn" data-copy="${esc(s.menu)}">${u("copy")}</button></div>` : ""}
@@ -199,7 +214,7 @@ function panelStart() {
       ${s.see ? `<p class="check">${esc(t(s.see))}</p>` : ""}
       ${s.alt ? `<p class="alt">${esc(t(s.alt))}</p>` : ""}
       ${s.fix ? `<p class="alt"><a href="${href("fix/" + s.fix)}">${u("ifnot")}</a></p>` : ""}
-      </div></div></li>`).join("")}</ol>
+      </div></div></li>`).join("")}</ol></div>
     <aside class="aside">
       <div><h4>${u("needTitle")}</h4><ul>${need.do.map(d => `<li>${esc(t(d))}</li>`).join("")}</ul></div>
       <div><h4>${u("next")}</h4><ul>${REC.items.map(r => `<li><a href="${href("recipe/" + r.id)}">${esc(t(r.title))}</a></li>`).join("")}</ul></div>
@@ -224,7 +239,8 @@ function viewRecipe(id) {
   return `<div class="rhead" data-a="top">
     <div><p class="crumb"><a href="${href("")}">${u("home")}</a> / <a href="${href("recipes")}">${u("make")}</a></p>
       <h1>${esc(t(r.title))}</h1><p class="lead">${esc(t(r.lead))}</p>
-      <div class="facts"><span><b>${u("time")}</b>${esc(t(r.time))}</span><span><b>${u("modules")}</b>${r.modules.join(", ")}</span>${sample}</div></div>
+      <div class="facts"><span><b>${u("time")}</b>${esc(t(r.time))}</span><span><b>${u("modules")}</b>${r.modules.join(", ")}</span>${sample}</div>
+      ${video(r.id)}</div>
     ${demo}</div>
   <div class="page">
     <ol class="steps">

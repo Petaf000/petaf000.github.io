@@ -15,6 +15,7 @@
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/style.css">
+<script src="/assets/video.js" defer></script>
 </head>
 <body>
 <header class="site-header">
@@ -29,20 +30,62 @@
     <a class="lang" href="/ja/products/" lang="ja" hreflang="ja">日本語</a>
   </div>
 </header>
-<main class="wrap">
+<main>
 
+  <div class="wrap page">
   <h1>Products</h1>
-  <article class="card">
-      <div class="card-head"><h3>PadPlay</h3><span class="badge">Coming soon</span></div>
-      <p>A Unity SDK that turns phones into second-screen controllers.</p>
-      <p class="card-links"><a href="/privacy/">Privacy policy of the PadPlay app</a></p>
-    </article>
-  <p class="muted">Details will be posted here when it is released.</p>
+  <article class="product product-full" aria-labelledby="padplay">
+    <div class="product-grid">
+      <div class="product-text">
+        <div class="product-head"><h2 id="padplay">PadPlay</h2><span class="status">Coming soon</span></div>
+        <p class="summary">A Unity SDK that turns phones into second-screen controllers.</p>
+        <p>Players open the PadPlay app and scan a QR code, and their phone joins your game. Each phone can be a touch panel, a gyro pointer, a gamepad with vibration, and a second screen that shows that player’s own picture.</p>
+        <dl class="editions">
+          <div><dt>PadPlay SDK</dt><dd>Everything, including second-screen video. Comes with the source of the phone app, so you can publish it under your own name.</dd></div>
+          <div><dt>PadPlay Lite</dt><dd>The same players, touch, gyro, buttons and vibration, without video.</dd></div>
+        </dl>
+        <p class="links"><a href="/padplay/docs/">Documentation</a><a href="#videos">How-to videos</a><a href="/privacy/">Privacy policy of the PadPlay app</a></p>
+      </div>
+      <figure class="shot shot-product">
+      <div class="plate"><div class="plate-inner"><img src="/assets/img/padplay-treasure-map.webp" alt="" width="1158" height="658"><span class="tag tv" aria-hidden="true">TV</span><span class="tag p1" aria-hidden="true">P1</span><span class="tag p2" aria-hidden="true">P2</span></div></div>
+      <figcaption>Treasure Map, a sample scene. Everyone sees the island on the TV, and each phone is a paper map that shows only that player’s treasure.</figcaption>
+    </figure>
+    </div>
+  </article>
+  <section class="videos" id="videos" aria-labelledby="videos-h">
+    <h2 id="videos-h">How-to videos</h2>
+    <p class="muted">Each video shows how to build one thing in Unity, with captions. A video loads from YouTube when you press play.</p>
+    <ul class="video-grid">
+      <li class="video video-first">
+        <div class="yt" data-yt="PqjGykk6-P8" data-title="Up and running in a minute"><a class="yt-poster" href="https://www.youtube.com/watch?v=PqjGykk6-P8" aria-label="Watch “Up and running in a minute” on YouTube (1:19)" data-play-label="Play “Up and running in a minute” (1:19)"><img src="/assets/img/video-quickstart.webp" alt="" width="800" height="450" loading="lazy"><span class="yt-play" aria-hidden="true"></span></a></div>
+        <div class="video-text"><h3 class="video-title">Up and running in a minute</h3><p class="video-note">Import PadPlay, scan the QR code with a phone, and move a cube with it.</p><p class="meta">1:19</p></div></li>
+      <li class="video">
+        <div class="yt" data-yt="gz13bb15MaM" data-title="Steer by turning the phone"><a class="yt-poster" href="https://www.youtube.com/watch?v=gz13bb15MaM" aria-label="Watch “Steer by turning the phone” on YouTube (2:33)" data-play-label="Play “Steer by turning the phone” (2:33)"><img src="/assets/img/video-steering.webp" alt="" width="800" height="450" loading="lazy"><span class="yt-play" aria-hidden="true"></span></a></div>
+        <div class="video-text"><h3 class="video-title">Steer by turning the phone</h3><p class="meta">2:33</p></div></li>
+      <li class="video">
+        <div class="yt" data-yt="qEyjl7T37v4" data-title="Give each player a private map"><a class="yt-poster" href="https://www.youtube.com/watch?v=qEyjl7T37v4" aria-label="Watch “Give each player a private map” on YouTube (2:52)" data-play-label="Play “Give each player a private map” (2:52)"><img src="/assets/img/video-map.webp" alt="" width="800" height="450" loading="lazy"><span class="yt-play" aria-hidden="true"></span></a></div>
+        <div class="video-text"><h3 class="video-title">Give each player a private map</h3><p class="meta">2:52</p></div></li>
+      <li class="video">
+        <div class="yt" data-yt="QiPI93cJ0fE" data-title="Aim with the gyro and shoot"><a class="yt-poster" href="https://www.youtube.com/watch?v=QiPI93cJ0fE" aria-label="Watch “Aim with the gyro and shoot” on YouTube (2:32)" data-play-label="Play “Aim with the gyro and shoot” (2:32)"><img src="/assets/img/video-aim.webp" alt="" width="800" height="450" loading="lazy"><span class="yt-play" aria-hidden="true"></span></a></div>
+        <div class="video-text"><h3 class="video-title">Aim with the gyro and shoot</h3><p class="meta">2:32</p></div></li>
+      <li class="video">
+        <div class="yt" data-yt="9b7pjMz4Ku0" data-title="Point phones at on-screen menus"><a class="yt-poster" href="https://www.youtube.com/watch?v=9b7pjMz4Ku0" aria-label="Watch “Point phones at on-screen menus” on YouTube (2:33)" data-play-label="Play “Point phones at on-screen menus” (2:33)"><img src="/assets/img/video-point.webp" alt="" width="800" height="450" loading="lazy"><span class="yt-play" aria-hidden="true"></span></a></div>
+        <div class="video-text"><h3 class="video-title">Point phones at on-screen menus</h3><p class="meta">2:33</p></div></li>
+      <li class="video">
+        <div class="yt" data-yt="hKBtmLTU9ZM" data-title="Use the phone like a zoom lens"><a class="yt-poster" href="https://www.youtube.com/watch?v=hKBtmLTU9ZM" aria-label="Watch “Use the phone like a zoom lens” on YouTube (2:24)" data-play-label="Play “Use the phone like a zoom lens” (2:24)"><img src="/assets/img/video-peek.webp" alt="" width="800" height="450" loading="lazy"><span class="yt-play" aria-hidden="true"></span></a></div>
+        <div class="video-text"><h3 class="video-title">Use the phone like a zoom lens</h3><p class="meta">2:24</p></div></li>
+      <li class="video">
+        <div class="yt" data-yt="Mff1qT9xMrA" data-title="Two or more players"><a class="yt-poster" href="https://www.youtube.com/watch?v=Mff1qT9xMrA" aria-label="Watch “Two or more players” on YouTube (2:04)" data-play-label="Play “Two or more players” (2:04)"><img src="/assets/img/video-two.webp" alt="" width="800" height="450" loading="lazy"><span class="yt-play" aria-hidden="true"></span></a></div>
+        <div class="video-text"><h3 class="video-title">Two or more players</h3><p class="meta">2:04</p></div></li>
+    </ul>
+  </section>
+  <p class="muted note-line">PadPlay is not released yet. Store links will be posted here when it is.</p>
+  </div>
 </main>
 <footer class="site-footer">
   <div class="wrap">
     <p>&copy; 2026 Petaf · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></p>
-    <p class="muted">This site uses no cookies, analytics or tracking.</p>
+    <p class="muted">This site uses no analytics or tracking. Videos load from YouTube only when you press play, and YouTube (Google) may then use cookies or similar technologies.</p>
   </div>
 </footer>
 </body>

@@ -15,6 +15,7 @@
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/style.css">
+<script src="/assets/video.js" defer></script>
 </head>
 <body>
 <header class="site-header">
@@ -29,35 +30,43 @@
     <a class="lang" href="/" lang="en" hreflang="en">English</a>
   </div>
 </header>
-<main class="wrap">
+<main>
 
-  <a class="lockup" href="/ja/" aria-label="Petaf">
-    <picture>
-      <source srcset="/assets/lockup-dark.svg" media="(prefers-color-scheme: dark)">
-      <img src="/assets/lockup-light.svg" alt="Petaf (ペタフ)" width="313" height="104">
-    </picture>
-  </a>
   <section class="hero">
-    <h1>ゲームと、ゲームを作る人のための道具を。</h1>
-    <p class="lead">ペタフ(Petaf)は、個人の開発者です。ゲームと、ほかの開発者がゲームを作るのを助ける道具を作っています。</p>
+    <div class="wrap hero-grid">
+      <div class="hero-text">
+      <h1>ゲームと、ゲームを作る人のための道具を</h1>
+      <p class="lead">ペタフ(Petaf)は個人の開発者です。いまは、遊ぶ人の手元のスマホを画面つきのコントローラーにする Unity の SDK「PadPlay」を作っています。</p>
+      <p class="actions"><a class="button" href="https://www.youtube.com/watch?v=pRRvgGNN_zQ" data-yt-dialog="pRRvgGNN_zQ" data-title="入れて 1 分で動かす" data-play-label="「入れて 1 分で動かす」を再生する(1:19)">はじめかたの動画を見る <span class="meta">1:19</span></a><a class="text-link" href="/padplay/docs/ja/">ドキュメントを読む</a></p>
+      </div>
+      <figure class="shot shot-hero">
+      <div class="plate"><div class="plate-inner"><img src="/assets/img/hero-floating-island.webp" alt="" width="1044" height="748"><span class="tag tv" aria-hidden="true">テレビ</span><span class="tag p1" aria-hidden="true">P1</span></div></div>
+      <figcaption>PadPlay の見本のシーン「Floating Island」。テレビには島が、スマホにはその人の望遠レンズの絵が映ります。</figcaption>
+    </figure>
+    </div>
   </section>
-  <section>
-    <h2>準備中のもの</h2>
-    <article class="card">
-      <div class="card-head"><h3>PadPlay</h3><span class="badge">準備中</span></div>
-      <p>スマホを、画面つきのコントローラーにする Unity の SDK。</p>
-    </article>
-    <p><a href="/ja/products/">製品の一覧</a></p>
+  <div class="wrap page">
+  <section class="product" aria-labelledby="padplay">
+    <p class="eyebrow">準備中のもの</p>
+    <div class="product-head"><h2 id="padplay">PadPlay</h2><span class="status">準備中</span></div>
+    <p class="summary">スマホを、画面つきのコントローラーにする Unity の SDK。</p>
+    <ul class="points">
+        <li><h3>いまのコードのままで</h3><p>スマホは Input System の標準のゲームパッドとして、タッチはふつうの uGUI のイベントとして届きます。</p></li>
+        <li><h3>一人ひとりに別の絵</h3><p>カメラの絵を、一人のスマホにだけ送れます。自分だけの地図や、望遠レンズになります。</p></li>
+        <li><h3>同じ Wi-Fi だけで</h3><p>遊ぶ人は PadPlay のアプリで QR コードを読むだけ。PC とスマホが直接やりとりするので、サーバーもアカウントも要りません。</p></li>
+    </ul>
+    <p class="links"><a href="/ja/products/">PadPlay について</a><a href="/ja/products/#videos">作り方の動画</a></p>
   </section>
-  <section>
+  <section class="contact-teaser">
     <h2>連絡</h2>
-    <p>質問・不具合の報告・お仕事の相談を受け付けています。<a href="/ja/contact/">お問い合わせ</a>をご覧ください。</p>
+    <p>質問・不具合の報告・お仕事の相談を受け付けています。<a class="mail" href="mailto:petaf570@gmail.com">petaf570@gmail.com</a> あてにお送りください。書いてほしいことは<a href="/ja/contact/">お問い合わせ</a>にまとめています。</p>
   </section>
+  </div>
 </main>
 <footer class="site-footer">
   <div class="wrap">
     <p>&copy; 2026 Petaf · <a href="/ja/contact/">お問い合わせ</a> · <a href="/ja/privacy/">プライバシー</a></p>
-    <p class="muted">このサイトは Cookie・アクセス解析・トラッキングを使っていません。</p>
+    <p class="muted">このサイトは、アクセス解析やトラッキングを使っていません。動画は再生ボタンを押した時だけ YouTube から読み込み、その際に YouTube(Google)が Cookie などを使うことがあります。</p>
   </div>
 </footer>
 </body>
