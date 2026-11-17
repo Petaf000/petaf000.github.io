@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="/assets/style.css">
 <script src="/assets/video.js" defer></script>
 <script src="/assets/peek.js" defer></script>
+<script src="/assets/phys.js" defer></script>
 </head>
 <body>
 <header class="site-header">
@@ -40,7 +41,7 @@
     </div>
   </section>
   <div class="wrap page">
-  <section class="products-home" aria-labelledby="products-h">
+  <section class="products-home toy-zone" aria-labelledby="products-h">
     <h2 id="products-h">Products</h2>
     <article class="product product-card peek" aria-labelledby="padplay" data-peek
     data-tilt="Look around by tilting" data-tilt-off="Stop tilting" data-denied="Tilt is not allowed. You can allow it in your browser settings." data-nosensor="This device does not report tilt.">
@@ -63,15 +64,21 @@
     </figure>
     </div>
   </article>
-    <article class="product product-card" aria-labelledby="detphys">
+    <article class="product product-card phys" aria-labelledby="detphys" data-phys="/detphys/demo/"
+    data-tilt="Turn by tilting" data-tilt-off="Stop tilting" data-denied="Tilt is not allowed. You can allow it in your browser settings." data-nosensor="This device does not report tilt." data-state="tick {tick} · state {hash}" data-checking="Running a fixed replay…" data-same="Fixed {ticks}-tick replay on this device: {hash}, the same as the native Windows and Android builds ✓" data-differ="Fixed {ticks}-tick replay on this device: {hash}. The native Windows and Android builds give {expected}.">
     <div class="product-grid">
       <div class="product-text">
         <h3 class="product-name" id="detphys"><a href="/detphys/docs/">DetPhys</a></h3>
         <p class="summary">Deterministic 2D and 3D physics with rollback and turn-based netcode, for Unity, Godot and Unreal Engine. Only inputs go over the network.</p>
+        <p class="phys-hint" hidden>Drag to turn the ring. The physics runs here in your browser, 60 ticks a second. <span class="phys-keys" id="phys-keys">The left and right arrow keys turn it too.</span></p>
+        <p class="phys-tools" hidden><button type="button" class="button phys-tilt-button" hidden>Turn by tilting</button> <button type="button" class="button phys-reset">Start over</button></p>
+        <p class="phys-status" role="status"></p>
       </div>
       <figure class="shot shot-hero">
-      <div class="plate"><div class="plate-inner"><img src="/assets/products/detphys/card.webp" alt="" width="1158" height="658"></div></div>
-
+      <div class="plate"><div class="plate-inner phys-stage"><img src="/assets/products/detphys/home.webp" alt="" width="1158" height="658">
+        <canvas class="phys-canvas" aria-label="Physics sample: pieces inside a ring that you can turn" aria-roledescription="turnable ring" aria-describedby="phys-keys" hidden></canvas>
+      </div></div>
+      <p class="phys-stats" hidden><span class="phys-live"></span><span class="phys-verify"></span></p>
     </figure>
     </div>
   </article>

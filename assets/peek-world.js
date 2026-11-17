@@ -1,12 +1,16 @@
 // peek-world.js — トップの PadPlay の段の「のぞき窓」(peek.js が、段が見えそうになった時に読む)。
-// ページの奥に浮き島の 3D の世界があり、P1 のスマホの画面はそこへの窓になる。拡大鏡ではなく、窓の位置から見える物をそのまま見せる:
-//   見る人の目をページの前(画面の真ん中から EYE_UNITS だけ手前)に置き、目からスマホの画面の四角を通した視錐台(軸のずれた錐台)で描く。
-//   スマホを動かしても、ページを送っても、その方向の景色が見える。
+// ページの奥に浮き島の 3D の世界が 1 つあり、TV の画面と P1 のスマホの画面は、どちらもそこへの窓になる。拡大鏡ではなく、窓の位置から見える物をそのまま見せる:
+//   見る人の目をページの前(画面の真ん中から EYE_UNITS だけ手前)に置き、目から窓の四角を通した視錐台(軸のずれた錐台)で描く。
+//   TV とスマホは同じ目・同じ世界を描くので、スマホを TV に重ねると、その所の TV の絵とスマホの絵は同じ大きさでつながる。
+//   スマホを TV の外へ動かすと、TV の縁の先の景色が見える。ページを送ると、両方の景色が一緒にずれる。
+// - 描く所は 2 つのキャンバス(TV の画面とスマホの画面)。それぞれに WebGL の文脈を作り、形のデータ(頂点の配列)は 1 回だけ組んで両方に渡す。
+//   1 枚の大きなキャンバスにまとめないのは、スマホを段の外(画面の端から端まで)へ動かせて、その全体を覆う大きな面を毎回重ねるのが重いため。
 // - 傾き: 「傾けて見回す」を押した人だけ、端末の向きのイベントを使う(iOS は押した時に DeviceOrientationEvent.requestPermission で許可を聞く)。
-//   見回すのは目の向きだけで、窓の位置はそのまま。うしろを向き続けると、うしろの空をクジラが泳いでいる(傾きを使っている時だけ)。
+//   見回すのはスマホの窓の目の向きだけ(TV は PC の画面なので回らない)。うしろを向き続けると、うしろの空をクジラが泳いでいる(傾きを使っている時だけ)。
 // - キーボード: スマホに移って矢印キーで動かす(Shift で大きく)。Home で元の場所へ。
-// - 外の物は読まない。WebGL 1 だけで、ライブラリは使わない。段が見えている間だけ描く。
-//   動きを減らす設定(prefers-reduced-motion)では雲を流さず、触った時・傾けた時だけ描く。WebGL が無い時は静止画のまま(動かさない)。
+// - 外の物は読まない。WebGL 1 だけで、ライブラリは使わない。段が見えている間だけ描く。雲が流れるだけの間は 1 秒に約 30 回に抑える。
+//   動きを減らす設定(prefers-reduced-motion)では雲を流さず、触った時・傾けた時・ページを送った時だけ描く。
+//   WebGL が無い時は TV もスマホも静止画のまま(動かさない)。最初の絵も、描けるまでは静止画。
 (function () {
   "use strict";
 
@@ -14,33 +18,25 @@
   if (!card || card.getAttribute("data-peek-live")) return;
   var phone = card.querySelector(".peek-phone");
   var screenBox = card.querySelector(".peek-screen");
+  var plate = card.querySelector(".plate-inner");
   var tvImg = card.querySelector(".plate-inner > img");
-  if (!phone || !screenBox || !tvImg) return;
+  if (!phone || !screenBox || !plate || !tvImg) return;
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   // --- 決まった値 ---
-  var TV_CENTER = [488 / 1044, 278 / 748];   // 絵(hero-tv.webp)の中の TV の真ん中。世界の原点はここ(ページの面の上)
-  var TV_UNITS = 5.6;                         // TV の絵の幅 = 世界の 5.6 の長さ(画面の幅が変わっても見え方の比を保つ)
+  var TV_UNITS = 5.15;                        // TV の画面の幅 = 世界の 5.15 の長さ(画面の幅が変わっても見え方の比を保つ)
   var EYE_UNITS = 8.5;                        // 目はページの面から、この長さだけ手前
   var EYE_FOLLOW = 0.4;                       // 目は TV の真ん中の前から、画面の真ん中の方へこの割合だけ寄る(ページを送ると景色が少しずれる)
+  var EYE_SHIFT_MAX = [1.2, 0.5];             // その寄りの上限(横・縦。世界の長さ)。細い画面で島が TV の外へずれないように
   var PHONE_TILT_DEG = 2.5;                   // スマホの絵の傾き(style.css の rotate と同じ)
   var KEY_STEP_PX = 24;
   var DRAG_MARGIN_PX = 160;                   // スマホを段の上下にはみ出させてよい量
+  var IDLE_FRAME_MS = 32;                     // 雲が流れるだけの間の、描く間隔
   var BEHIND_HOLD_MS = 500;                   // うしろを向き続ける時間
   var WHALE_UNITS = 14;                       // うしろのクジラまでの長さ
   var WHALE_SCALE = 0.45;                     // クジラの大きさ(元の形は頭から尾びれまで約 7.5)
 
-  // --- WebGL ---
-  var canvas = document.createElement("canvas");
-  var gl = null;
-  try {
-    gl = canvas.getContext("webgl", { antialias: true, alpha: false, powerPreference: "low-power" });
-  } catch (err) { gl = null; }
-  if (!gl) return;   // スマホに静止画が出たまま
-  card.setAttribute("data-peek-live", "1");
-  canvas.setAttribute("aria-hidden", "true");
-  screenBox.appendChild(canvas);
-
+  // --- WebGL(TV とスマホに 1 つずつ) ---
   var VS = [
     "attribute vec3 aPos; attribute vec3 aNor; attribute vec3 aCol;",
     "uniform mat4 uProj; uniform mat4 uView; uniform mat4 uModel;",
@@ -60,22 +56,52 @@
     "uniform vec3 uFogCol; varying vec3 vCol; varying float vFog;",
     "void main() { gl_FragColor = vec4(mix(vCol, uFogCol, vFog), 1.0); }"].join("\n");
 
-  function shader(type, src) {
-    var s = gl.createShader(type);
-    gl.shaderSource(s, src);
-    gl.compileShader(s);
-    return s;
+  // 窓 1 つ分: キャンバスと、その WebGL の文脈・形の置き場。作れなければ null
+  function makeView(canvas) {
+    var gl = null;
+    try {
+      gl = canvas.getContext("webgl", { antialias: true, alpha: false, powerPreference: "low-power" });
+    } catch (err) { gl = null; }
+    if (!gl) return null;
+    function shader(type, src) {
+      var s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      return s;
+    }
+    var prog = gl.createProgram();
+    gl.attachShader(prog, shader(gl.VERTEX_SHADER, VS));
+    gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FS));
+    gl.bindAttribLocation(prog, 0, "aPos");
+    gl.bindAttribLocation(prog, 1, "aNor");
+    gl.bindAttribLocation(prog, 2, "aCol");
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { drop(gl); return null; }
+    var U = {};
+    ["uProj", "uView", "uModel", "uTint", "uEmit", "uFog", "uFogCol"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+    canvas.setAttribute("aria-hidden", "true");
+    return { canvas: canvas, gl: gl, prog: prog, U: U };
   }
-  var prog = gl.createProgram();
-  gl.attachShader(prog, shader(gl.VERTEX_SHADER, VS));
-  gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FS));
-  gl.bindAttribLocation(prog, 0, "aPos");
-  gl.bindAttribLocation(prog, 1, "aNor");
-  gl.bindAttribLocation(prog, 2, "aCol");
-  gl.linkProgram(prog);
-  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
-  var U = {};
-  ["uProj", "uView", "uModel", "uTint", "uEmit", "uFog", "uFogCol"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+  function drop(gl) {
+    var ext = gl && gl.getExtension("WEBGL_lose_context");
+    if (ext) ext.loseContext();
+  }
+  function upload(v, data) {
+    var gl = v.gl, buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    return { buf: buf, n: data.length / 9 };
+  }
+
+  var tvCanvas = document.createElement("canvas");
+  tvCanvas.className = "peek-tv";
+  var phoneCanvas = document.createElement("canvas");
+  var tv = makeView(tvCanvas);
+  var ph = tv && makeView(phoneCanvas);
+  if (!tv || !ph) { if (tv) drop(tv.gl); return; }   // 片方しか描けない時は、両方とも静止画のまま(TV とスマホの絵を食い違わせない)
+  card.setAttribute("data-peek-live", "1");
+  tvImg.insertAdjacentElement("afterend", tvCanvas);   // TV の札(.tag.tv)とスマホより下
+  screenBox.appendChild(phoneCanvas);
 
   // --- 行列(4×4 は列優先。GL にそのまま渡す) ---
   function m4() { return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]; }
@@ -89,6 +115,7 @@
   function T(x, y, z) { var m = m4(); m[12] = x; m[13] = y; m[14] = z; return m; }
   function S(x, y, z) { var m = m4(); m[0] = x; m[5] = y === undefined ? x : y; m[10] = z === undefined ? x : z; return m; }
   function RY(a) { var c = Math.cos(a), s = Math.sin(a), m = m4(); m[0] = c; m[2] = -s; m[8] = s; m[10] = c; return m; }
+  function RX(a) { var c = Math.cos(a), s = Math.sin(a), m = m4(); m[5] = c; m[6] = s; m[9] = -s; m[10] = c; return m; }   // a > 0 で上(+y)が手前(+z)へ傾く
   function chain() { var m = m4(); for (var i = 0; i < arguments.length; i++) m = mul(m, arguments[i]); return m; }
   function tp(m, p) {
     return [m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12],
@@ -111,7 +138,7 @@
   function m3ry(a) { var c = Math.cos(a), s = Math.sin(a); return [c, 0, s, 0, 1, 0, -s, 0, c]; }
   function m3rz(a) { var c = Math.cos(a), s = Math.sin(a); return [c, -s, 0, s, c, 0, 0, 0, 1]; }
 
-  // --- 形を組む(面ごとの法線。低いポリゴンの見た目) ---
+  // --- 形を組む(面ごとの法線。低いポリゴンの見た目)。V に「位置・法線・色」を 9 個ずつためて、take() で Float32Array にする ---
   function hex(h) { var n = parseInt(h.slice(1), 16); return [(n >> 16) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]; }
   var C = {
     grass: hex("#93D46E"), grassSide: hex("#74B95A"), dirt: hex("#A06A45"), dirtDark: hex("#7E5137"),
@@ -123,6 +150,7 @@
   };
 
   var V = [];
+  function take() { var a = new Float32Array(V); V = []; return a; }
   function vert(p, n, c) { V.push(p[0], p[1], p[2], n[0], n[1], n[2], c[0], c[1], c[2]); }
   function tri(m, a, b, c, col, inside) {
     var A = tp(m, a), B = tp(m, b), Cc = tp(m, c);
@@ -208,17 +236,17 @@
     };
   }
 
-  // --- 世界(長さの 1 = 絵の幅の 1/5.6。原点はページの面の上の TV の真ん中。奥が -z、上が +y) ---
+  // --- 世界(長さの 1 = TV の画面の幅の 1/5.15。原点はページの面の上の TV の画面の真ん中。奥が -z、上が +y) ---
   // 置き場所は「ページの面の上の点」と奥行きで決める: 目を (0, 0, EYE_UNITS) に置いた時に、ページの面のその点の向こうに見える所。
   // こうすると、窓をどこへ動かしても何かが見える
   function behind(px, py, z) { var k = (EYE_UNITS - z) / EYE_UNITS; return [px * k, py * k, z]; }
-  var PHONE_HOME = [1.21, -1.6];   // スマホの元の場所(ページの面の上。TV の真ん中から)
+  var ISLAND = [-0.25, 0.12, -15];    // 見本の島の草の面の真ん中(ページの面の上の点と奥行き)。TV の画面の真ん中より少し左
+  var ISLAND_TIP = 0.3;               // 見本の島を見る人の方へ傾ける(上の草の面が見えるように)
 
   function buildWorld() {
-    V = [];
-    // 見本の浮き島: 家・灯台・木・池・滝・灰色の箱。スマホの元の場所から少し見下ろす所に置く
-    var c = behind(PHONE_HOME[0], PHONE_HOME[1], -15);
-    var M = chain(T(c[0], c[1] - 1.3, c[2]), RY(-0.35));
+    // 見本の浮き島: 家・灯台・木・池・滝・灰色の箱。TV の画面に大きく入る所に置く
+    var c = behind(ISLAND[0], ISLAND[1], ISLAND[2]);
+    var M = chain(T(c[0], c[1], c[2]), RX(ISLAND_TIP), RY(-0.35));
     island(M, 3.2, 0.1);
     var house = chain(M, T(-1.3, 0, -0.4), RY(0.45));
     box(house, 1.1, 0.8, 0.95, C.wall);
@@ -244,20 +272,27 @@
         var px = gx * 2.6 + (R() - 0.5) * 1.6, py = gy * 2.3 + (R() - 0.5) * 1.4;
         var z = -(5 + R() * 16), keep = R(), kind = R(), turn = R() * 6, seed = R();
         if (keep < 0.22) continue;
-        if (Math.hypot(px - PHONE_HOME[0], py - PHONE_HOME[1] + 0.4) < 2.4) continue;   // 見本の島の前は空ける
+        var ex = (px - ISLAND[0]) / 2.1, ey = (py - ISLAND[1] + 0.3) / 1.8;
+        if (ex * ex + ey * ey < 1) continue;   // 見本の島の前とまわりは空ける
         var p = behind(px, py, z), k = (EYE_UNITS - z) / EYE_UNITS;
         islet(p, (0.3 + seed * 0.45) * k, kind, turn);
       }
+    // TV の画面の中の、見本の島の横の小さな島
+    // と、スマホの元の場所の奥の小さな家の島
+    [[1.85, 0.1, -10, 0.32, 0.6], [2.05, -0.75, -12, 0.3, 0.2], [-2.15, 0.35, -13, 0.36, 0.1], [1.75, -1.95, -8, 0.42, 0.95]].forEach(function (s) {
+      var k = (EYE_UNITS - s[2]) / EYE_UNITS;
+      islet(behind(s[0], s[1], s[2]), s[3] * k, s[4], s[0] * 3);
+    });
     // 横とうしろ(傾けて見回す人のため)
     for (var i = 0; i < 14; i++) {
-      var a = Math.PI * (0.6 + 1.8 * R());   // 横から、うしろを回って反対の横まで
+      var a = Math.PI * (0.55 + 0.9 * R());   // 横から、うしろを回って反対の横まで(前には置かない)
       var dist = 14 + R() * 12;
       islet([Math.sin(a) * dist, (R() - 0.5) * 10, EYE_UNITS - Math.cos(a) * dist], 0.9 + R() * 1.1, R(), R() * 6);
     }
-    return mesh();
+    return take();
   }
   function islet(p, r, kind, turn) {
-    var b = chain(T(p[0], p[1], p[2]), RY(turn));
+    var b = chain(T(p[0], p[1], p[2]), RX(0.18), RY(turn));
     island(b, r, turn);
     if (kind < 0.55) tree(r * 0.2, -r * 0.15, 0.35 + r * 0.35, b);
     if (kind > 0.35 && kind < 0.75) tree(-r * 0.45, r * 0.3, 0.3 + r * 0.3, b);
@@ -269,27 +304,26 @@
   }
 
   function buildCloud() {
-    V = [];
     [[0, 0, 0, 1], [1.0, -0.1, 0.1, 0.72], [-1.0, -0.15, 0, 0.75], [0.35, 0.45, -0.1, 0.66], [-0.45, 0.3, 0.2, 0.6]].forEach(function (b) {
       ball(chain(T(b[0], b[1] * 0.7, b[2]), S(b[3], b[3] * 0.72, b[3])), C.cloud);
     });
-    return mesh();
+    return take();
   }
   // 雲: [ページの面の x, y, 奥行き, 大きさ]。うしろの 3 つは奥行きの代わりに目からの位置
-  var CLOUDS = [[-3.5, 2.6, -10, 0.55], [4.2, 3.2, -14, 0.6], [-7.5, -0.6, -8, 0.5], [7.8, 0.4, -9, 0.5], [0.2, -4.4, -12, 0.45],
+  var CLOUDS = [[-1.6, 1.05, -9, 0.42], [1.3, 1.2, -13, 0.38], [-2.3, -0.55, -7, 0.4],
+                [-3.5, 2.6, -10, 0.55], [4.2, 3.2, -14, 0.6], [-7.5, -0.6, -8, 0.5], [7.8, 0.4, -9, 0.5], [0.2, -4.4, -12, 0.45],
                 [-9, 4.6, -18, 0.6], [9.5, 4.2, -20, 0.65], [-1.5, 5.4, -16, 0.55], [-5.5, -4.2, -11, 0.5], [6, -3.6, -15, 0.5]].map(function (c) {
     var p = behind(c[0], c[1], c[2]);
     return [p[0], p[1], p[2], c[3] * (EYE_UNITS - c[2]) / EYE_UNITS];
   }).concat([[-14, 2, 14, 1.5], [15, 1.5, 18, 1.4], [5, 5, 26, 1.3]]);
 
-  // うしろのクジラ(うしろを向き続けると現れる)。体は頭が +x・上が +y の低いポリゴンで、毎フレーム組み直す
+  // うしろのクジラ(うしろを向き続けると現れる。見えるのはスマホの窓だけ)。体は頭が +x・上が +y の低いポリゴンで、毎フレーム組み直す
   // (体のうねりと尾びれ・胸びれの動き。三角は 150 ほどなので軽い)。動きを減らす設定では止まった姿のまま
   var WHALE_X = [-3.0, -2.2, -1.2, -0.1, 1.0, 2.0, 2.8];     // 体の輪の位置(尾 → 頭)
   var WHALE_R = [0.1, 0.32, 0.62, 0.9, 0.95, 0.78, 0.42];     // 輪の半径
   var WHALE_SIDES = 8;
   function whaleBend(x, t) { var w = (3.2 - x) / 6.2; return 0.34 * w * w * Math.sin(x * 0.9 - t * 1.4); }
   function buildWhale(t) {
-    V = [];
     var I = m4(), rings = [], sides = WHALE_SIDES;
     WHALE_X.forEach(function (x, i) {
       var r = WHALE_R[i], cy = whaleBend(x, t), ring = [];
@@ -334,19 +368,17 @@
     var ey = whaleBend(2.3, t);
     box(T(2.3, ey + 0.05, 0.62), 0.12, 0.12, 0.05, C.dark);
     box(T(2.3, ey + 0.05, -0.62), 0.12, 0.12, 0.05, C.dark);
-    var n = V.length / 9;
-    gl.bindBuffer(gl.ARRAY_BUFFER, whale.buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(V), gl.DYNAMIC_DRAW);
-    V = [];
-    whale.n = n;
+    var data = take(), gl = ph.gl;
+    gl.bindBuffer(gl.ARRAY_BUFFER, ph.whale.buf);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
+    ph.whale.n = data.length / 9;
   }
 
   function buildSky() {
-    V = [];
     var rows = 12, cols = 18;
     function p(i, j) {
-      var th = i / rows * Math.PI, ph = j / cols * Math.PI * 2;
-      return [Math.sin(th) * Math.cos(ph), Math.cos(th), Math.sin(th) * Math.sin(ph)];
+      var th = i / rows * Math.PI, phi = j / cols * Math.PI * 2;
+      return [Math.sin(th) * Math.cos(phi), Math.cos(th), Math.sin(th) * Math.sin(phi)];
     }
     function col(q) {
       var y = q[1];
@@ -358,122 +390,148 @@
         var a = p(i, j), b = p(i + 1, j), c = p(i + 1, j + 1), d = p(i, j + 1);
         [a, b, c, a, c, d].forEach(function (q) { vert(q, [0, 1, 0], col(q)); });
       }
-    return mesh();
+    return take();
   }
   function lerp(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
 
-  function mesh() {
-    var buf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(V), gl.STATIC_DRAW);
-    var n = V.length / 9;
-    V = [];
-    return { buf: buf, n: n };
-  }
-
-  var world = buildWorld(), cloud = buildCloud(), sky = buildSky(), whale = { buf: gl.createBuffer(), n: 0 };
+  // 形は 1 回だけ組み、両方の窓に同じ物を渡す
+  var DATA = { world: buildWorld(), cloud: buildCloud(), sky: buildSky() };
+  [tv, ph].forEach(function (v) {
+    v.world = upload(v, DATA.world);
+    v.cloud = upload(v, DATA.cloud);
+    v.sky = upload(v, DATA.sky);
+  });
+  ph.whale = { buf: ph.gl.createBuffer(), n: 0 };
 
   // --- 描く ---
   var ONE = [1, 1, 1];
-  function draw(m, model, tint, emit, fog) {
+  function draw(v, m, model, tint, emit, fog) {
+    var gl = v.gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, m.buf);
     gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 36, 0);
     gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 36, 12);
     gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 36, 24);
-    gl.uniformMatrix4fv(U.uModel, false, model);
-    gl.uniform3fv(U.uTint, tint || ONE);
-    gl.uniform1f(U.uEmit, emit || 0);
-    gl.uniform1f(U.uFog, fog === undefined ? 1 : fog);
+    gl.uniformMatrix4fv(v.U.uModel, false, model);
+    gl.uniform3fv(v.U.uTint, tint || ONE);
+    gl.uniform1f(v.U.uEmit, emit || 0);
+    gl.uniform1f(v.U.uFog, fog === undefined ? 1 : fog);
     gl.drawArrays(gl.TRIANGLES, 0, m.n);
   }
 
-  var G = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // 傾きで回した目の向き(3×3 行優先。傾きを使っていない時は単位)
+  var IDENTITY = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+  var G = IDENTITY;   // 傾きで回したスマホの目の向き(3×3 行優先。傾きを使っていない時は単位)
   var animTime = 0, lastNow = 0;
   var found = false, foundAt = 0;
 
-  function render(now) {
-    var dt = lastNow ? Math.min(now - lastNow, 100) : 0;
-    lastNow = now;
-    if (!reduce.matches) animTime += dt / 1000;
-
-    // 大きさ(CSS の大きさ × 画素の比。2 まで)
+  // 窓 1 つを描く。frame は目と長さの物差し(両方の窓で同じ)、deg は窓の CSS の回転、rot は目の向き。描けたら目のうしろの向きを返す
+  function renderView(v, frame, deg, rot, now, withWhale) {
+    var gl = v.gl, canvas = v.canvas;
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     var cw = canvas.clientWidth, ch = canvas.clientHeight;
-    if (!cw || !ch) return;
-    var pw = Math.round(cw * dpr), ph = Math.round(ch * dpr);
-    if (canvas.width !== pw || canvas.height !== ph) { canvas.width = pw; canvas.height = ph; }
-    gl.viewport(0, 0, pw, ph);
+    if (!cw || !ch) return null;
+    var pw = Math.round(cw * dpr), phh = Math.round(ch * dpr);
+    if (canvas.width !== pw || canvas.height !== phh) { canvas.width = pw; canvas.height = phh; }
+    gl.viewport(0, 0, pw, phh);
 
-    // 窓と目(世界の長さ。y は上が +)
-    var tv = tvImg.getBoundingClientRect();
-    var unitPx = tv.width / TV_UNITS;
-    var ox = tv.left + tv.width * TV_CENTER[0], oy = tv.top + tv.height * TV_CENTER[1];
+    // 窓の真ん中(世界の長さ。y は上が +)と向き。回っている窓でも、getBoundingClientRect の真ん中は窓の真ん中
+    var unitPx = frame.unitPx, eye = frame.eye;
     var sr = canvas.getBoundingClientRect();
-    var wx = (sr.left + sr.width / 2 - ox) / unitPx, wy = -(sr.top + sr.height / 2 - oy) / unitPx;
-    var eye = [EYE_FOLLOW * (window.innerWidth / 2 - ox) / unitPx, -EYE_FOLLOW * (window.innerHeight / 2 - oy) / unitPx, EYE_UNITS];
-    var a = -PHONE_TILT_DEG * Math.PI / 180;
+    var wx = (sr.left + sr.width / 2 - frame.ox) / unitPx, wy = -(sr.top + sr.height / 2 - frame.oy) / unitPx;
+    var a = -deg * Math.PI / 180;
     var right = [Math.cos(a), Math.sin(a), 0], up = [-Math.sin(a), Math.cos(a), 0];
     var dx = (eye[0] - wx) * right[0] + (eye[1] - wy) * right[1];
     var dy = (eye[0] - wx) * up[0] + (eye[1] - wy) * up[1];
     var hw = cw / 2 / unitPx, hh = ch / 2 / unitPx, near = 0.1, k = near / EYE_UNITS;
     var proj = frustum((-hw - dx) * k, (hw - dx) * k, (-hh - dy) * k, (hh - dy) * k, near, 900);
 
-    // 目の向き = 傾き G × 窓の向き(右・上・手前)
-    var gr = rot3(G, right), gu = rot3(G, up), gb = rot3(G, [0, 0, 1]);
+    // 目の向き = 傾き rot × 窓の向き(右・上・手前)
+    var gr = rot3(rot, right), gu = rot3(rot, up), gb = rot3(rot, [0, 0, 1]);
     var view = [gr[0], gu[0], gb[0], 0, gr[1], gu[1], gb[1], 0, gr[2], gu[2], gb[2], 0,
                 -dot(gr, eye), -dot(gu, eye), -dot(gb, eye), 1];
 
     gl.clearColor(C.horizon[0], C.horizon[1], C.horizon[2], 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.useProgram(prog);
+    gl.useProgram(v.prog);
     gl.enableVertexAttribArray(0); gl.enableVertexAttribArray(1); gl.enableVertexAttribArray(2);
-    gl.uniformMatrix4fv(U.uProj, false, proj);
-    gl.uniformMatrix4fv(U.uView, false, view);
-    gl.uniform3fv(U.uFogCol, C.horizon);
+    gl.uniformMatrix4fv(v.U.uProj, false, proj);
+    gl.uniformMatrix4fv(v.U.uView, false, view);
+    gl.uniform3fv(v.U.uFogCol, C.horizon);
 
     gl.disable(gl.DEPTH_TEST);
-    draw(sky, chain(T(eye[0], eye[1], eye[2]), S(400)), ONE, 1, 0);
+    draw(v, v.sky, chain(T(eye[0], eye[1], eye[2]), S(400)), ONE, 1, 0);
     gl.enable(gl.DEPTH_TEST);
-    draw(world, m4());
+    draw(v, v.world, m4());
     CLOUDS.forEach(function (c, i) {
       var x = wrap(c[0] + animTime * (0.12 + i % 3 * 0.04), -36, 36);
-      draw(cloud, chain(T(x, c[1], c[2]), S(c[3])), ONE, 0.45);
+      draw(v, v.cloud, chain(T(x, c[1], c[2]), S(c[3])), ONE, 0.45);
     });
 
     // うしろのクジラ: 窓の真ん中を通る向きを、上下はそのまま前後と左右だけ反対にした所のまわりを、横向きにゆっくり泳ぐ
-    if (found) {
+    if (withWhale && found) {
       var wcx = wx - eye[0], wcy = wy - eye[1], wcz = -EYE_UNITS, wl = Math.hypot(wcx, wcy, wcz);
       var e = [eye[0] - wcx / wl * WHALE_UNITS, eye[1] + wcy / wl * WHALE_UNITS, eye[2] - wcz / wl * WHALE_UNITS];
       var st = reduce.matches ? 0 : (now - foundAt) / 1000;          // 現れてからの秒
-      var ph = st * 0.18;                                           // 横に長い楕円を回る
-      var pos = [e[0] + Math.sin(ph) * 1.0, e[1] + Math.sin(st * 0.5) * 0.25, e[2] + Math.cos(ph) * 0.6];
-      var heading = Math.atan2(Math.sin(ph) * 0.6, Math.cos(ph) * 1.0);   // 進む向き(楕円の接線)へ頭を向ける
+      var phase = st * 0.18;                                        // 横に長い楕円を回る
+      var pos = [e[0] + Math.sin(phase) * 1.0, e[1] + Math.sin(st * 0.5) * 0.25, e[2] + Math.cos(phase) * 0.6];
+      var heading = Math.atan2(Math.sin(phase) * 0.6, Math.cos(phase) * 1.0);   // 進む向き(楕円の接線)へ頭を向ける
       var grow = reduce.matches ? 1 : Math.min(st / 0.9, 1);
       grow = 1 - (1 - grow) * (1 - grow);
       buildWhale(st);
-      draw(whale, chain(T(pos[0], pos[1], pos[2]), RY(heading), S(WHALE_SCALE * grow)));
+      draw(v, v.whale, chain(T(pos[0], pos[1], pos[2]), RY(heading), S(WHALE_SCALE * grow)));
     }
-    if (!phone.classList.contains("live")) phone.classList.add("live");
-    checkBehind(gb, now);
+    return gb;
+  }
+
+  // 目と長さの物差し(両方の窓で同じ): 原点は TV の画面の真ん中、長さの 1 は TV の画面の幅の 1/TV_UNITS
+  function frameNow() {
+    var r = tvCanvas.getBoundingClientRect();
+    if (!r.width) return null;
+    var unitPx = r.width / TV_UNITS;
+    var ox = r.left + r.width / 2, oy = r.top + r.height / 2;
+    var eye = [clamp(EYE_FOLLOW * (window.innerWidth / 2 - ox) / unitPx, EYE_SHIFT_MAX[0]),
+               clamp(-EYE_FOLLOW * (window.innerHeight / 2 - oy) / unitPx, EYE_SHIFT_MAX[1]), EYE_UNITS];
+    return { unitPx: unitPx, ox: ox, oy: oy, eye: eye };
+  }
+
+  function render(now, doTv, doPhone) {
+    var dt = lastNow ? Math.min(now - lastNow, 100) : 0;
+    lastNow = now;
+    if (!reduce.matches) animTime += dt / 1000;
+    var frame = frameNow();
+    if (!frame) return;
+    if (doTv && renderView(tv, frame, 0, IDENTITY, now, false) && !plate.classList.contains("live")) plate.classList.add("live");
+    if (doPhone) {
+      var back = renderView(ph, frame, PHONE_TILT_DEG, G, now, true);
+      if (back) {
+        if (!phone.classList.contains("live")) phone.classList.add("live");
+        checkBehind(back, now);
+      }
+    }
   }
   function rot3(m, v) {
     return [m[0] * v[0] + m[1] * v[1] + m[2] * v[2], m[3] * v[0] + m[4] * v[1] + m[5] * v[2], m[6] * v[0] + m[7] * v[1] + m[8] * v[2]];
   }
   function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+  function clamp(v, m) { return Math.max(-m, Math.min(m, v)); }
   function wrap(v, lo, hi) { var w = hi - lo; return lo + ((((v - lo) % w) + w) % w); }
 
   // --- いつ描くか: 段が見えていて、タブが前にある間だけ ---
-  var visible = false, dirty = true, raf = 0, lost = false;
-  function animating() { return !reduce.matches; }
-  function wake() {
-    dirty = true;
+  // 雲が流れている間は両方を同じ時刻で描く。動きを減らす設定では、変わった方だけを描く(スマホを動かしても TV の絵は変わらない)
+  var visible = false, raf = 0, lost = false, needTv = true, needPhone = true, lastDraw = 0;
+  function wake(phoneOnly) {
+    needPhone = true;
+    if (!phoneOnly) needTv = true;
     if (!raf && visible && !document.hidden && !lost) raf = requestAnimationFrame(loop);
   }
   function loop(now) {
     raf = 0;
     if (!visible || document.hidden || lost) { lastNow = 0; return; }
-    var anim = animating();
-    if (dirty || anim) { render(now); dirty = false; }
+    var anim = !reduce.matches;
+    if (needTv || needPhone || (anim && now - lastDraw >= IDLE_FRAME_MS)) {
+      render(now, anim || needTv, anim || needPhone);
+      needTv = needPhone = false;
+      lastDraw = now;
+    }
     if (anim) raf = requestAnimationFrame(loop);
     else lastNow = 0;
   }
@@ -481,14 +539,18 @@
     visible = entries.some(function (e) { return e.isIntersecting; });
     if (visible) wake();
   }, { rootMargin: DRAG_MARGIN_PX + "px 0px" }).observe(card);
-  document.addEventListener("visibilitychange", wake);
-  window.addEventListener("scroll", wake, { passive: true });
-  window.addEventListener("resize", function () { setOffset(off[0], off[1]); });
-  if (reduce.addEventListener) reduce.addEventListener("change", wake);
-  canvas.addEventListener("webglcontextlost", function (e) {
-    e.preventDefault();
-    lost = true;
-    phone.classList.remove("live");   // 静止画に戻す
+  document.addEventListener("visibilitychange", function () { wake(); });
+  window.addEventListener("scroll", function () { wake(); }, { passive: true });
+  window.addEventListener("resize", function () { setOffset(off[0], off[1]); wake(); });
+  if (reduce.addEventListener) reduce.addEventListener("change", function () { wake(); });
+  // 片方の文脈が失われたら、両方とも静止画に戻す
+  [tvCanvas, phoneCanvas].forEach(function (cv) {
+    cv.addEventListener("webglcontextlost", function (e) {
+      e.preventDefault();
+      lost = true;
+      phone.classList.remove("live");
+      plate.classList.remove("live");
+    });
   });
 
   // --- スマホを動かす(ドラッグ・矢印キー) ---
@@ -502,7 +564,7 @@
     off = [Math.round(x), Math.round(y)];
     phone.style.setProperty("--peek-x", off[0] + "px");
     phone.style.setProperty("--peek-y", off[1] + "px");
-    wake();
+    wake(true);
   }
   phone.addEventListener("pointerdown", function (e) {
     if (e.button !== 0 || e.target.closest(".peek-found")) return;
@@ -537,7 +599,7 @@
   var hint = card.querySelector(".peek-hint");
   if (hint) hint.hidden = false;
 
-  // --- 傾き(押した人だけ) ---
+  // --- 傾き(押した人だけ。回るのはスマホの窓の目だけ) ---
   var tiltBox = card.querySelector(".peek-tilt"), tiltBtn = card.querySelector(".peek-tilt-button");
   var statusEl = card.querySelector(".peek-status"), foundEl = card.querySelector(".peek-found");
   var tiltOn = false, gotEvent = false, base = null, behindSince = 0;
@@ -563,11 +625,11 @@
   function stopTilt() {
     tiltOn = false;
     window.removeEventListener("deviceorientation", onOrientation);
-    G = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+    G = IDENTITY;
     behindSince = 0;
     tiltBtn.textContent = card.getAttribute("data-tilt");
     if (foundEl) foundEl.hidden = true;
-    wake();
+    wake(true);
   }
   // 端末の向き(地面の東・北・上に対して)→ この世界(右 +x・上 +y・ページの奥 -z)。
   // 押した時の向きを「ページを正面に見ている」とする: 左右の向きと上下の傾きをその時の値で引く(持った角度のまま見回せる)
@@ -588,7 +650,7 @@
       base = { yaw: m3ry(-yaw), pitch: m3rx(-pitch) };
     }
     G = m3mul(m3mul(base.yaw, W), base.pitch);
-    wake();
+    wake(true);
   }
   // うしろ(+z)を向き続けたら、うしろにクジラが現れる
   function checkBehind(back, now) {
@@ -600,7 +662,7 @@
       found = true;
       foundAt = now;
       if (foundEl) foundEl.hidden = false;
-      wake();
+      wake(true);
     }
   }
   setOffset(0, 0);

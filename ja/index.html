@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="/assets/style.css">
 <script src="/assets/video.js" defer></script>
 <script src="/assets/peek.js" defer></script>
+<script src="/assets/phys.js" defer></script>
 </head>
 <body>
 <header class="site-header">
@@ -40,7 +41,7 @@
     </div>
   </section>
   <div class="wrap page">
-  <section class="products-home" aria-labelledby="products-h">
+  <section class="products-home toy-zone" aria-labelledby="products-h">
     <h2 id="products-h">製品</h2>
     <article class="product product-card peek" aria-labelledby="padplay" data-peek
     data-tilt="傾けて見回す" data-tilt-off="傾けるのをやめる" data-denied="傾きの使用が許可されていません。ブラウザの設定で許可できます。" data-nosensor="この端末からは傾きを読み取れません。">
@@ -63,15 +64,21 @@
     </figure>
     </div>
   </article>
-    <article class="product product-card" aria-labelledby="detphys">
+    <article class="product product-card phys" aria-labelledby="detphys" data-phys="/detphys/demo/"
+    data-tilt="傾けて回す" data-tilt-off="傾けるのをやめる" data-denied="傾きの使用が許可されていません。ブラウザの設定で許可できます。" data-nosensor="この端末からは傾きを読み取れません。" data-state="tick {tick} · 状態 {hash}" data-checking="決まった入力で動かして確かめています…" data-same="決まった入力で {ticks} tick 動かした結果: {hash}(Windows・Android のネイティブと同じ ✓)" data-differ="決まった入力で {ticks} tick 動かした結果: {hash}(Windows・Android のネイティブでは {expected})">
     <div class="product-grid">
       <div class="product-text">
         <h3 class="product-name" id="detphys"><a href="/detphys/docs/ja/">DetPhys</a></h3>
         <p class="summary">Unity・Godot・Unreal Engine で使える、決定論の 2D / 3D 物理と、ロールバック・ターン制のネットコード。通信で送るのは入力だけです。</p>
+        <p class="phys-hint" hidden>ドラッグでリングを回せます。中の物の動きは、このブラウザで 1 秒に 60 回計算しています。<span class="phys-keys" id="phys-keys">左右の矢印キーでも回せます。</span></p>
+        <p class="phys-tools" hidden><button type="button" class="button phys-tilt-button" hidden>傾けて回す</button> <button type="button" class="button phys-reset">最初から</button></p>
+        <p class="phys-status" role="status"></p>
       </div>
       <figure class="shot shot-hero">
-      <div class="plate"><div class="plate-inner"><img src="/assets/products/detphys/card.webp" alt="" width="1158" height="658"></div></div>
-
+      <div class="plate"><div class="plate-inner phys-stage"><img src="/assets/products/detphys/home.webp" alt="" width="1158" height="658">
+        <canvas class="phys-canvas" aria-label="物理の見本: 回せるリングと、その中の物" aria-roledescription="回せるリング" aria-describedby="phys-keys" hidden></canvas>
+      </div></div>
+      <p class="phys-stats" hidden><span class="phys-live"></span><span class="phys-verify"></span></p>
     </figure>
     </div>
   </article>
