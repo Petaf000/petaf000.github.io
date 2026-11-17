@@ -218,61 +218,8 @@ async function start() {
     e.preventDefault();
   });
 
-  // --- 傾き(押した人だけ) ---
-  const tiltBtn = card.querySelector(".phys-tilt-button"), statusEl = card.querySelector(".phys-status");
-  let gotEvent = false;
-  const say = (k) => { if (statusEl) statusEl.textContent = k ? text(k) : ""; };
-  if (tiltBtn && "DeviceOrientationEvent" in window && window.matchMedia("(pointer: coarse)").matches) {
-    tiltBtn.hidden = false;
-    tiltBtn.addEventListener("click", () => { if (tiltOn) stopTilt(); else startTilt(); });
-  }
-  function startTilt() {
-    say("");
-    const D = window.DeviceOrientationEvent;
-    if (typeof D.requestPermission === "function") {
-      D.requestPermission().then((r) => { if (r === "granted") listen(); else say("denied"); }, () => say("denied"));
-    } else listen();
-  }
-  function listen() {
-    tiltOn = true; gotEvent = false; tiltRaw = null; lastO = null;
-    window.addEventListener("deviceorientation", onOrientation);
-    tiltBtn.textContent = text("tiltOff");
-    interacted();
-    setTimeout(() => { if (tiltOn && !gotEvent) { stopTilt(); say("nosensor"); } }, 2000);
-  }
-  function stopTilt() {
-    tiltOn = false; tiltRaw = null; easing = true;   // カメラはゆっくり 0 へ(中の物は画面の下へ流れる)
-    window.removeEventListener("deviceorientation", onOrientation);
-    tiltBtn.textContent = text("tilt");
-  }
-  // 地面の上の向きを端末の向き(beta・gamma)から出し、画面の面に写した向きの角度を φ にする(画面を時計回りに傾けると +。-180〜180 度)。
-  // 端末の座標(右 +x・端末の上 +y)での上の向き = (-cos β sin γ, sin β)。画面が横の時は、画面の向きの角度だけ回す。
-  // φ は前の値からの近い向きの差を足していく(tiltU)ので、180 度をまたいでも反対回りに 1 周しない
-  function onOrientation(e) {
-    if (e.beta === null || e.gamma === null) return;
-    gotEvent = true;
-    const d2r = Math.PI / 180, b = e.beta * d2r, g = e.gamma * d2r;
-    const ux = -Math.cos(b) * Math.sin(g), uy = Math.sin(b);
-    const o = ((screen.orientation && typeof screen.orientation.angle === "number") ? screen.orientation.angle : (window.orientation || 0)) * d2r;
-    // 画面の座標 = 端末の座標を画面の向きの角度 o だけ回した物(o は端末を反時計回りに回した角度。PadPlay の peek-world.js と同じ R・Rz(-o))
-    const sx = ux * Math.cos(o) - uy * Math.sin(o), sy = ux * Math.sin(o) + uy * Math.cos(o);
-    if (Math.hypot(sx, sy) < 0.3) return;   // ほぼ水平に寝かせている時は、向きが決まらないので前の角度のまま
-    const th = Math.atan2(-sx, sy);         // 時計回りに傾けると +
-    if (tiltRaw === null) { tiltU = tiltS = cam + wrapPi(th - cam); easing = true; }
-    else {
-      const j = wrapPi(th - tiltRaw);
-      if (lastO !== null && o !== lastO) {
-        // 画面の向き(縦・横)が変わった: 現実のリングと中の物は動いていない。見本の角度(cur)は変えず、
-        // カメラを一度に合わせて、画面の上のリングの角度でその分を引き取る
-        cam += j; del -= 2 * j; delWant -= 2 * j; tiltS += j;
-      }
-      tiltU += j;
-    }
-    tiltRaw = th; lastO = o;
-    // 少しのゆれを止める(入力の側だけ。見本には整数の角度しか渡さない)
-    const dd = tiltU - tiltS;
-    if (Math.abs(dd) > 0.003) tiltS += dd * 0.35;
-  }
+  // 操作はドラッグ・矢印キーだけ(傾きは使わない)。cam は 0 のまま
+  const statusEl = card.querySelector(".phys-status");
 
   // --- 文: tick と状態のハッシュ(10 回 / 秒まで)、決まった入力の確かめ ---
   const stats = card.querySelector(".phys-stats"), liveEl = card.querySelector(".phys-live"), verifyEl = card.querySelector(".phys-verify");
