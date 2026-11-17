@@ -485,3 +485,122 @@ main.wrap.wide { max-width: 960px; }
 .product-name a { color: inherit; text-decoration: none; }
 .product-name a:hover { text-decoration: underline; text-underline-offset: 6px; }
 @media (max-width: 960px) { .hero-solo { padding-top: 48px; padding-bottom: 56px; } }
+
+/* --- トップの PadPlay の段の遊び(peek.js・peek-world.js) ---
+   段に入ると、ページの色が「おもちゃの箱」(黄 #FFC93C に朱 #FF784A の斜めの帯)に変わる(html.toybox)。
+   P1 のスマホは HTML で、ドラッグ・矢印キーで動かせる。画面は 3D の島をのぞく窓(WebGL が無い時は静止画のまま)。 */
+
+html.toybox {
+  --bg: #FFC93C;
+  --surface: #FFC93C;
+  --ink: #15171C;
+  --muted: #4A4438;
+  --line: rgba(21, 23, 28, 0.28);
+  --soft: #FFE08A;
+  --frame: #15171C;
+  --accent: #FF784A;
+  color-scheme: light;
+}
+html.peek-ready body { transition: background-color 400ms var(--ease), color 400ms var(--ease); overflow-x: clip; }
+html.peek-ready body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: #FF784A;
+  clip-path: polygon(60% 0, 100% 0, 100% 100%, 46% 100%);
+  opacity: 0;
+  transition: opacity 400ms var(--ease);
+  pointer-events: none;
+}
+html.toybox body::before { opacity: 1; }
+.peek .plate { transition: background-color 400ms var(--ease); }
+html.toybox .peek .plate { background: transparent; }
+
+.peek-phone {
+  position: absolute;
+  left: 38.98%;
+  top: 58.02%;
+  width: 59%;
+  transform: translate(var(--peek-x, 0px), var(--peek-y, 0px)) rotate(2.5deg);
+  z-index: 2;
+}
+.peek-screen {
+  position: relative;
+  border: 4px solid #15171C;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #8EC9F0;
+  box-shadow: 7px 7px 0 #15171C;
+}
+.peek-screen img, .peek-screen canvas { display: block; width: 100%; height: auto; aspect-ratio: 1334 / 600; }
+.peek-screen canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+.peek-phone.live .peek-screen canvas { opacity: 1; }
+.peek-phone .tag.p1 { left: 14px; top: 10px; }
+html.peek-ready .peek-phone { cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none; }
+html.peek-ready .peek-phone.dragging { cursor: grabbing; z-index: 10; }
+.peek-phone:focus-visible { outline: 3px solid #15171C; outline-offset: 6px; border-radius: 18px; }
+.peek-phone img { -webkit-user-drag: none; }
+
+.peek-hint { font-size: 16px; color: var(--muted); }
+.peek-keys { display: none; }
+@media (pointer: fine) { .peek-keys { display: inline; } }
+.peek-tilt { margin-top: 20px; }
+/* 傾きのボタンは白いステッカー(黄と朱のどちらの地の上でも読める) */
+.peek-tilt-button { font: inherit; font-weight: 700; font-size: 16px; color: #15171C; background: #FFFFFF; border: 3px solid #15171C; box-shadow: 4px 4px 0 #15171C; cursor: pointer; }
+.peek-tilt-button:hover { color: #15171C; background: #FFF1C9; }
+.peek-tilt-button:focus-visible { outline: 3px solid #15171C; outline-offset: 4px; }
+.peek-tilt-button:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #15171C; }
+.peek-status { font-size: 15px; color: var(--muted); margin: 8px 0 0; }
+.peek-status:empty { display: none; }
+
+/* うしろを向いた時のステッカー(白い角丸・墨の縁・少し傾ける) */
+.peek-found {
+  position: absolute;
+  left: 50%;
+  top: -12px;
+  margin: 0;
+  transform: translate(-50%, -100%) rotate(-4deg);
+  background: #FFFFFF;
+  color: #15171C;
+  border: 3px solid #15171C;
+  border-radius: 12px;
+  box-shadow: 4px 4px 0 #15171C;
+  padding: 4px 12px;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.peek-found[hidden] { display: none; }
+
+@media (max-width: 600px) {
+  .peek-screen { border-width: 3px; border-radius: 12px; box-shadow: 5px 5px 0 #15171C; }
+  .peek-phone .tag.p1 { left: 8px; top: 6px; }
+  .peek-found { font-size: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.peek-ready body, html.peek-ready body::before, .peek .plate { transition: none; }
+}
+
+/* --- 道具の一覧(/tools/)と、製品のページ・ホームの下の「ほかの道具」 --- */
+.more-tools { margin-top: 72px; padding-top: 32px; border-top: 1px solid var(--line); }
+.more-tools h2 { font-size: 24px; margin: 0; }
+.more-tools p { margin: 8px 0 0; color: var(--muted); }
+.more-tools .more-tools-link { margin-top: 12px; }
+.more-tools-link a { font-weight: 700; }
+.tools-lead { color: var(--muted); font-size: 18px; margin: 8px 0 0; max-width: 48em; }
+.tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 32px; margin-top: 40px; }
+.tool-card { display: flex; flex-direction: column; background: var(--surface); border: 3px solid var(--frame); border-radius: 16px; box-shadow: 5px 5px 0 var(--frame); overflow: hidden; }
+.tool-shot { display: block; border-bottom: 3px solid var(--frame); }
+.tool-shot img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
+.tool-text { display: flex; flex-direction: column; flex: 1; padding: 20px 22px 22px; }
+.tool-label { font-family: var(--display); font-weight: 700; font-size: 13px; color: var(--muted); margin: 0; }
+.tool-name { font-size: 22px; margin: 4px 0 0; line-height: 1.3; }
+.tool-name a { color: inherit; text-decoration: none; }
+.tool-name a:hover { text-decoration: underline; text-underline-offset: 5px; }
+.tool-summary { font-size: 16px; margin: 8px 0 0; }
+.tool-actions { margin: auto 0 0; padding-top: 18px; }
+.tool-button { font-size: 15px; padding: 9px 16px; }
+@media (max-width: 600px) { .tool-grid { gap: 24px; } .tool-name { font-size: 20px; } }
