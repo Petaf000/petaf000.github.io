@@ -16,6 +16,7 @@
 <link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/style.css">
 <script src="/assets/video.js" defer></script>
+<script src="/assets/peek.js" defer></script>
 </head>
 <body>
 <header class="site-header">
@@ -41,15 +42,24 @@
   <div class="wrap page">
   <section class="products-home" aria-labelledby="products-h">
     <h2 id="products-h">Products</h2>
-    <article class="product product-card" aria-labelledby="padplay">
+    <article class="product product-card peek" aria-labelledby="padplay" data-peek
+    data-tilt="Look around by tilting" data-tilt-off="Stop tilting" data-denied="Tilt is not allowed. You can allow it in your browser settings." data-nosensor="This device does not report tilt.">
     <div class="product-grid">
       <div class="product-text">
         <h3 class="product-name" id="padplay"><a href="/padplay/docs/">PadPlay</a></h3>
         <p class="summary">A Unity SDK that turns phones into game controllers with a screen of their own.</p>
+        <p class="peek-hint" hidden>Drag the phone. Its screen is a window onto the island behind this page. <span class="peek-keys" id="peek-keys">Arrow keys move it. Home puts it back.</span></p>
+        <p class="peek-tilt" hidden><button type="button" class="button peek-tilt-button">Look around by tilting</button></p>
+        <p class="peek-status" role="status"></p>
       </div>
       <figure class="shot shot-hero">
-      <div class="plate"><div class="plate-inner"><img src="/assets/products/padplay/home.webp" alt="" width="1044" height="748"><span class="tag tv" aria-hidden="true">TV</span><span class="tag p1" aria-hidden="true">P1</span></div></div>
-
+      <div class="plate"><div class="plate-inner"><img src="/assets/products/padplay/peek-tv.webp" alt="" width="1044" height="748"><span class="tag tv" aria-hidden="true">TV</span>
+        <div class="peek-phone" aria-label="Phone screen: a window onto the island" aria-roledescription="movable window" aria-describedby="peek-keys">
+          <div class="peek-screen"><img class="peek-still" src="/assets/products/padplay/peek-phone.webp" alt="" width="668" height="300"></div>
+          <span class="tag p1" aria-hidden="true">P1</span>
+          <p class="peek-found" role="status" hidden>Found it: a whale behind you</p>
+        </div>
+      </div></div>
     </figure>
     </div>
   </article>

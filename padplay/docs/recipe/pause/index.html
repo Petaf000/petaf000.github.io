@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pause when a phone leaves | PadPlay</title>
+<meta name="description" content="When a player turns the phone&#x27;s screen off or goes to the home screen, pause the game under a pause screen and go on when they are back.">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/recipe/pause/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/recipe/pause/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/recipe/pause/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=9bf884f315">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>Pause when a phone leaves</h1><p>When a player turns the phone&#x27;s screen off or goes to the home screen, pause the game under a pause screen and go on when they are back.</p><p>On the Host&#x27;s GameObject: Add Component → PadPlay → Away Pause</p><p>Add the line below to scripts that read input directly (Time.timeScale does not stop them)</p><pre>using PadPlay;
+using UnityEngine;
+
+public class Shooter : MonoBehaviour
+{
+    [SerializeField] PadPlayHost host;
+
+    void Update()
+    {
+        if (PadPlayAwayPause.IsAnyPaused)
+            return;   // the pause screen is up: no shots, no timers
+
+        PadPlayPad pad = host.GetPad(0);
+        if (pad != null &amp;&amp; pad.buttonSouth.wasPressedThisFrame)
+            Shoot();
+    }
+
+    void Shoot()
+    {
+        // ...
+    }
+}</pre><p>Press Play, connect a phone, then turn its screen off or go to the home screen: the game blurs under Paused and stops. Back in the app, it goes away and the game goes on. Without a phone, use Leave app and Back to the game on a Virtual Phone.</p><ul><li><a href="/padplay/docs/api/PadPlayAwayPause/">PadPlayAwayPause</a></li><li><a href="/padplay/docs/api/PadPlayAwayPause/IsPaused/">PadPlayAwayPause.IsPaused</a></li><li><a href="/padplay/docs/api/PadPlayAwayPause/PauseOnGlance/">PadPlayAwayPause.PauseOnGlance</a></li><li><a href="/padplay/docs/api/PadPlayHost/PlayerAway/">host.PlayerAway</a></li><li><a href="/padplay/docs/api/PadPlayHost/GetPresence/">host.GetPresence</a></li><li><a href="/padplay/docs/fix/app/">It takes a few seconds to pause</a></li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=4fb20afe36"></script>
+<script src="/padplay/docs/_app/app.js?v=25407d10bd"></script>
+<script src="/assets/video.js?v=369aaae253"></script>
+</body>
+</html>

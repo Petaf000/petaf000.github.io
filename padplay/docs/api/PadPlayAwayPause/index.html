@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PadPlayAwayPause — API reference | PadPlay</title>
+<meta name="description" content="While a joined player&#x27;s phone is away or disconnected (the host waits for the same phone), it pauses the game under a blurred picture of it with &quot;Paused&quot; and &quot;Please reconnect your phone&quot;, and goes on when everyone is back. The SDK pauses a game only where this is placed. Works with Built-in and URP.">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/api/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/api/PadPlayAwayPause/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/api/PadPlayAwayPause/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=9bf884f315">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>API reference</h1><p>Every PadPlay type, member and setting on one page. Filter by name or meaning.</p><h2>PadPlayAwayPause</h2><p>While a joined player&#x27;s phone is away or disconnected (the host waits for the same phone), it pauses the game under a blurred picture of it with &quot;Paused&quot; and &quot;Please reconnect your phone&quot;, and goes on when everyone is back. The SDK pauses a game only where this is placed. Works with Built-in and URP.</p><ul><li><a href="/padplay/docs/api/PadPlayAwayPause/PauseOnGlance/"><code>PauseOnGlance</code></a> — Also pause for a glance (the notification shade or the app&#x27;s own question over the game). Off (default): only Away and a dropped connection.</li><li><a href="/padplay/docs/api/PadPlayAwayPause/IsPaused/"><code>IsPaused</code></a> — Whether it pauses now (IsAnyPaused: any of them) and the slots it waits for. Hold what Time.timeScale does not stop (input read directly, unscaled time) with it.</li><li><a href="/padplay/docs/api/PadPlayAwayPause/Paused/"><code>Paused</code></a> — Called when the pause screen appears and goes (after time and audio were paused / given back). Use them for Video Players or your own timers.</li><li><a href="/padplay/docs/api/PadPlayAwayPause/"><code>設定</code></a> — Pause Time = Time.timeScale 0 (physics, animation, Time.deltaTime); Pause Audio = AudioListener.pause. Both give back the earlier values. Blur Background off = a dark screen. Empty Title / Message = &quot;Paused&quot; / &quot;Please reconnect your phone&quot; (in Japanese, PAUSE and its Japanese message), in the host&#x27;s Display Language, or Language with Use Host Language off (Auto = the system&#x27;s). Japanese is drawn with a Japanese font of the system unless Font is set.</li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=4fb20afe36"></script>
+<script src="/padplay/docs/_app/app.js?v=25407d10bd"></script>
+<script src="/assets/video.js?v=369aaae253"></script>
+</body>
+</html>

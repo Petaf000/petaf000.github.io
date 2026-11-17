@@ -10,7 +10,7 @@
 <link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/api/PadPlayButtonLayout/">
 <meta name="theme-color" content="#f7f4ee">
 <link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=8f5210e072">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=9bf884f315">
 <style>.js #main > .fb { display: none; }</style>
 <script>document.documentElement.classList.add("js");</script>
 
@@ -24,14 +24,14 @@
     <button class="langbtn" id="langbtn" type="button"></button>
   </div>
 </header>
-<main id="main"><div class="fb"><h1>API reference</h1><p>Every PadPlay type, member and setting on one page. Filter by name or meaning.</p><h2>PadPlayButtonLayout</h2><p>The buttons and sticks shown on the phone, as an asset or from code. For everyone, set Host › Buttons › Layout; for one player, host.SetLayout.</p><ul><li><a href="/padplay/docs/api/PadPlayButtonLayout/Create/"><code>Create</code></a> — Makes a layout from code. It is not saved as an asset.</li><li><a href="/padplay/docs/api/PadPlayButtonLayout/Element/"><code>Element</code></a> — One button or stick.</li><li><a href="/padplay/docs/api/PadPlayButtonLayout/Orientation/"><code>Orientation</code></a> — How the phone is held while this layout is shown. Landscape and Portrait lock it; Auto follows how it is held. Changing it resends the layout.</li><li><a href="/padplay/docs/api/PadPlayButtonLayout/MarkChanged/"><code>MarkChanged</code></a> — Call after changing Elements from code; resent on the next frame. Not needed for edits in the Inspector.</li></ul></div></main>
+<main id="main"><div class="fb"><h1>API reference</h1><p>Every PadPlay type, member and setting on one page. Filter by name or meaning.</p><h2>PadPlayButtonLayout</h2><p>The buttons and sticks shown on the phone, as an asset or from code. For everyone, set Host › Buttons › Layout; for one player, host.SetLayout.</p><ul><li><a href="/padplay/docs/api/PadPlayButtonLayout/Create/"><code>Create</code></a> — Makes a layout from code. It is not saved as an asset.</li><li><a href="/padplay/docs/api/PadPlayButtonLayout/Element/"><code>Element</code></a> — One button or stick.</li><li><a href="/padplay/docs/api/PadPlayButtonLayout/Orientation/"><code>Orientation</code></a> — How the phone is held while this layout is shown. Landscape and Portrait lock it; Auto follows how it is held. Changing it resends the layout.</li><li><a href="/padplay/docs/api/PadPlayButtonLayout/HitSlopMm/"><code>HitSlopMm</code></a> — How far outside a button&#x27;s drawn edge (mm, 0 to 10; 0 = exactly the shape) a finger still presses it; in a gap, the nearest edge wins. null = the phone&#x27;s default (2.5 mm). An element&#x27;s CustomHitSlop wins. Changing it resends the layout. Older apps ignore it and keep 2.5 mm.</li><li><a href="/padplay/docs/api/PadPlayButtonLayout/MarkChanged/"><code>MarkChanged</code></a> — Call after changing Elements from code; resent on the next frame. Not needed for edits in the Inspector.</li></ul></div></main>
 <footer class="foot" id="foot"></footer>
 <div class="sov" id="sov" role="dialog" aria-modal="true">
   <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
 </div>
 <div class="toast" id="toast" role="status"></div>
-<script src="/padplay/docs/_app/data.js?v=99edc0dd45"></script>
-<script src="/padplay/docs/_app/app.js?v=61513b1a61"></script>
+<script src="/padplay/docs/_app/data.js?v=4fb20afe36"></script>
+<script src="/padplay/docs/_app/app.js?v=25407d10bd"></script>
 <script src="/assets/video.js?v=369aaae253"></script>
 </body>
 </html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PadPlayTestPhone — API リファレンス | PadPlay</title>
+<meta name="description" content="自分のゲームの自動テスト(Unity Test Framework の Play Mode)で使う、テスト用のスマホです。アプリと同じつなぎ方でこの PC の中の PadPlayHost に参加し、ボタン・スティック・タッチ・傾きを送り、ゲームから届いた配置・振動・正面合わせを読めます。スマホも Wi-Fi も要りません。名前空間とアセンブリは PadPlay.Testing で、テストのアセンブリの参照に足します。ビルドしたゲームには入りません。">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/api/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/api/PadPlayTestPhone/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/api/PadPlayTestPhone/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=9bf884f315">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/ja/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>API リファレンス</h1><p>PadPlay のすべての型・メンバー・設定項目をこのページにまとめています。名前や意味で絞り込めます。</p><h2>PadPlayTestPhone</h2><p>自分のゲームの自動テスト(Unity Test Framework の Play Mode)で使う、テスト用のスマホです。アプリと同じつなぎ方でこの PC の中の PadPlayHost に参加し、ボタン・スティック・タッチ・傾きを送り、ゲームから届いた配置・振動・正面合わせを読めます。スマホも Wi-Fi も要りません。名前空間とアセンブリは PadPlay.Testing で、テストのアセンブリの参照に足します。ビルドしたゲームには入りません。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayTestPhone/Connect/"><code>Connect</code></a> — 参加して、ホストが PlayerReady を出すまで待ちます([UnityTest] で yield します)。ホストが始まるのも待ちます。終わったら IsConnected を確かめ、つながらなかった理由は Error にあります。Drop の後なら同じ枠に戻ります。</li><li><a href="/padplay/docs/ja/api/PadPlayTestPhone/Disconnect/"><code>Disconnect</code></a> — Disconnect はアプリが抜けるのと同じで、すぐ PlayerRemoved(Bye)になります。Drop は Wi-Fi が切れるのと同じで、PlayerLeft の後も枠が取っておかれます。テストの終わりには Dispose を呼びます。</li><li><a href="/padplay/docs/ja/api/PadPlayTestPhone/Press/"><code>Press</code></a> — ボタンを押す・離す。押したボタンは Release まで押したままです。本物のスマホと違い、レイアウトに無いボタンも押せます。</li><li><a href="/padplay/docs/ja/api/PadPlayTestPhone/SetStick/"><code>SetStick</code></a> — LeftStick か RightStick を倒します(x が右、y が上、長さは 1 まで)。Vector2.zero で戻ります。</li><li><a href="/padplay/docs/ja/api/PadPlayTestPhone/TryPressAt/"><code>TryPressAt</code></a> — スマホのその位置に触れた指が押す物を、アプリと同じ決め方で押します(当たりの余白も同じ)。スティックなら id を返すだけです。何も無ければ false です。</li><li><a href="/padplay/docs/ja/api/PadPlayTestPhone/TouchDown/"><code>TouchDown</code></a> — 指(0〜31)を置く・動かす・離す。位置は表示する所に対する 0〜1 で、(0, 0) が左上です。uGUI のポインターのイベントとして届きます。ボタンの上でもタッチの画面に行きます。</li><li><a href="/padplay/docs/ja/api/PadPlayTestPhone/SetAttitude/"><code>SetAttitude</code></a> — スマホの持ち方を、正面合わせの前の pad.attitude の値で決めます。参加した時の最初の姿勢が正面になる(Calibrate Yaw On Connect)ので、変わった量で比べます。RequestRecenter は隅の長押しと同じです。</li><li><a href="/padplay/docs/ja/api/PadPlayTestPhone/LayoutButtons/"><code>LayoutButtons</code></a> — ゲームから届いた物です。最後のボタン配置(LayoutButtons・LayoutCount・LayoutOrientation・LayoutHitSlopMm)、今の振動の強さ(HapticStrength。0 で止まっている)と回数(HapticCount・PulseCount)、正面合わせの知らせの回数(RecenterCount)。</li><li><a href="/padplay/docs/ja/api/PadPlayTestPhone/GoAway/"><code>GoAway</code></a> — アプリがゲームの画面から離れたときと同じにします。GoAway は画面が消えた・ほかのアプリ(Away。ホストは holdSeconds の間つながったままにします)、LookAway は通知の幕(Glance)、ComeBack で戻ります。どれも先に入力を全部離します。iPhone のようにアプリが止まる形は、GoAway の後に Drop です。Connect の前に ReportsAway = false にすると、知らせないアプリとして振る舞います。</li><li><a href="/padplay/docs/ja/api/PadPlayTestPhone/WaitUntil/"><code>WaitUntil</code></a> — 条件が true になるか、時間が過ぎるまで待ちます([UnityTest] で yield します)。</li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=4fb20afe36"></script>
+<script src="/padplay/docs/_app/app.js?v=25407d10bd"></script>
+<script src="/assets/video.js?v=369aaae253"></script>
+</body>
+</html>

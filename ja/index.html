@@ -16,6 +16,7 @@
 <link rel="preload" href="/assets/fonts/SpaceGrotesk-Bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/style.css">
 <script src="/assets/video.js" defer></script>
+<script src="/assets/peek.js" defer></script>
 </head>
 <body>
 <header class="site-header">
@@ -41,15 +42,24 @@
   <div class="wrap page">
   <section class="products-home" aria-labelledby="products-h">
     <h2 id="products-h">製品</h2>
-    <article class="product product-card" aria-labelledby="padplay">
+    <article class="product product-card peek" aria-labelledby="padplay" data-peek
+    data-tilt="傾けて見回す" data-tilt-off="傾けるのをやめる" data-denied="傾きの使用が許可されていません。ブラウザの設定で許可できます。" data-nosensor="この端末からは傾きを読み取れません。">
     <div class="product-grid">
       <div class="product-text">
         <h3 class="product-name" id="padplay"><a href="/padplay/docs/ja/">PadPlay</a></h3>
         <p class="summary">スマホを、画面つきのゲームのコントローラーにする Unity の SDK。</p>
+        <p class="peek-hint" hidden>スマホをドラッグしてみてください。画面が窓になって、このページの奥にある島が見えます。<span class="peek-keys" id="peek-keys">矢印キーで動かせます。Home キーで元の場所に戻ります。</span></p>
+        <p class="peek-tilt" hidden><button type="button" class="button peek-tilt-button">傾けて見回す</button></p>
+        <p class="peek-status" role="status"></p>
       </div>
       <figure class="shot shot-hero">
-      <div class="plate"><div class="plate-inner"><img src="/assets/products/padplay/home.webp" alt="" width="1044" height="748"><span class="tag tv" aria-hidden="true">テレビ</span><span class="tag p1" aria-hidden="true">P1</span></div></div>
-
+      <div class="plate"><div class="plate-inner"><img src="/assets/products/padplay/peek-tv.webp" alt="" width="1044" height="748"><span class="tag tv" aria-hidden="true">テレビ</span>
+        <div class="peek-phone" aria-label="スマホの画面(島をのぞく窓)" aria-roledescription="動かせる窓" aria-describedby="peek-keys">
+          <div class="peek-screen"><img class="peek-still" src="/assets/products/padplay/peek-phone.webp" alt="" width="668" height="300"></div>
+          <span class="tag p1" aria-hidden="true">P1</span>
+          <p class="peek-found" role="status" hidden>うしろにクジラがいた</p>
+        </div>
+      </div></div>
     </figure>
     </div>
   </article>

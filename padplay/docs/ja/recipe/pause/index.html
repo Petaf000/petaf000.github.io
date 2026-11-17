@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>スマホが離れたらゲームを止める | PadPlay</title>
+<meta name="description" content="遊ぶ人がスマホの画面を消したりホームに戻ったりしたら、ゲームを止めて PAUSE の画面を出し、戻ったら続けます。">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/recipe/pause/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/recipe/pause/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/recipe/pause/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=9bf884f315">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/ja/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>スマホが離れたらゲームを止める</h1><p>遊ぶ人がスマホの画面を消したりホームに戻ったりしたら、ゲームを止めて PAUSE の画面を出し、戻ったら続けます。</p><p>Host の GameObject に Add Component → PadPlay → Away Pause を追加する</p><p>入力を直接読むスクリプトに、下の 1 行を足す(Time.timeScale では止まらないため)</p><pre>using PadPlay;
+using UnityEngine;
+
+public class Shooter : MonoBehaviour
+{
+    [SerializeField] PadPlayHost host;
+
+    void Update()
+    {
+        if (PadPlayAwayPause.IsAnyPaused)
+            return;   // the pause screen is up: no shots, no timers
+
+        PadPlayPad pad = host.GetPad(0);
+        if (pad != null &amp;&amp; pad.buttonSouth.wasPressedThisFrame)
+            Shoot();
+    }
+
+    void Shoot()
+    {
+        // ...
+    }
+}</pre><p>再生してスマホをつなぎ、スマホの画面を消すかホームに戻ると、ゲームの画面がぼけて PAUSE が出て止まります。アプリに戻ると消えて、続きから動きます。スマホが無ければ、仮想スマホの「アプリから離れる」と「ゲームに戻る」で試せます。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayAwayPause/">PadPlayAwayPause</a></li><li><a href="/padplay/docs/ja/api/PadPlayAwayPause/IsPaused/">PadPlayAwayPause.IsPaused</a></li><li><a href="/padplay/docs/ja/api/PadPlayAwayPause/PauseOnGlance/">PadPlayAwayPause.PauseOnGlance</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/PlayerAway/">host.PlayerAway</a></li><li><a href="/padplay/docs/ja/api/PadPlayHost/GetPresence/">host.GetPresence</a></li><li><a href="/padplay/docs/ja/fix/app/">止まるまでに数秒かかる</a></li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=4fb20afe36"></script>
+<script src="/padplay/docs/_app/app.js?v=25407d10bd"></script>
+<script src="/assets/video.js?v=369aaae253"></script>
+</body>
+</html>

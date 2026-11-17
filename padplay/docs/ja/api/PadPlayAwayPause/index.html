@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PadPlayAwayPause — API リファレンス | PadPlay</title>
+<meta name="description" content="参加していたプレイヤーのスマホが離れた・切れた(ホストが同じスマホを待っている)間、ゲームの画面をぼかした絵の上に「PAUSE」と「スマホを繋げてください」を出してゲームを止め、全員が戻ったら消して続けます。SDK はこれを置いたシーンでしかゲームを止めません。Built-in と URP のどちらでも動きます。">
+<link rel="canonical" href="https://petaf.dev/padplay/docs/ja/api/">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/api/PadPlayAwayPause/">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/api/PadPlayAwayPause/">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=9bf884f315">
+<style>.js #main > .fb { display: none; }</style>
+<script>document.documentElement.classList.add("js");</script>
+
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <a class="brand" id="brand" href="/padplay/docs/ja/"><img src="/assets/mark.svg" alt="">PadPlay<small id="brandSub"></small></a>
+    <nav class="nav" id="nav" aria-label="menu"></nav>
+    <button class="sbtn" id="sbtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="sbtnTxt"></span><kbd>Ctrl K</kbd></button>
+    <button class="langbtn" id="langbtn" type="button"></button>
+  </div>
+</header>
+<main id="main"><div class="fb"><h1>API リファレンス</h1><p>PadPlay のすべての型・メンバー・設定項目をこのページにまとめています。名前や意味で絞り込めます。</p><h2>PadPlayAwayPause</h2><p>参加していたプレイヤーのスマホが離れた・切れた(ホストが同じスマホを待っている)間、ゲームの画面をぼかした絵の上に「PAUSE」と「スマホを繋げてください」を出してゲームを止め、全員が戻ったら消して続けます。SDK はこれを置いたシーンでしかゲームを止めません。Built-in と URP のどちらでも動きます。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayAwayPause/PauseOnGlance/"><code>PauseOnGlance</code></a> — 目を離しただけ(通知の幕・アプリの「切断しますか」が上にある = Glance)でも止めます。オフ(既定)なら、Away とつながりが切れた時だけです。</li><li><a href="/padplay/docs/ja/api/PadPlayAwayPause/IsPaused/"><code>IsPaused</code></a> — 止めているか(IsAnyPaused はシーンのどれか 1 つでも)と、待っているプレイヤーの枠です。Time.timeScale で止まらない物(キーやほかのスマホのボタンを直接読む所、スケールしない時間)は、これを見て止めます。</li><li><a href="/padplay/docs/ja/api/PadPlayAwayPause/Paused/"><code>Paused</code></a> — 一時停止の画面が出た・消えた時に呼ばれます(Time.timeScale と音を止めた後・戻した後)。Video Player や自分の時計を止めるのに使います。</li><li><a href="/padplay/docs/ja/api/PadPlayAwayPause/"><code>設定</code></a> — Pause Time = Time.timeScale を 0 に(物理・アニメーション・Time.deltaTime)、Pause Audio = AudioListener.pause。どちらも戻す時は前の値です。Blur Background がオフなら暗い画面。Title・Message が空なら「PAUSE」「スマホを繋げてください」(英語は Paused・Please reconnect your phone)で、言語はホストの Display Language(Use Host Language をオフにすると Language。Auto は端末の言語)。日本語は、Font を決めなければ端末の日本語のフォントで描きます。</li></ul></div></main>
+<footer class="foot" id="foot"></footer>
+<div class="sov" id="sov" role="dialog" aria-modal="true">
+  <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/padplay/docs/_app/data.js?v=4fb20afe36"></script>
+<script src="/padplay/docs/_app/app.js?v=25407d10bd"></script>
+<script src="/assets/video.js?v=369aaae253"></script>
+</body>
+</html>

@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Picture is black, broken or slow | PadPlay</title>
-<meta name="description" content="A shared picture follows the weakest link A View with Player Slot -1 is encoded once, so it matches the weakest Wi-Fi.">
+<meta name="description" content="A shared picture follows the weakest link among the players sharing an encoder A View with Player Slot -1 is encoded once while the players&#x27; connections are alike. When one player&#x27;s Wi-Fi stays much slower than the others&#x27;, that player and the others get separate encoders, so the others keep their quality.">
 <link rel="canonical" href="https://petaf.dev/padplay/docs/fix/video/shared/">
 <link rel="alternate" hreflang="en" href="https://petaf.dev/padplay/docs/fix/video/shared/">
 <link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/fix/video/shared/">
 <meta name="theme-color" content="#f7f4ee">
 <link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=8f5210e072">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=9bf884f315">
 <style>.js #main > .fb { display: none; }</style>
 <script>document.documentElement.classList.add("js");</script>
 
@@ -24,14 +24,14 @@
     <button class="langbtn" id="langbtn" type="button"></button>
   </div>
 </header>
-<main id="main"><div class="fb"><h1>Picture is black, broken or slow</h1><h2>A shared picture follows the weakest link</h2><ol><li>A View with Player Slot -1 is encoded once, so it matches the weakest Wi-Fi.</li><li>To keep quality, use one View per player (Player Slot = 0, 1 …). Total Max Kbps caps everyone together.</li></ol><ul><li><a href="/padplay/docs/api/PadPlayView/PlayerSlot/">PadPlayView.PlayerSlot</a></li><li><a href="/padplay/docs/settings/TotalMaxKbps/">TotalMaxKbps</a></li></ul></div></main>
+<main id="main"><div class="fb"><h1>Picture is black, broken or slow</h1><h2>A shared picture follows the weakest link among the players sharing an encoder</h2><ol><li>A View with Player Slot -1 is encoded once while the players&#x27; connections are alike. When one player&#x27;s Wi-Fi stays much slower than the others&#x27;, that player and the others get separate encoders, so the others keep their quality.</li><li>Max Encoders Per View sets the most encoders (2 by default, up to 4); each one adds GPU work. With 1, everyone shares one and the weakest link sets the quality.</li><li>To keep each player&#x27;s quality for sure, use one View per player (Player Slot = 0, 1 …). Total Max Kbps caps everyone together.</li></ol><ul><li><a href="/padplay/docs/api/PadPlayView/PlayerSlot/">PadPlayView.PlayerSlot</a></li><li><a href="/padplay/docs/settings/MaxEncodersPerView/">MaxEncodersPerView</a></li><li><a href="/padplay/docs/settings/TotalMaxKbps/">TotalMaxKbps</a></li></ul></div></main>
 <footer class="foot" id="foot"></footer>
 <div class="sov" id="sov" role="dialog" aria-modal="true">
   <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
 </div>
 <div class="toast" id="toast" role="status"></div>
-<script src="/padplay/docs/_app/data.js?v=99edc0dd45"></script>
-<script src="/padplay/docs/_app/app.js?v=61513b1a61"></script>
+<script src="/padplay/docs/_app/data.js?v=4fb20afe36"></script>
+<script src="/padplay/docs/_app/app.js?v=25407d10bd"></script>
 <script src="/assets/video.js?v=369aaae253"></script>
 </body>
 </html>

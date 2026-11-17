@@ -137,7 +137,7 @@ main { max-width: var(--page); margin: 0 auto; padding: 40px 32px 80px; }
 .demo.wheel { background: var(--ink); border-radius: 16px; padding: 20px 24px 24px; color: var(--code-ink); }
 .demo.wheel svg { display: block; width: 100%; height: auto; }
 .wrow { display: flex; align-items: center; gap: 12px; margin-top: 8px; font-size: 13px; color: #aaa398; }
-.wrow input { flex: 1; accent-color: #efe9de; }
+.wrow input { flex: 1; min-width: 0; accent-color: #efe9de; }   /* min-width 0: the slider gives way on narrow phones (its own width would push the value out) */
 .wrow .val { font-family: var(--mono); color: var(--code-ink); font-variant-numeric: tabular-nums; min-width: 9ch; text-align: right; }
 .meter { height: 6px; background: #3a332b; border-radius: 3px; margin-top: 10px; position: relative; }
 .meter i { position: absolute; top: 0; bottom: 0; left: 50%; width: 0; background: #ffc93c; border-radius: 3px; }

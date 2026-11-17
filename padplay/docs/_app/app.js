@@ -181,7 +181,8 @@ function renderApiResults(q) {
     : `<p class="muted" style="padding:16px 0">${u("noHit")}</p>`;
 }
 function rlink(r) {
-  const th = r.demo === "wheel" ? `<span class="th wheel">${wheelSvg(-18, true)}</span>` : r.demo === "pointer" ? `<span class="th wheel">${pointerSvg(true)}</span>` : `<span class="th" style="background-image:url(${img(r.demo.slice(4))})"></span>`;
+  const art = demoSvg(r.demo, true);
+  const th = r.demo === "wheel" ? `<span class="th wheel">${wheelSvg(-18, true)}</span>` : art ? `<span class="th wheel">${art}</span>` : `<span class="th" style="background-image:url(${img(r.demo.slice(4))})"></span>`;
   return `<a class="rlink" href="${href("recipe/" + r.id)}">${th}<span><b>${esc(t(r.title))}</b><span>${esc(t(r.lead))}</span></span><span class="meta">${esc(t(r.time))}</span></a>`;
 }
 function memberOf(r) {
@@ -234,19 +235,20 @@ function viewRecipes() {
 function viewRecipe(id) {
   const r = REC.items.find(x => x.id === id);
   if (!r) return notFound();
-  const demo = r.demo === "wheel" ? wheelDemo() : r.demo === "pointer" ? `<div class="demo wheel">${pointerSvg(false)}</div>` : `<figure class="demo"><img src="${img(r.demo.slice(4))}" alt=""></figure>`;
+  const art = demoSvg(r.demo, false);
+  const demo = r.demo === "wheel" ? wheelDemo() : art ? `<div class="demo wheel">${art}</div>` : `<figure class="demo"><img src="${img(r.demo.slice(4))}" alt=""></figure>`;
   const sample = r.sample ? `<span><b>${u("sample")}</b>${esc(r.sample[0])}(${esc(t(r.sample[2]))})</span>` : `<span><b>${u("sample")}</b>${esc(t(r.near))}</span>`;
   return `<div class="rhead" data-a="top">
     <div><p class="crumb"><a href="${href("")}">${u("home")}</a> / <a href="${href("recipes")}">${u("make")}</a></p>
       <h1>${esc(t(r.title))}</h1><p class="lead">${esc(t(r.lead))}</p>
-      <div class="facts"><span><b>${u("time")}</b>${esc(t(r.time))}</span><span><b>${u("modules")}</b>${r.modules.join(", ")}</span>${sample}</div>
+      <div class="facts"><span><b>${u("time")}</b>${esc(t(r.time))}</span><span><b>${u("modules")}</b>${r.modules.length ? r.modules.join(", ") : (lang === "ja" ? "どれでも" : "any")}</span>${sample}</div>
       ${video(r.id)}</div>
     ${demo}</div>
   <div class="page">
     <ol class="steps">
       <li data-a="place">${num(1)}<div><h3>${u("place")}</h3><div class="body"><ul>${r.place.map(p => `<li>${menuize(t(p))}</li>`).join("")}</ul></div></div></li>
       <li data-a="set">${num(2)}<div><h3>${u("set")}</h3><div class="body"><div class="insp"><div class="ttl">Inspector</div>${r.inspector.map(i => `<div class="r ${i[2] ? "ch" : ""}"><span class="lab">${esc(i[0])}</span><span class="v">${esc(i[1])}</span>${t(i[3]) ? `<span class="note">${esc(t(i[3]))}</span>` : ""}</div>`).join("")}</div>
-        <p class="small muted" style="margin-top:8px">${lang === "ja" ? "左に青い線がある行が、変更する項目です。" : "Rows with a blue bar are the ones you change."}</p></div></div></li>
+        ${r.inspector.some(i => i[2]) ? `<p class="small muted" style="margin-top:8px">${lang === "ja" ? "左に青い線がある行が、変更する項目です。" : "Rows with a blue bar are the ones you change."}</p>` : ""}</div></div></li>
       <li data-a="code">${num(3)}<div><h3>${u("code")}</h3><div class="body">${codeBlock(r.code)}</div></div></li>
       <li data-a="try">${num(4)}<div><h3>${u("try")}</h3><div class="body"><p>${esc(t(r.try))}</p></div></div></li>
     </ol>
@@ -295,6 +297,22 @@ function pointerSvg(small) {
     <g transform="rotate(30 310 176)"><rect x="294" y="150" width="32" height="52" rx="6" fill="#2a251f" stroke="#FF5A4E" stroke-width="2"/></g>
     <path d="M66 152 L198 58" stroke="#3A8DFF" stroke-width="1.25" stroke-dasharray="3 5"/><path d="M294 152 L157 118" stroke="#FF5A4E" stroke-width="1.25" stroke-dasharray="3 5"/>
     <text x="180" y="186" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#8a847a">A = click</text>`}
+  </svg>`;
+}
+// a drawn picture for a guide (pointer, pause), or "" for a photo (img:…) and the wheel
+function demoSvg(kind, small) {
+  return kind === "pointer" ? pointerSvg(small) : kind === "pause" ? pauseSvg(small) : "";
+}
+// the game under a blurred pause screen while a phone is away
+function pauseSvg(small) {
+  const bars = [[110, 44, 70], [194, 60, 54], [140, 108, 90]].map(([x, y, w]) => `<rect x="${x}" y="${y}" width="${w}" height="26" rx="8" fill="#5a5248" opacity=".55"/>`).join("");
+  return `<svg viewBox="0 0 360 210" ${small ? 'width="76" height="44"' : ""} aria-hidden="true">
+    <rect x="88" y="18" width="184" height="134" rx="10" fill="#2a251f" stroke="#efe9de" stroke-opacity=".9" stroke-width="${small ? 8 : 3}"/>
+    ${bars}<rect x="90" y="20" width="180" height="130" rx="9" fill="#1f1b16" opacity=".45"/>
+    <text x="180" y="${small ? 100 : 88}" text-anchor="middle" font-family="system-ui,sans-serif" font-size="${small ? 40 : 28}" font-weight="800" letter-spacing="2" fill="#ffc93c">${lang === "ja" ? "PAUSE" : "Paused"}</text>
+    ${small ? "" : `<text x="180" y="112" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#efe9de">${lang === "ja" ? "スマホを繋げてください" : "Please reconnect your phone"}</text>
+    <g transform="rotate(-12 60 180)"><rect x="40" y="160" width="50" height="30" rx="6" fill="#2a251f" stroke="#3A8DFF" stroke-width="2" stroke-dasharray="4 4"/></g>
+    <text x="180" y="186" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#8a847a">PlayerAway → Away Pause</text>`}
   </svg>`;
 }
 let wheelAnim = 0;

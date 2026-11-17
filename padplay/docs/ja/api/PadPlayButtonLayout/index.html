@@ -10,7 +10,7 @@
 <link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/api/PadPlayButtonLayout/">
 <meta name="theme-color" content="#f7f4ee">
 <link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=8f5210e072">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=9bf884f315">
 <style>.js #main > .fb { display: none; }</style>
 <script>document.documentElement.classList.add("js");</script>
 
@@ -24,14 +24,14 @@
     <button class="langbtn" id="langbtn" type="button"></button>
   </div>
 </header>
-<main id="main"><div class="fb"><h1>API リファレンス</h1><p>PadPlay のすべての型・メンバー・設定項目をこのページにまとめています。名前や意味で絞り込めます。</p><h2>PadPlayButtonLayout</h2><p>スマホに出すボタンとスティックの配置です。アセットでもコードでも作れます。全員に同じ配置なら Host の Buttons › Layout に、1 人だけ変えるなら host.SetLayout で渡します。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayButtonLayout/Create/"><code>Create</code></a> — コードから配置を作ります。アセットとしては保存されません。</li><li><a href="/padplay/docs/ja/api/PadPlayButtonLayout/Element/"><code>Element</code></a> — ボタンかスティック 1 つ分の設定です。</li><li><a href="/padplay/docs/ja/api/PadPlayButtonLayout/Orientation/"><code>Orientation</code></a> — この配置を出している間のスマホの向きです。Landscape と Portrait は向きを固定し、Auto は持ち方に合わせます。変えると配置を送り直します。</li><li><a href="/padplay/docs/ja/api/PadPlayButtonLayout/MarkChanged/"><code>MarkChanged</code></a> — コードで Elements を変えた後に呼ぶと、次のフレームで送り直します。Inspector で変えたときは要りません。</li></ul></div></main>
+<main id="main"><div class="fb"><h1>API リファレンス</h1><p>PadPlay のすべての型・メンバー・設定項目をこのページにまとめています。名前や意味で絞り込めます。</p><h2>PadPlayButtonLayout</h2><p>スマホに出すボタンとスティックの配置です。アセットでもコードでも作れます。全員に同じ配置なら Host の Buttons › Layout に、1 人だけ変えるなら host.SetLayout で渡します。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayButtonLayout/Create/"><code>Create</code></a> — コードから配置を作ります。アセットとしては保存されません。</li><li><a href="/padplay/docs/ja/api/PadPlayButtonLayout/Element/"><code>Element</code></a> — ボタンかスティック 1 つ分の設定です。</li><li><a href="/padplay/docs/ja/api/PadPlayButtonLayout/Orientation/"><code>Orientation</code></a> — この配置を出している間のスマホの向きです。Landscape と Portrait は向きを固定し、Auto は持ち方に合わせます。変えると配置を送り直します。</li><li><a href="/padplay/docs/ja/api/PadPlayButtonLayout/HitSlopMm/"><code>HitSlopMm</code></a> — ボタンの絵の縁から何 mm 外まで、指がそのボタンに当たるかです(0〜10。0 は絵のとおり)。2 つのボタンの間では縁が近い方に当たります。null はスマホの既定(2.5 mm)です。要素の CustomHitSlop が優先です。変えると配置を送り直します。古いアプリは読まずに 2.5 mm のままです。</li><li><a href="/padplay/docs/ja/api/PadPlayButtonLayout/MarkChanged/"><code>MarkChanged</code></a> — コードで Elements を変えた後に呼ぶと、次のフレームで送り直します。Inspector で変えたときは要りません。</li></ul></div></main>
 <footer class="foot" id="foot"></footer>
 <div class="sov" id="sov" role="dialog" aria-modal="true">
   <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
 </div>
 <div class="toast" id="toast" role="status"></div>
-<script src="/padplay/docs/_app/data.js?v=99edc0dd45"></script>
-<script src="/padplay/docs/_app/app.js?v=61513b1a61"></script>
+<script src="/padplay/docs/_app/data.js?v=4fb20afe36"></script>
+<script src="/padplay/docs/_app/app.js?v=25407d10bd"></script>
 <script src="/assets/video.js?v=369aaae253"></script>
 </body>
 </html>

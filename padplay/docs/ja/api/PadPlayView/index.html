@@ -10,7 +10,7 @@
 <link rel="alternate" hreflang="ja" href="https://petaf.dev/padplay/docs/ja/api/PadPlayView/">
 <meta name="theme-color" content="#f7f4ee">
 <link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=8f5210e072">
+<link rel="stylesheet" href="/padplay/docs/_app/style.css?v=9bf884f315">
 <style>.js #main > .fb { display: none; }</style>
 <script>document.documentElement.classList.add("js");</script>
 
@@ -24,14 +24,14 @@
     <button class="langbtn" id="langbtn" type="button"></button>
   </div>
 </header>
-<main id="main"><div class="fb"><h1>API リファレンス</h1><p>PadPlay のすべての型・メンバー・設定項目をこのページにまとめています。名前や意味で絞り込めます。</p><h2>PadPlayView</h2><p>カメラか RenderTexture の絵をスマホへ送り、手元の画面(第二画面)として映します。有料の PadPlay SDK だけの機能で、Lite 版にはありません。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayView/SourceCamera/"><code>SourceCamera</code></a> — 送るカメラです。SDK がこのカメラの targetTexture を作るので、絵はスマホにだけ出ます。URP では Base カメラにします。SourceTexture が入っているときは、そちらを送ります。</li><li><a href="/padplay/docs/ja/api/PadPlayView/SourceTexture/"><code>SourceTexture</code></a> — カメラの代わりに送る、自分で描いた RenderTexture です。映像の大きさはこのテクスチャの大きさになります。</li><li><a href="/padplay/docs/ja/api/PadPlayView/PlayerSlot/"><code>PlayerSlot</code></a> — 送る相手の枠の番号です。-1(AllPlayers)なら全員に同じ絵を送ります。全員向けの絵は 1 回だけエンコードするので、画質はいちばん弱い回線に合わせられます。</li><li><a href="/padplay/docs/ja/api/PadPlayView/Width-Height/"><code>Width / Height</code></a> — カメラを送るときの映像の大きさ(px、16 以上)です。SourceTexture のときは使いません。</li><li><a href="/padplay/docs/ja/api/PadPlayView/FrameRate/"><code>FrameRate</code></a> — エンコードの fps の上限です。0 は 60 として扱います。</li><li><a href="/padplay/docs/ja/api/PadPlayView/MaxBitrateKbps/"><code>MaxBitrateKbps</code></a> — ビットレートの上限(kbps)です。0 は 2500 として扱います。Adaptive Video がオンなら、Wi-Fi に合わせてここから下げます。</li><li><a href="/padplay/docs/ja/api/PadPlayView/MatchPhoneAspect/"><code>MatchPhoneAspect</code></a> — 映像の幅をスマホの画面の縦横比に合わせます(高さはそのまま)。1 人に送るときだけ効きます。</li><li><a href="/padplay/docs/ja/api/PadPlayView/UseAsTouchTarget/"><code>UseAsTouchTarget</code></a> — このカメラを、そのプレイヤーのタッチの当たる先にします。スマホで映像をタップすると、そこに映っている UI が押されます。</li><li><a href="/padplay/docs/ja/api/PadPlayView/TouchCamera/"><code>TouchCamera</code></a> — タッチが当たるカメラです。RenderTexture を送るときは、そこへ描いているカメラを入れます。空なら Source Camera です。</li><li><a href="/padplay/docs/ja/api/PadPlayView/GetPlayerView/"><code>GetPlayerView</code></a> — 今そのプレイヤーに見せている View です(host の拡張メソッド)。</li></ul></div></main>
+<main id="main"><div class="fb"><h1>API リファレンス</h1><p>PadPlay のすべての型・メンバー・設定項目をこのページにまとめています。名前や意味で絞り込めます。</p><h2>PadPlayView</h2><p>カメラか RenderTexture の絵をスマホへ送り、手元の画面(第二画面)として映します。有料の PadPlay SDK だけの機能で、Lite 版にはありません。</p><ul><li><a href="/padplay/docs/ja/api/PadPlayView/SourceCamera/"><code>SourceCamera</code></a> — 送るカメラです。SDK がこのカメラの targetTexture を作るので、絵はスマホにだけ出ます。URP では Base カメラにします。SourceTexture が入っているときは、そちらを送ります。</li><li><a href="/padplay/docs/ja/api/PadPlayView/SourceTexture/"><code>SourceTexture</code></a> — カメラの代わりに送る、自分で描いた RenderTexture です。映像の大きさはこのテクスチャの大きさになります。</li><li><a href="/padplay/docs/ja/api/PadPlayView/PlayerSlot/"><code>PlayerSlot</code></a> — 送る相手の枠の番号です。-1(AllPlayers)なら全員に同じ絵を送ります。全員向けの絵は回線が似ている間は 1 回だけエンコードし、1 人の回線だけがずっと遅い時はその人に別のエンコーダーを使います(Max Encoders Per View)。</li><li><a href="/padplay/docs/ja/api/PadPlayView/Width-Height/"><code>Width / Height</code></a> — カメラを送るときの映像の大きさ(px、16 以上)です。SourceTexture のときは使いません。</li><li><a href="/padplay/docs/ja/api/PadPlayView/FrameRate/"><code>FrameRate</code></a> — エンコードの fps の上限です。0 は 60 として扱います。</li><li><a href="/padplay/docs/ja/api/PadPlayView/MaxBitrateKbps/"><code>MaxBitrateKbps</code></a> — ビットレートの上限(kbps)です。0 は 2500 として扱います。Adaptive Video がオンなら、Wi-Fi に合わせてここから下げます。</li><li><a href="/padplay/docs/ja/api/PadPlayView/MatchPhoneAspect/"><code>MatchPhoneAspect</code></a> — 映像の幅をスマホの画面の縦横比に合わせます(高さはそのまま)。1 人に送るときだけ効きます。</li><li><a href="/padplay/docs/ja/api/PadPlayView/UseAsTouchTarget/"><code>UseAsTouchTarget</code></a> — このカメラを、そのプレイヤーのタッチの当たる先にします。スマホで映像をタップすると、そこに映っている UI が押されます。</li><li><a href="/padplay/docs/ja/api/PadPlayView/TouchCamera/"><code>TouchCamera</code></a> — タッチが当たるカメラです。RenderTexture を送るときは、そこへ描いているカメラを入れます。空なら Source Camera です。</li><li><a href="/padplay/docs/ja/api/PadPlayView/GetPlayerView/"><code>GetPlayerView</code></a> — 今そのプレイヤーに見せている View です(host の拡張メソッド)。</li></ul></div></main>
 <footer class="foot" id="foot"></footer>
 <div class="sov" id="sov" role="dialog" aria-modal="true">
   <div class="sbox"><input id="sin" type="search" autocomplete="off" spellcheck="false"><div class="sres" id="sres"></div><div class="sfoot" id="sfoot"></div></div>
 </div>
 <div class="toast" id="toast" role="status"></div>
-<script src="/padplay/docs/_app/data.js?v=99edc0dd45"></script>
-<script src="/padplay/docs/_app/app.js?v=61513b1a61"></script>
+<script src="/padplay/docs/_app/data.js?v=4fb20afe36"></script>
+<script src="/padplay/docs/_app/app.js?v=25407d10bd"></script>
 <script src="/assets/video.js?v=369aaae253"></script>
 </body>
 </html>
