@@ -157,7 +157,7 @@ async function start() {
   }
 
   // --- 入力(角度は rad。画面で時計回りが +)。tick ごとにリングの世界の角度を整数にして見本へ渡す ---
-  // cur: 見本に渡すリングの世界の角度 = cam + del
+  // cur: 見本に渡すリングの世界の角度 = 2 * cam + del(画面の上のリングは傾きの分 cam ＋ δ 回り、画面自体が現実で cam 回っている)
   // del: 画面の上のリングの角度(ドラッグ・キーで足した分。δ)。delWant はその行き先
   // cam: カメラの角度(端末の傾き φ のうち、もうリングに渡し終えた分)。描く時は場面全体を cam だけ逆に回す
   // 1 tick に回せるのは MAX_TURN_PER_TICK(見本の MAX_STEP)まで。del と cam の動きの合計をそこに収める。端末を速く回すと
@@ -170,9 +170,9 @@ async function start() {
     const camWant = tiltOn && tiltRaw !== null ? tiltS : 0;
     let dd = (delWant - del) * (drag ? 1 : 0.35);
     let dc = (camWant - cam) * (easing ? 0.12 : 1);   // 傾きを使い始めた時・やめた時は、ゆっくり(中の物がなだらかに流れる)
-    const sum = Math.abs(dd + dc);
+    const sum = Math.abs(dd + 2 * dc);
     if (sum > MAX_TURN_PER_TICK) { const f = MAX_TURN_PER_TICK / sum; dd *= f; dc *= f; }
-    del += dd; cam += dc; cur = cam + del;
+    del += dd; cam += dc; cur = 2 * cam + del;   // 画面の上のリング = 傾き φ + δ、画面は現実で φ 回っているので、世界では 2φ + δ
     if (easing && Math.abs(camWant - cam) < 0.01) easing = false;
     // 見本の角度は上が +y の向き(反時計回りが +)。画面の時計回り = 見本の負の向き。整数は 65536 で割った余りで渡す
     return wrapQ(Math.round(-cur / (Math.PI * 2) * TURN));
@@ -264,7 +264,7 @@ async function start() {
       if (lastO !== null && o !== lastO) {
         // 画面の向き(縦・横)が変わった: 現実のリングと中の物は動いていない。見本の角度(cur)は変えず、
         // カメラを一度に合わせて、画面の上のリングの角度でその分を引き取る
-        cam += j; del -= j; delWant -= j; tiltS += j;
+        cam += j; del -= 2 * j; delWant -= 2 * j; tiltS += j;
       }
       tiltU += j;
     }
@@ -306,8 +306,8 @@ async function start() {
   if (resetBtn) resetBtn.addEventListener("click", () => {
     demo.reset(); shapes = [];
     syncRing();
-    // 見本のリングは角度 0 に戻る。カメラ(傾き)はそのままにして、画面の上のリングの角度で合わせる(cur = cam + del = 0)
-    del = delWant = -cam; cur = 0;
+    // 見本のリングは角度 0 に戻る。カメラ(傾き)はそのままにして、画面の上のリングの角度で合わせる(cur = 2 * cam + del = 0)
+    del = delWant = -2 * cam; cur = 0;
     dirty = true;
     interacted();
   });
