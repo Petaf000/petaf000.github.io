@@ -27,6 +27,7 @@
   --head-ink: #F4F2EE;
   --head-muted: #8E959E;
   --head-line: #2C3038;
+  --page-bg: #FFFFFF;        /* ページの地(段の中で --bg を変えても、段の端を溶かす先はこれ) */
   --sans: "Zen Kaku Gothic New", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
   --display: "Space Grotesk", var(--sans);
   --max: 1120px;
@@ -43,6 +44,7 @@
     --line: #2C3038;
     --soft: #23262D;
     --frame: #5A6068;
+    --page-bg: #15171C;
   }
 }
 
@@ -488,8 +490,10 @@ main.wrap.wide { max-width: 960px; }
 @media (max-width: 960px) { .hero-solo { padding-top: 48px; padding-bottom: 56px; } }
 
 /* --- トップの遊べる札の段「おもちゃの箱」(.toy-zone。PadPlay の peek・DetPhys の physics の札がある時に、ホームの製品の段に付く) ---
-   段の地は黄 #FFC93C に朱 #FF784A の斜めの帯。地は段といっしょに流れる(画面に固定しない・スクロールで切り替えない)。
-   上下の端は、ページの地へなだらかに溶かす。帯は段の上から下まで 1 本で、PadPlay の絵の後ろから DetPhys の絵の後ろへ続く。 */
+   黄 #FFC93C の地に朱 #FF784A の斜めの帯。DetPhys の札から下(.toy-phys)は青緑 #2FB8A6 の地に淡い青緑の帯で、札と札の間でなだらかにつなぐ。
+   地はページの中に置き、段といっしょに流れる(画面に固定しない・時間で切り替えない)。
+   重ね順(どれも z-index: -1): 段の地(::before)→ 帯(.toy-stripe)→ DetPhys の地と帯(.toy-part-bg)→ 上下の端を溶かす(::after)。
+   帯は段の下の端を軸に傾けた(skewX)板。2 本の帯は幅・下の端・傾きが同じなので、段の高さによらず縁が重なる。はみ出しは入れ物で切る。 */
 
 body { overflow-x: clip; }   /* 段の地は画面の幅いっぱい(100vw)。縦のスクロールバーの分だけ横にはみ出さないように */
 .toy-zone {
@@ -501,33 +505,81 @@ body { overflow-x: clip; }   /* 段の地は画面の幅いっぱい(100vw)。�
   --soft: #FFE08A;
   --frame: #15171C;
   --accent: #FF784A;
+  --toy-ground: #FFC93C;     /* 黄 */
+  --toy-stripe: #FF784A;     /* 朱 */
   --zone-top: 64px;          /* 地を段の上へ広げる量(.page の上の余白。ヘッダーの墨の帯のすぐ下から) */
   --zone-bottom: 72px;       /* 地を段の下へ広げる量(次の段の上の余白) */
+  --zone-pad: 24px;          /* 段の下の余白(padding-bottom) */
   --zone-fade-top: 96px;     /* 上の端を溶かす長さ */
+  --stripe-x: 45%;           /* 帯の左の縁の、段の下の端での位置(画面の幅に対して) */
+  --stripe-skew: 12deg;      /* 帯の傾き(上へ行くほど右へ) */
   color-scheme: light;
   position: relative;
-  padding-bottom: 24px;
+  padding-bottom: var(--zone-pad);
   isolation: isolate;
   color: var(--ink);
 }
-.toy-zone::before, .toy-zone::after {
+.toy-zone::before, .toy-zone::after, .toy-stripe, .toy-part-bg {
   content: "";
   position: absolute;
   z-index: -1;
-  top: calc(-1 * var(--zone-top));
-  bottom: calc(-1 * var(--zone-bottom));
   left: calc(50% - 50vw);
   right: calc(50% - 50vw);
   pointer-events: none;
-  /* 上は段の上の余白の中で、下は段の下の余白(と段の下の 24px)の中で溶かす(字の上にはかからない)。マスクは使わず、色の透明度で溶かす */
-  --fade: linear-gradient(to bottom, rgb(var(--c) / 0), rgb(var(--c)) var(--zone-fade-top), rgb(var(--c)) calc(100% - var(--zone-bottom) - 24px), rgb(var(--c) / 0));
-  background: var(--fade);
 }
-.toy-zone::before { --c: 255 201 60; }   /* 黄 #FFC93C */
-.toy-zone::after { --c: 255 120 74; clip-path: polygon(63% 0, 100% 0, 100% 100%, 45% 100%); }   /* 朱 #FF784A */
+.toy-zone::before, .toy-zone::after, .toy-stripe {
+  top: calc(-1 * var(--zone-top));
+  bottom: calc(-1 * var(--zone-bottom));
+}
+.toy-zone::before { background: var(--toy-ground); }
+.toy-stripe, .toy-part-bg { overflow: hidden; }
+.toy-stripe::before, .toy-part-bg::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--stripe-x);
+  right: 0;
+  transform: skewX(calc(-1 * var(--stripe-skew)));
+  transform-origin: 0 100%;
+}
+.toy-stripe::before { background: var(--toy-stripe); }
+/* 上下の端は、段の上下の余白の中でページの地へ溶かす(字の上にはかからない) */
+.toy-zone::after {
+  background:
+    linear-gradient(var(--page-bg), transparent) top / 100% var(--zone-fade-top) no-repeat,
+    linear-gradient(transparent, var(--page-bg)) bottom / 100% calc(var(--zone-bottom) + var(--zone-pad)) no-repeat;
+}
 .toy-zone .plate { background: transparent; }
+
+/* DetPhys の札から下。地と帯は、札の --tint-up 上から --tint-len かけて、黄・朱から青緑へ移る */
+.toy-part { position: relative; margin-top: 64px; }
+.toy-part > .product-card { margin-top: 0; }
+.toy-part-bg {
+  top: calc(-1 * var(--tint-up));
+  bottom: calc(-1 * (var(--zone-bottom) + var(--zone-pad)));
+}
+.toy-phys {
+  --part-ground: #2FB8A6;    /* 青緑(印の色) */
+  --part-stripe: #C4EBE4;    /* 淡い青緑 */
+  --muted: #2A3A39;
+  --soft: #DDF3EF;
+  --accent: #15171C;
+  --button-hover: #E2F5F1;
+  --tint-up: 176px;          /* 札の上の端から、色が移り始める所まで */
+  --tint-len: 272px;         /* 移り終わるまでの長さ */
+}
+.toy-part-bg {
+  background: linear-gradient(to bottom, var(--toy-ground), var(--part-ground) var(--tint-len));
+  background: linear-gradient(in oklab to bottom, var(--toy-ground), var(--part-ground) var(--tint-len));
+}
+.toy-part-bg::before {
+  background: linear-gradient(to bottom, var(--toy-stripe), var(--part-stripe) var(--tint-len));
+  background: linear-gradient(in oklab to bottom, var(--toy-stripe), var(--part-stripe) var(--tint-len));
+}
 @media (max-width: 960px) {
-  .toy-zone::after { clip-path: polygon(74% 0, 100% 0, 100% 100%, 56% 100%); }
+  .toy-zone { --stripe-x: 56%; --stripe-skew: 3deg; }
+  .toy-phys { --tint-up: 144px; --tint-len: 224px; }
 }
 @media (max-width: 600px) {
   .toy-zone { --zone-top: 40px; --zone-bottom: 56px; --zone-fade-top: 64px; }
@@ -641,7 +693,7 @@ html.peek-ready .peek-phone.dragging { cursor: grabbing; z-index: 10; }
 .phys-tools[hidden], .phys-tools .button[hidden] { display: none; }
 /* ボタンは白いステッカー(PadPlay の札の傾きのボタンと同じ) */
 .phys-tools .button { font: inherit; font-weight: 700; font-size: 16px; color: #15171C; background: #FFFFFF; border: 3px solid #15171C; box-shadow: 4px 4px 0 #15171C; cursor: pointer; }
-.phys-tools .button:hover { color: #15171C; background: #FFF1C9; }
+.phys-tools .button:hover { color: #15171C; background: var(--button-hover, #FFF1C9); }
 .phys-tools .button:focus-visible { outline: 3px solid #15171C; outline-offset: 4px; }
 .phys-tools .button:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #15171C; }
 .phys-tools .phys-reset { font-size: 15px; padding: 8px 16px; }

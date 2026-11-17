@@ -2,8 +2,11 @@
 // 歯車のような凹のリングの中で、物が転がる。リングを回すと、中の物が転がる。物理は DetPhys の見本(WebAssembly)が計算し、
 // ここは入力を整数にして渡すのと、描くのだけ。見本は /detphys/demo/(札の data-phys)の detphys_demo.js が読む(使い方はそこの README.md)。
 // - ドラッグ(マウス・指): リングの真ん中から見た指の角度が変わった分だけ、リングが回る(つかんで回す)。
-// - 傾き(スマホ。「傾けて回す」を押した人だけ): 端末の傾きの角度が、そのままリングの角度になる(戻せば戻る)。
-//   重力の向きを画面の面に写した角度。画面の向き(縦・横)も考える。iOS は押した時に許可を聞く。ドラッグ中はドラッグが先。
+// - 傾き(スマホ。「傾けて回す」を押した人だけ): リングは画面といっしょに傾き、中の物は現実の下へ落ちる(逆さに持てば画面の上の方へ)。
+//   見本の世界はそのまま(重力は世界の下、入力はリングの角度だけ)で、リングの世界の角度 = 端末の傾き φ + ドラッグで足した分 δ にし、
+//   描く時に場面全体を φ だけ逆に回す(カメラを回す)。画面の上ではリングは δ だけ回って見え、物は現実の下へ落ちて見える。
+//   φ は重力の向きを画面の面に写した角度(0〜360 度の全部。画面の向き(縦・横)も考える)。iOS は押した時に許可を聞く。
+//   ドラッグで足した δ は、離した後もそのまま残す(手で回したダイヤルは、離した所で止まる。勝手に戻すと、触っていないのに中の物が動く)。
 // - キーボード: 左右の矢印キーで回す。Home で 0 度へ。
 // - 時間: 実時間をためて 60 Hz の tick を回す(1 フレームで多くても MAX_TICKS_PER_FRAME 回。遅い端末で追いつこうとして固まらない)。
 //   段が画面の外・タブが隠れている間は、tick も描くのも止める。
@@ -104,8 +107,10 @@ async function start() {
     ctx.fill(panelPath);
     ctx.save();
     ctx.clip(panelPath);
-    // リング: 世界 → 画面(y は下が +)
-    const a = ringQ / TURN * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a);
+    // 場面全体をカメラの角度 cam だけ回す(画面の上で反時計回り = 世界の角度で +cam)。世界 → 画面(y は下が +)
+    const cc = Math.cos(cam), sc = Math.sin(cam);
+    // リング
+    const a = ringQ / TURN * Math.PI * 2 + cam, ca = Math.cos(a), sa = Math.sin(a);
     ctx.setTransform(scale * ca, -scale * sa, -scale * sa, -scale * ca, cx, cy);
     ctx.fillStyle = C.ring;
     ctx.fill(ringPath);
@@ -118,7 +123,7 @@ async function start() {
     for (let g = 0; g < C.bodies.length; g++) {
       ctx.beginPath();
       for (let i = g; i < n; i += C.bodies.length) {
-        const k = i * 5, x = cx + d[k] * scale, y = cy - d[k + 1] * scale, ang = d[k + 2];
+        const k = i * 5, x = cx + (d[k] * cc - d[k + 1] * sc) * scale, y = cy - (d[k] * sc + d[k + 1] * cc) * scale, ang = d[k + 2] + cam;
         if (d[k + 3] === 0) {
           const r = d[k + 4] * scale;
           ctx.moveTo(x + r, y);
@@ -143,7 +148,7 @@ async function start() {
     for (let i = 0; i < n; i++) {
       const k = i * 5;
       if (d[k + 3] !== 0) continue;
-      const x = cx + d[k] * scale, y = cy - d[k + 1] * scale, r = d[k + 4] * scale, ang = d[k + 2];
+      const x = cx + (d[k] * cc - d[k + 1] * sc) * scale, y = cy - (d[k] * sc + d[k + 1] * cc) * scale, r = d[k + 4] * scale, ang = d[k + 2] + cam;
       ctx.moveTo(x, y);
       ctx.lineTo(x + Math.cos(ang) * r, y - Math.sin(ang) * r);
     }
@@ -151,19 +156,24 @@ async function start() {
     ctx.restore();
   }
 
-  // --- 入力: リングの角度(画面で時計回りが +。rad)。tick ごとに整数にして見本へ渡す ---
-  let cur = 0, target = 0;
+  // --- 入力(角度は rad。画面で時計回りが +)。tick ごとにリングの世界の角度を整数にして見本へ渡す ---
+  // cur: 見本に渡すリングの世界の角度 = cam + del
+  // del: 画面の上のリングの角度(ドラッグ・キーで足した分。δ)。delWant はその行き先
+  // cam: カメラの角度(端末の傾き φ のうち、もうリングに渡し終えた分)。描く時は場面全体を cam だけ逆に回す
+  // 1 tick に回せるのは MAX_TURN_PER_TICK(見本の MAX_STEP)まで。del と cam の動きの合計をそこに収める。端末を速く回すと
+  // リングの世界の角度が遅れて追い、カメラも同じだけ遅れる(cam = cur - del なので、絵と物理がずれず、画面の上のリングも揺れない)
+  let cur = 0, del = 0, delWant = 0, cam = 0;
   let drag = null;                 // { id, last }: ドラッグ中
-  let tiltOn = false, tiltRaw = null, tiltU = 0, tiltS = 0, returning = false;
+  let tiltOn = false, tiltRaw = null, tiltU = 0, tiltS = 0, easing = false, lastO = null;
   const wrapPi = (v) => v - Math.PI * 2 * Math.floor((v + Math.PI) / (Math.PI * 2));
   function inputTick() {
-    let want = target, k = 1;
-    if (drag) want = target;
-    else if (tiltOn && tiltRaw !== null) { want = tiltS; k = returning ? 0.12 : 1; }
-    else k = 0.35;
-    const diff = want - cur;
-    cur += Math.max(-MAX_TURN_PER_TICK, Math.min(MAX_TURN_PER_TICK, diff * k));
-    if (returning && Math.abs(want - cur) < 0.01) returning = false;
+    const camWant = tiltOn && tiltRaw !== null ? tiltS : 0;
+    let dd = (delWant - del) * (drag ? 1 : 0.35);
+    let dc = (camWant - cam) * (easing ? 0.12 : 1);   // 傾きを使い始めた時・やめた時は、ゆっくり(中の物がなだらかに流れる)
+    const sum = Math.abs(dd + dc);
+    if (sum > MAX_TURN_PER_TICK) { const f = MAX_TURN_PER_TICK / sum; dd *= f; dc *= f; }
+    del += dd; cam += dc; cur = cam + del;
+    if (easing && Math.abs(camWant - cam) < 0.01) easing = false;
     // 見本の角度は上が +y の向き(反時計回りが +)。画面の時計回り = 見本の負の向き。整数は 65536 で割った余りで渡す
     return wrapQ(Math.round(-cur / (Math.PI * 2) * TURN));
   }
@@ -176,7 +186,7 @@ async function start() {
   canvas.addEventListener("pointerdown", (e) => {
     if (e.button !== 0) return;
     drag = { id: e.pointerId, last: centerAngle(e) };
-    target = cur;
+    delWant = del;
     canvas.setPointerCapture(e.pointerId);
     canvas.classList.add("dragging");
     interacted();
@@ -186,17 +196,13 @@ async function start() {
     if (!drag || e.pointerId !== drag.id) return;
     const a = centerAngle(e);
     if (a === null) return;
-    if (drag.last !== null) target = cur + Math.max(-MAX_LEAD, Math.min(MAX_LEAD, target + wrapPi(a - drag.last) - cur));
+    if (drag.last !== null) delWant = del + Math.max(-MAX_LEAD, Math.min(MAX_LEAD, delWant + wrapPi(a - drag.last) - del));
     drag.last = a;
   });
   function endDrag(e) {
     if (!drag || e.pointerId !== drag.id) return;
     drag = null;
     canvas.classList.remove("dragging");
-    if (tiltOn && tiltRaw !== null) {   // 傾きに戻る: 今の角度にいちばん近い回り方で、ゆっくり
-      tiltU = tiltS = cur + wrapPi(tiltRaw - cur);
-      returning = true;
-    }
   }
   canvas.addEventListener("pointerup", endDrag);
   canvas.addEventListener("pointercancel", endDrag);
@@ -204,9 +210,9 @@ async function start() {
   canvas.tabIndex = 0;
   canvas.setAttribute("role", "application");
   canvas.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowRight") target += KEY_STEP;
-    else if (e.key === "ArrowLeft") target -= KEY_STEP;
-    else if (e.key === "Home") target = cur - wrapPi(cur);
+    if (e.key === "ArrowRight") delWant += KEY_STEP;
+    else if (e.key === "ArrowLeft") delWant -= KEY_STEP;
+    else if (e.key === "Home") delWant = del - wrapPi(del);
     else return;
     interacted();
     e.preventDefault();
@@ -228,32 +234,41 @@ async function start() {
     } else listen();
   }
   function listen() {
-    tiltOn = true; gotEvent = false; tiltRaw = null;
+    tiltOn = true; gotEvent = false; tiltRaw = null; lastO = null;
     window.addEventListener("deviceorientation", onOrientation);
     tiltBtn.textContent = text("tiltOff");
     interacted();
     setTimeout(() => { if (tiltOn && !gotEvent) { stopTilt(); say("nosensor"); } }, 2000);
   }
   function stopTilt() {
-    tiltOn = false; tiltRaw = null; returning = false;
+    tiltOn = false; tiltRaw = null; easing = true;   // カメラはゆっくり 0 へ(中の物は画面の下へ流れる)
     window.removeEventListener("deviceorientation", onOrientation);
-    target = cur;
     tiltBtn.textContent = text("tilt");
   }
-  // 地面の上の向きを端末の向き(beta・gamma)から出し、画面の面に写した向きの角度を、リングの角度にする。
-  // 端末の座標(右 +x・端末の上 +y)での上の向き = (-cos β sin γ, sin β)。画面が横の時は、画面の向きの角度だけ回す
+  // 地面の上の向きを端末の向き(beta・gamma)から出し、画面の面に写した向きの角度を φ にする(画面を時計回りに傾けると +。-180〜180 度)。
+  // 端末の座標(右 +x・端末の上 +y)での上の向き = (-cos β sin γ, sin β)。画面が横の時は、画面の向きの角度だけ回す。
+  // φ は前の値からの近い向きの差を足していく(tiltU)ので、180 度をまたいでも反対回りに 1 周しない
   function onOrientation(e) {
     if (e.beta === null || e.gamma === null) return;
     gotEvent = true;
     const d2r = Math.PI / 180, b = e.beta * d2r, g = e.gamma * d2r;
     const ux = -Math.cos(b) * Math.sin(g), uy = Math.sin(b);
     const o = ((screen.orientation && typeof screen.orientation.angle === "number") ? screen.orientation.angle : (window.orientation || 0)) * d2r;
-    const sx = ux * Math.cos(o) + uy * Math.sin(o), sy = -ux * Math.sin(o) + uy * Math.cos(o);
+    // 画面の座標 = 端末の座標を画面の向きの角度 o だけ回した物(o は端末を反時計回りに回した角度。PadPlay の peek-world.js と同じ R・Rz(-o))
+    const sx = ux * Math.cos(o) - uy * Math.sin(o), sy = ux * Math.sin(o) + uy * Math.cos(o);
     if (Math.hypot(sx, sy) < 0.3) return;   // ほぼ水平に寝かせている時は、向きが決まらないので前の角度のまま
     const th = Math.atan2(-sx, sy);         // 時計回りに傾けると +
-    if (tiltRaw === null) { tiltU = tiltS = cur + wrapPi(th - cur); returning = !drag; }
-    else tiltU += wrapPi(th - tiltRaw);
-    tiltRaw = th;
+    if (tiltRaw === null) { tiltU = tiltS = cam + wrapPi(th - cam); easing = true; }
+    else {
+      const j = wrapPi(th - tiltRaw);
+      if (lastO !== null && o !== lastO) {
+        // 画面の向き(縦・横)が変わった: 現実のリングと中の物は動いていない。見本の角度(cur)は変えず、
+        // カメラを一度に合わせて、画面の上のリングの角度でその分を引き取る
+        cam += j; del -= j; delWant -= j; tiltS += j;
+      }
+      tiltU += j;
+    }
+    tiltRaw = th; lastO = o;
     // 少しのゆれを止める(入力の側だけ。見本には整数の角度しか渡さない)
     const dd = tiltU - tiltS;
     if (Math.abs(dd) > 0.003) tiltS += dd * 0.35;
@@ -291,8 +306,8 @@ async function start() {
   if (resetBtn) resetBtn.addEventListener("click", () => {
     demo.reset(); shapes = [];
     syncRing();
-    cur = target = 0;
-    if (tiltOn && tiltRaw !== null) { tiltU = tiltS = wrapPi(tiltRaw); returning = true; }
+    // 見本のリングは角度 0 に戻る。カメラ(傾き)はそのままにして、画面の上のリングの角度で合わせる(cur = cam + del = 0)
+    del = delWant = -cam; cur = 0;
     dirty = true;
     interacted();
   });
