@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://petaf.dev/detphys/docs/sitemap.xml
+Sitemap: https://petaf.dev/padplay/docs/sitemap.xml

@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>コンセプト | DetPhys</title>
+<meta name="description" content="コンセプト">
+<link rel="canonical" href="https://petaf.dev/detphys/docs/ja/concepts.html">
+<link rel="alternate" hreflang="ja" href="https://petaf.dev/detphys/docs/ja/concepts.html">
+<link rel="alternate" hreflang="en" href="https://petaf.dev/detphys/docs/concepts.html">
+<link rel="alternate" hreflang="x-default" href="https://petaf.dev/detphys/docs/concepts.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DetPhys">
+<meta property="og:title" content="コンセプト | DetPhys">
+<meta property="og:description" content="コンセプト">
+<meta property="og:url" content="https://petaf.dev/detphys/docs/ja/concepts.html">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#f3f4f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161918" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/style.css">
+<script>document.documentElement.classList.add("js");window.DETPHYS={"lang": "ja", "root": "..", "search": "../assets/search-ja.js", "ui": {"search_none": "見つかりませんでした。別の言葉か、関数名の一部で探してください", "copied": "コピーした", "copy": "コピー"}};</script>
+<script src="../assets/app.js" defer></script>
+</head>
+<body class="doc"><header class="top"><div class="top-row"><button class="menu" type="button" aria-controls="side" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 5h12M3 9h12M3 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>目次</span></button><a class="brand" href="index.html"><span class="twin" aria-hidden="true"><i></i><i></i></span>DetPhys<small>ドキュメント</small></a><button class="sbtn" type="button" aria-haspopup="dialog"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>検索</span><kbd>Ctrl K</kbd></button><a class="lang" href="../concepts.html" hreflang="en" lang="en">English</a></div></header><div class="shell"><nav class="side" id="side" aria-label="目次"><p class="grp">はじめに</p><ul><li><a href="introduction.html">概要</a></li><li><a href="performance.html">パフォーマンス</a></li></ul><p class="grp">チュートリアル</p><ul><li><a href="start.html">クイックスタート</a></li><li><a href="gear-arena.html">サンプル: 歯車アリーナ</a></li></ul><p class="grp">ガイド</p><ul><li><a href="concepts.html" aria-current="page" class="in">コンセプト</a><ul class="sub here" aria-label="このページ"><li><a href="#決定論的な同期とは">決定論的な同期とは</a></li><li><a href="#tick">tick</a></li><li><a href="#入力とゲームの状態">入力とゲームの状態</a></li><li><a href="#ルール">ルール</a></li><li><a href="#ターン制">ターン制</a></li><li><a href="#リアルタイムロールバック">リアルタイム（ロールバック）</a></li><li><a href="#遅延-0-と入力遅延の自動調整">遅延 0 と、入力遅延の自動調整</a></li><li><a href="#再接続リアルタイム">再接続（リアルタイム）</a></li><li><a href="#snapshot">snapshot</a></li><li><a href="#凹形状とベイカー">凹形状とベイカー</a></li><li><a href="#動く凹形状">動く凹形状</a></li><li><a href="#3d">3D</a></li><li><a href="#トランスポート">トランスポート</a></li><li><a href="#ワーカースレッド">ワーカー（スレッド）</a></li></ul></li><li><a href="rules.html">決定論を守るためのルール</a></li><li><a href="transports.html">トランスポートとルームコード</a></li></ul><p class="grp">トラブルシューティング</p><ul><li><a href="desync.html">desync への対処</a></li></ul><p class="grp">リファレンス</p><ul><li><a href="api/index.html">API リファレンス</a></li><li><a href="glossary.html">用語集</a></li></ul></nav><main id="main"><article><h1>コンセプト</h1><section class="sec"><h2 id="決定論的な同期とは"><a class="hl" href="#決定論的な同期とは" aria-hidden="true" tabindex="-1">#</a>決定論的な同期とは</h2><p>DetPhys の対戦は「物体の位置を送り合う」のではなく、「<strong>同じ入力を両方の端末で同じ順に入れて、同じ計算をする</strong>」ことでそろえます。物理（2D は Box2D v3、3D は Box3D）は、浮動小数点のままでも、決まったビルド設定（fast-math なし・FMA の自動合成なし・三角関数は自前）なら、x64 と arm64、MSVC と clang と gcc のどれでもビットまで同じ結果を出します。DetPhys はこれを、Unity・Godot・Unreal のどれからでも同じビルド済みのコアを呼ぶことで、エンジンをまたいで守ります。</p><p>そのために、ゲームの側に守ってもらう決まりがあります（<a href="rules.html">4. 決定論を守るためのルール</a>）。いちばん大事なのは「<strong>シミュレーションに入るものは全部整数</strong>」です。</p></section><section class="sec"><h2 id="tick"><a class="hl" href="#tick" aria-hidden="true" tabindex="-1">#</a>tick</h2><ul><li>シミュレーションは <strong>tick</strong> ごとに進みます。既定は 60 Hz（<code>tick_hz</code> 60）・1 tick に 4 サブステップ・重力 (0, −10000) mm/s²。</li><li>各 tick の状態の<strong>ハッシュ</strong>（64 bit、FNV-1a）は、tick の番号・ボディの数・ボディを作った順に、位置 (x, y)・回転 (cos, sin)・速度 (vx, vy)・角速度 w の float の生のビット列から作ります（<a class="api" href="api/detphys.html#detphys_world_hash"><code>detphys_<wbr>world_<wbr>hash</code></a>。3D は位置 3・四元数 4・速度 3・角速度 3 で <a class="api" href="api/detphys3d.html#detphys3d_world_hash"><code>detphys3d_<wbr>world_<wbr>hash</code></a>）。2 つのピアのハッシュが同じなら、状態は同じです。</li><li>ボディの ID は、そのワールドで作った順の通し番号（0 から）です。消しても詰めず、使い回しません。</li></ul></section><section class="sec"><h2 id="入力とゲームの状態"><a class="hl" href="#入力とゲームの状態" aria-hidden="true" tabindex="-1">#</a>入力とゲームの状態</h2><ul><li><strong>入力</strong>は、ゲームが決める固定長の int32 の列です。ターン制は 1 ターンに 1〜64 語、リアルタイムは 1 ピア・1 tick に 1〜16 語。例: 積み上げは <code>[落とす x (mm), 向き (mrad)]</code>、押し合いは <code>[移動 −100〜100, ボタンのビット]</code>。</li><li>エンジンの float（マウスの位置・スティックの値）は、<strong>入力を作る端末で 1 回だけ</strong>整数にしてから渡します。整数にした後の値が両方の端末に届くので、量子化の誤差も両方で同じです。</li><li><strong>ゲームの状態</strong>（状態ワード）は、ルールが持つ int32 の列です（0〜64 語）。点数・残り時間・手番の数など。ハッシュに入り、ロールバックでも戻ります。</li><li>ルールの<strong>設定</strong>（params）はセッションを作る時に写し取り、つなぐ時に相手と照合します。設定・形・形の順番・session id が違うピアとはつながりません（rt バージョン 7・turn バージョン 9 からは、どこが違うかが分かります。<a href="desync.html#つながらない時設定の照合が合わない">5. desync への対処</a>）。</li></ul></section><section class="sec"><h2 id="ルール"><a class="hl" href="#ルール" aria-hidden="true" tabindex="-1">#</a>ルール</h2><p>ルールは、入力をワールドに入れるゲームのコードで、コールバックの組です。コアが、どのピアでも同じ順番・同じ回数で呼びます。</p><div class="tw"><table><thead><tr><th></th><th>ターン制（<a class="api" href="api/detphys_turn.html#detphys_turn_rule"><code>detphys_<wbr>turn_<wbr>rule</code></a>）</th><th>リアルタイム（<a class="api" href="api/detphys_rt.html#detphys_rt_rule"><code>detphys_rt_rule</code></a>）</th></tr></thead><tbody><tr><td>初め</td><td><code>begin_match</code>（試合ごとに、空のワールドで）</td><td><code>begin</code>（最初に 1 回）</td></tr><tr><td>入力</td><td><code>check_input</code>（無くてよい）→ <code>apply_input</code></td><td><code>apply_inputs</code>（両ピアの入力が並んで来る）</td></tr><tr><td>1 tick ごと</td><td><code>after_tick</code>（ターンを続ける / 終える / 試合を終える）</td><td><code>after_tick</code></td></tr><tr><td>終わり</td><td><code>end_turn</code>（次の手番を決める）</td><td>–</td></tr><tr><td>予測</td><td>–</td><td><code>predict</code>（無くてよい。既定は「最後に届いた入力を繰り返す」）</td></tr></tbody></table></div><p>組み込みのルールもあります（どちらもコアの中にあり、コールバックを書かずにセッションを作れます）:</p><ul><li>ターン制の<strong>積み上げ</strong>（<a class="api" href="api/detphys_turn.html#detphys_turn_create_stack_ex"><code>detphys_<wbr>turn_<wbr>create_<wbr>stack_<wbr>ex</code></a>）: 形を交互に落として積む。次の形はルールが seed・試合・ターンの番号から決めます。</li><li>リアルタイムの<strong>押し合い</strong>（<a class="api" href="api/detphys_rt.html#detphys_rt_create_push"><code>detphys_<wbr>rt_<wbr>create_<wbr>push</code></a>）: 2 人のプレイヤーが箱と凹形状を押し合う。<strong>動くステージ</strong>（回る歯車・往復する足場・上下する U）を選べ、そのキネマティックの表はセッションが持ちます。Unity（<code>DetPhysRtSession.<wbr>CreatePush</code>）と Godot（<code>DetPhysRtSession.<wbr>create_<wbr>push</code>）は同じこのルールを呼ぶので、<strong>Unity と Godot の間で対戦できます</strong>。ボディの番号は <a class="api" href="api/detphys_rt.html#detphys_rule_push_get_layout"><code>detphys_<wbr>rule_<wbr>push_<wbr>get_<wbr>layout</code></a> で分かります。</li></ul><p>Unity ではルールを C# で書けます（<code>DetPhysRtRule</code>、Mono と IL2CPP で動作。サンプルの <code>CSharpPushRule</code> が押し合いを C# で書いた例で、コアのルールと同じ結果になり互いにつながります）。C++ では <code>detphys_rule.hpp</code> の <code>detphys::make_<wbr>rule</code> で、メンバー関数からターン制のルールを作れます。</p></section><section class="sec"><h2 id="ターン制"><a class="hl" href="#ターン制" aria-hidden="true" tabindex="-1">#</a>ターン制</h2><p>1 ターンの流れ:</p><ol><li>手番のピアが入力を出す（<a class="api" href="api/detphys_turn.html#detphys_turn_submit_words"><code>detphys_<wbr>turn_<wbr>submit_<wbr>words</code></a>）。入力は相手に送られます。</li><li>両方のピアが同じ入力で進めます。ターンの終わりは、ルールの <code>after_tick</code> が決めます（無ければ「動くボディが全部眠ったら」）。上限は <code>max_<wbr>ticks_<wbr>per_<wbr>turn</code>（既定 900 tick = 60 Hz で 15 秒）。</li><li>ターンの終わりの状態のハッシュを交換して<strong>照合</strong>します。</li><li>desync していたら、<strong>ホスト（ピア 0）の状態が正</strong>です。ホストが full の snapshot を送り、ゲストを置き換えます（<strong>再同期</strong>）。</li></ol><ul><li><strong>再接続</strong>: ゲストのアプリが落ちたら、同じ設定でセッションを作り直して poll するだけです。ホストが今の状態を送り、同じターンから続けます。</li><li><strong>ホストの再起動</strong>: ゲストは毎ターンの初めの状態を持っているので、ホストが作り直したセッションにそれを送り、そのターンの初めから両方で続けます。ホストが自分の手番で落ちた時は、ホストの打ち直しになります。</li><li>相手から <code>peer_timeout_ms</code>（既定 5000）何も届かないと <strong>PEER_LOST</strong> を知らせますが、セッションは待ち続けます。やめるかどうかはアプリが決めます。</li><li>通信量の目安: 積み上げで 1 ターン 2 ピア合計 150〜190 バイト。</li></ul><p>エンジンから書くと（組み込みの積み上げ）:</p><div class="codes"><div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-ce="unity" data-cv="csharp">Unity<span>C#</span></button><button type="button" role="tab" aria-selected="false" data-ce="godot" data-cv="gdscript">Godot<span>GDScript</span></button><button type="button" role="tab" aria-selected="false" data-ce="godot" data-cv="csharp">Godot<span>C#</span></button><button type="button" role="tab" aria-selected="false" data-ce="unreal" data-cv="cpp">Unreal<span>C++</span></button><button type="button" role="tab" aria-selected="false" data-ce="unreal" data-cv="blueprint">Unreal<span>Blueprint</span></button></div><div class="pane on" role="tabpanel" data-ce="unity" data-cv="csharp" data-label="Unity C#"><div class="code"><pre><code class="lang-csharp">using DetPhys;
+
+// 両方の端末: 同じ設定・同じルール・同じ形（同じ順）
+var settings = DetPhysTurnSettings.Default;
+settings.sessionId = 0x7E57;
+var rules = DetPhysStackRules.Default;
+rules.nextSeed = matchSeed;
+var link = isHost ? DetPhysUdpLink.Connect("192.168.1.7", 47200) : DetPhysUdpLink.Listen(47200);
+// 0 = ホスト（desync の時に正とする側）、1 = ゲスト
+var session = DetPhysTurnSession.CreateStack(settings, rules, shapes, isHost ? 0 : 1, link.Endpoint);
+
+// 毎フレーム（Update）
+var state = session.Poll(ticksToShowThisFrame);
+// 自分の番
+if (state == DetPhysTurnState.WaitLocalInput &amp;&amp; dropped)
+{
+    // 位置 mm・向き mrad の整数を送る
+    session.Submit(DetPhysStack.Input(DetPhysStack.MetersToMm(x), DetPhysStack.RadiansToMrad(angle)));
+}
+// ターンの結果（両方で同じハッシュ）
+while (session.TryGetResult(out var r))
+    Debug.Log($"turn {r.Turn} hash {DetPhysHash.ToHex(r.AgreedHash)}");</code></pre><button type="button" class="cp">コピー</button></div></div><div class="pane" role="tabpanel" data-ce="godot" data-cv="gdscript" data-label="Godot GDScript"><div class="code"><pre><code class="lang-gdscript">var m := DetPhysStackMatch.new()
+# 両方の端末: 同じ設定・同じルール・同じ形（同じ順）
+m.settings = DetPhysTurnSettings.new()
+m.settings.session_id = 0x7E57
+m.rules = DetPhysStackRules.new()
+m.rules.seed = match_seed
+m.shape_files = shape_files
+add_child(m)
+# 自分の番
+m.local_turn.connect(func(turn, shape):
+	# 位置 mm・向き mrad の整数を送る
+	m.submit(PackedInt32Array([roundi(aim_x * 1000.0), roundi(aim_angle * 1000.0)]))
+)
+# ターンの結果（両方で同じハッシュ）
+m.turn_finished.connect(func(r): print(DetPhys.hash_hex(r["agreed_hash"])))
+# 0 = ホスト（desync の時に正とする側）、1 = ゲスト
+m.start(0, DetPhysLink.udp_connect("192.168.1.7", 47200))</code></pre><button type="button" class="cp">コピー</button></div></div><div class="pane" role="tabpanel" data-ce="godot" data-cv="csharp" data-label="Godot C#"><div class="code"><pre><code class="lang-csharp">using DetPhys;
+using Godot;
+
+// 両方の端末: 同じ設定・同じルール・同じ形（同じ順）
+DetPhysTurnSession.SampleRules(matchSeed, false, out var desc, out var next);
+var link = isHost ? DetPhysUdpLink.Connect("192.168.1.7", 47200) : DetPhysUdpLink.Listen(47200);
+// 0 = ホスト（desync の時に正とする側）、1 = ゲスト
+var session = DetPhysTurnSession.CreateStack(0x7E57, isHost ? 0 : 1, desc, next, shapes, link.Transport, link);
+
+// 毎フレーム（_Process）
+int state = session.Poll(4);
+// 1 = 自分の番の入力を待っている
+if (state == 1 &amp;&amp; dropped)
+{
+    // 位置 mm・向き mrad の整数を送る
+    session.Submit(new[] { Mathf.RoundToInt(aimX * 1000f), Mathf.RoundToInt(aimAngle * 1000f) });
+}
+// ターンの結果（両方で同じハッシュ）
+while (session.TryGetResult(out var r))
+    GD.Print($"turn {r.Native.turn} hash {DetPhysHash.Hex(r.Native.agreedHash)}");</code></pre><button type="button" class="cp">コピー</button></div></div><div class="pane" role="tabpanel" data-ce="unreal" data-cv="cpp" data-label="Unreal C++"><div class="code"><pre><code class="lang-cpp">#include "DetPhysMatchComponents.h"
+#include "DetPhysLibrary.h"
+#include "DetPhysLink.h"
+
+// ヘッダー: UPROPERTY() TObjectPtr&lt;UDetPhysStackMatchComponent&gt; Stack;
+//         UFUNCTION() void HandleLocalTurn(int32 Turn, int32 Shape);
+AMyStackActor::AMyStackActor()
+{
+    Stack = CreateDefaultSubobject&lt;UDetPhysStackMatchComponent&gt;(TEXT("Stack"));
+}
+
+void AMyStackActor::BeginPlay()
+{
+    Super::BeginPlay();
+    // 両方の端末: 同じ設定・同じルール・同じ形（同じ順）
+    Stack-&gt;Settings.SessionId = 0x7E57;
+    Stack-&gt;Rules.Seed = MatchSeed;
+    Stack-&gt;ShapeFiles = ShapeFiles;
+    Stack-&gt;OnLocalTurn.AddDynamic(this, &amp;AMyStackActor::HandleLocalTurn);
+    // 0 = ホスト（desync の時に正とする側）、1 = ゲスト
+    Stack-&gt;StartWithLink(0, UDetPhysLink::UdpConnect(this, TEXT("192.168.1.7"), 47200));
+}
+
+// 自分の番
+void AMyStackActor::HandleLocalTurn(int32 Turn, int32 Shape)
+{
+    // 位置 mm・向き mrad の整数を送る
+    Stack-&gt;Submit({ UDetPhysLibrary::QuantizeMm(AimX), UDetPhysLibrary::QuantizeMrad(AimAngle) });
+}</code></pre><button type="button" class="cp">コピー</button></div></div><div class="pane" role="tabpanel" data-ce="unreal" data-cv="blueprint" data-label="Unreal Blueprint"><div class="code"><pre><code>Actor に DetPhys Stack Match コンポーネントを足す（Settings・Rules・Shape Files を両方で同じに）
+Event BeginPlay → Udp Connect → Start With Link（Local Peer 0, Link）
+On Local Turn（Turn, Shape）
+  → Make Array（Quantize Mm（狙いの x）, Quantize Mrad（向き））→ Submit
+On Turn Finished（Result）→ Result の Agreed Hash を表示</code></pre><button type="button" class="cp">コピー</button></div></div></div></section><section class="sec"><h2 id="リアルタイムロールバック"><a class="hl" href="#リアルタイムロールバック" aria-hidden="true" tabindex="-1">#</a>リアルタイム（ロールバック）</h2><figure class="figure"><svg class="fig" viewBox="0 0 668 336" role="img" aria-label="ロールバックの流れ（入力の遅延 0）"><text x="0" y="18" class="fg-t">ロールバックの流れ（入力の遅延 0）</text><text x="158.0" y="48" class="fg-n">1</text><line x1="132" y1="54" x2="132" y2="248" class="fg-grid"/><text x="210.0" y="48" class="fg-n">2</text><line x1="184" y1="54" x2="184" y2="248" class="fg-grid"/><text x="262.0" y="48" class="fg-n">3</text><line x1="236" y1="54" x2="236" y2="248" class="fg-grid"/><text x="314.0" y="48" class="fg-n">4</text><line x1="288" y1="54" x2="288" y2="248" class="fg-grid"/><text x="366.0" y="48" class="fg-n">5</text><line x1="340" y1="54" x2="340" y2="248" class="fg-grid"/><text x="418.0" y="48" class="fg-n">6</text><line x1="392" y1="54" x2="392" y2="248" class="fg-grid"/><text x="470.0" y="48" class="fg-n">7</text><line x1="444" y1="54" x2="444" y2="248" class="fg-grid"/><text x="522.0" y="48" class="fg-n">8</text><line x1="496" y1="54" x2="496" y2="248" class="fg-grid"/><text x="574.0" y="48" class="fg-n">9</text><line x1="548" y1="54" x2="548" y2="248" class="fg-grid"/><text x="626.0" y="48" class="fg-n">10</text><line x1="600" y1="54" x2="600" y2="248" class="fg-grid"/><line x1="652" y1="54" x2="652" y2="248" class="fg-grid"/><text x="120" y="48" class="fg-l" text-anchor="end">tick</text><text x="120" y="83" class="fg-l" text-anchor="end">自分の入力</text><text x="120" y="151" class="fg-l" text-anchor="end">相手の入力</text><text x="120" y="231" class="fg-l" text-anchor="end">ワールド</text><rect x="142" y="64" width="32" height="28" rx="4" class="fg-host"/><rect x="142" y="132" width="32" height="28" rx="4" class="fg-guest"/><rect x="194" y="64" width="32" height="28" rx="4" class="fg-host"/><rect x="194" y="132" width="32" height="28" rx="4" class="fg-guest"/><rect x="246" y="64" width="32" height="28" rx="4" class="fg-host"/><rect x="246" y="132" width="32" height="28" rx="4" class="fg-guest"/><rect x="298" y="64" width="32" height="28" rx="4" class="fg-host"/><rect x="298" y="132" width="32" height="28" rx="4" class="fg-guest"/><rect x="350" y="64" width="32" height="28" rx="4" class="fg-host"/><rect x="350" y="132" width="32" height="28" rx="4" class="fg-guest"/><rect x="402" y="64" width="32" height="28" rx="4" class="fg-host"/><rect x="402" y="132" width="32" height="28" rx="4" class="fg-guest"/><rect x="454" y="64" width="32" height="28" rx="4" class="fg-host"/><rect x="455" y="133" width="30" height="26" rx="4" class="fg-pred"/><rect x="506" y="64" width="32" height="28" rx="4" class="fg-host"/><rect x="507" y="133" width="30" height="26" rx="4" class="fg-pred"/><rect x="558" y="64" width="32" height="28" rx="4" class="fg-host"/><rect x="559" y="133" width="30" height="26" rx="4" class="fg-pred"/><rect x="610" y="64" width="32" height="28" rx="4" class="fg-host"/><rect x="611" y="133" width="30" height="26" rx="4" class="fg-pred"/><text x="134" y="124" class="fg-s">届いた</text><text x="652" y="124" class="fg-s" text-anchor="end">予測（最後に届いた入力を繰り返す）</text><rect x="396" y="128" width="44" height="36" rx="6" class="fg-ring"/><text x="652" y="184" class="fg-s fg-strong" text-anchor="end">tick 10 の時に tick 6 の入力が届いた。予測と違う</text><path d="M418.0 168 V172" class="fg-arrow"/><rect x="138" y="212" width="40" height="28" rx="4" class="fg-conf"/><rect x="190" y="212" width="40" height="28" rx="4" class="fg-conf"/><rect x="242" y="212" width="40" height="28" rx="4" class="fg-conf"/><rect x="294" y="212" width="40" height="28" rx="4" class="fg-conf"/><rect x="346" y="212" width="40" height="28" rx="4" class="fg-conf"/><rect x="398" y="212" width="40" height="28" rx="4" class="fg-resim"/><rect x="450" y="212" width="40" height="28" rx="4" class="fg-resim"/><rect x="502" y="212" width="40" height="28" rx="4" class="fg-resim"/><rect x="554" y="212" width="40" height="28" rx="4" class="fg-resim"/><rect x="606" y="212" width="40" height="28" rx="4" class="fg-resim"/><text x="134" y="260" class="fg-s">確定</text><text x="394" y="260" class="fg-s fg-strong">6〜10 を計算し直す</text><path d="M644 276 C 584 306, 452 306, 396 276" class="fg-arrow"/><path d="M396 276 l 2 9 M396 276 l 9 3" class="fg-arrow"/><text x="518.0" y="320" class="fg-s" text-anchor="middle">tick 5 の状態に戻す</text></svg></figure><p>毎フレーム、自分の入力を渡して <a class="api" href="api/detphys_rt.html#detphys_rt_advance"><code>detphys_<wbr>rt_<wbr>advance</code></a> を 1 回呼びます。相手の入力がまだ届いていない tick は<strong>予測</strong>して進めます。</p><ul><li>届いた入力が予測と違ったら、その tick の 1 つ前の状態に<strong>ロールバック</strong>、今の tick まで<strong>再計算</strong>します。だから<strong>入力の遅延 0</strong> でも、自分の操作はすぐ画面に出ます。</li><li>両方の入力が届いて、その入力で計算した tick が<strong>確定</strong> tick です。確定 tick のハッシュ（の下 32 bit）を相手に送って<strong>照合</strong>します（既定は毎 tick・1 つのハッシュを 2 つのパケットに載せる）。</li><li>desync したらホストが full の snapshot を送ってゲストを置き換えます（世代を 1 つ上げ、照合は同じ世代の tick だけで行います）。</li><li>予測して進めてよいのは<strong>予測の上限</strong> N（<code>max_prediction</code>、既定 10、0〜60）tick までです。超えそうな時は進めずに待ちます（<code>DETPHYS_<wbr>RT_<wbr>STALLED</code>）。</li><li>相手より 1 tick 以上先に進んでいる側は 1 フレーム休みます（<strong>time sync</strong>、<code>DETPHYS_<wbr>RT_<wbr>SYNC_<wbr>WAIT</code>）。</li><li>描画は <a class="api" href="api/detphys_rt.html#detphys_rt_world"><code>detphys_rt_world</code></a> を読みます（予測を含む今の状態）。ロールバックで位置が飛ぶことがあるので、見た目だけなめらかにしてよいです（結果には影響しません）。</li><li>ルールのコールバックは、ロールバックのたびに同じ tick で何度も呼ばれます。<strong>ゲームの状態はワールドと状態ワードにだけ置きます</strong>（それ以外に持つとロールバックで戻りません）。音やエフェクトは <code>ctx-&gt;resimulating</code> が 1 の間は出さないようにします。</li><li>通信量: 1 tick あたり片方向 32〜48 バイト（UDP / IP の見出しを除く）。未確認の入力をまとめて載せるので、取りこぼしに強くなっています。</li></ul><p><a class="api" href="api/detphys_rt.html#detphys_rt_advance"><code>detphys_<wbr>rt_<wbr>advance</code></a> の戻り値:</p><div class="tw"><table><thead><tr><th>値</th><th>意味</th><th>渡した入力</th></tr></thead><tbody><tr><td><code>DETPHYS_RT_ADVANCED</code></td><td>1 tick 進めた</td><td>受け付けた</td></tr><tr><td><code>DETPHYS_RT_STALLED</code></td><td>予測の上限を超えるので相手を待つ</td><td>受け付けていない（次のフレームに同じ tick の入力を渡す）</td></tr><tr><td><code>DETPHYS_RT_SYNC_WAIT</code></td><td>相手より進みすぎているので 1 フレーム休む</td><td>受け付けていない</td></tr><tr><td><code>DETPHYS_RT_DELAY_WAIT</code></td><td>入力遅延の自動調整で入力の遅延を 1 増やした（tick は進めない）</td><td>受け付けた</td></tr></tbody></table></div><p>渡す入力は、いつも <a class="api" href="api/detphys_rt.html#detphys_rt_next_input_tick"><code>detphys_<wbr>rt_<wbr>next_<wbr>input_<wbr>tick</code></a> の tick の分です。</p><p>エンジンから書くと（組み込みの押し合い。エンジンの層が <a class="api" href="api/detphys_rt.html#detphys_rt_advance"><code>detphys_<wbr>rt_<wbr>advance</code></a> の戻り値と時計を受け持ちます）:</p><div class="codes"><div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-ce="unity" data-cv="csharp">Unity<span>C#</span></button><button type="button" role="tab" aria-selected="false" data-ce="godot" data-cv="gdscript">Godot<span>GDScript</span></button><button type="button" role="tab" aria-selected="false" data-ce="godot" data-cv="csharp">Godot<span>C#</span></button><button type="button" role="tab" aria-selected="false" data-ce="unreal" data-cv="cpp">Unreal<span>C++</span></button><button type="button" role="tab" aria-selected="false" data-ce="unreal" data-cv="blueprint">Unreal<span>Blueprint</span></button></div><div class="pane on" role="tabpanel" data-ce="unity" data-cv="csharp" data-label="Unity C#"><div class="code"><pre><code class="lang-csharp">using DetPhys;
+
+// 両方の端末: 同じ設定・同じルール・同じ形（同じ順）
+var settings = DetPhysRtSettings.Default;   // input delay 0, prediction 10
+settings.sessionId = 0x16;
+var push = new DetPhysPushSettings { seed = matchSeed };
+var link = isHost ? DetPhysUdpLink.Connect("192.168.1.7", 47500) : DetPhysUdpLink.Listen(47500);
+// 0 = ホスト（desync の時に正とする側）、1 = ゲスト
+var session = DetPhysRtSession.CreatePush(settings, push, shapes, isHost ? 0 : 1, link.Endpoint);
+var driver = new DetPhysRtDriver(settings.world.tickHz);
+var input = new int[DetPhysPush.InputWords];
+
+// 毎フレーム（Update）
+session.Poll();
+for (int k = driver.Due(DetPhysRtSession.NowUs); k &gt; 0; k--)
+{
+    // 入力は整数にしてから渡す
+    input[0] = DetPhysPush.QuantizeMove(Input.GetAxisRaw("Horizontal"));
+    input[1] = jump ? DetPhysPush.ButtonJump : 0;
+    session.Advance(input, out var frame);
+}
+while (session.TryGetConfirmed(out var c))
+{
+    // 確定した tick（両方で同じハッシュ）: c.tick, c.hash
+}
+// 描く（予測を含む今の状態）
+int n = session.World.ReadBodies(views);</code></pre><button type="button" class="cp">コピー</button></div></div><div class="pane" role="tabpanel" data-ce="godot" data-cv="gdscript" data-label="Godot GDScript"><div class="code"><pre><code class="lang-gdscript"># 押し合い（リアルタイム）の Node
+var rt := DetPhysRtMatch.new()
+# 両方の端末: 同じ設定・同じルール・同じ形（同じ順）
+rt.shape_files = shape_files
+rt.rules = DetPhysPushRules.new()
+add_child(rt)
+# 入力は整数にしてから渡す
+rt.input_source = func(tick: int) -&gt; PackedInt32Array:
+	var move := DetPhysRtMatch.quantize_move(Input.get_axis("left", "right"))
+	var jump := 1 if Input.is_action_pressed("jump") else 0
+	return PackedInt32Array([move, jump])
+# 確定した tick（両方で同じハッシュ）
+rt.tick_confirmed.connect(func(tick, hash, flags): print(tick, " ", DetPhys.hash_hex(hash)))
+# 0 = ホスト（desync の時に正とする側）、1 = ゲスト
+rt.start(0, DetPhysLink.udp_connect("192.168.1.7", 47500))</code></pre><button type="button" class="cp">コピー</button></div></div><div class="pane" role="tabpanel" data-ce="godot" data-cv="csharp" data-label="Godot C#"><div class="code"><pre><code class="lang-csharp">using DetPhys;
+using Godot;
+
+// 両方の端末: 同じ設定・同じルール・同じ形（同じ順）
+var push = DetPhysPush.Desc(seed: matchSeed);
+var link = isHost ? DetPhysUdpLink.Connect("192.168.1.7", 47500) : DetPhysUdpLink.Listen(47500);
+// 0 = ホスト（desync の時に正とする側）、1 = ゲスト
+var session = DetPhysRtSession.CreatePush(push, isHost ? 0 : 1, shapes, link.Transport, link);
+var input = new int[DetPhysPush.InputWords];
+ulong nextUs = DetPhysTurnSession.NowUs;
+
+// 毎フレーム（_Process）
+ulong now = DetPhysTurnSession.NowUs;
+session.PollAt(now);
+// 60 Hz の時計が 1 tick 進むごとに 1 回（遅れても 1 フレーム 3 回まで）
+for (int k = 0; k &lt; 3 &amp;&amp; now &gt;= nextUs; k++, nextUs += 1_000_000 / 60)
+{
+    // 入力は整数にしてから渡す
+    input[0] = Mathf.Clamp(Mathf.RoundToInt(Input.GetAxis("left", "right") * 100f), -100, 100);
+    input[1] = Input.IsActionPressed("jump") ? 1 : 0;
+    session.AdvanceAt(now, input);
+}
+while (session.TryGetConfirmed(out var c))
+{
+    // 確定した tick（両方で同じハッシュ）: c.tick, c.hash
+}</code></pre><button type="button" class="cp">コピー</button></div></div><div class="pane" role="tabpanel" data-ce="unreal" data-cv="cpp" data-label="Unreal C++"><div class="code"><pre><code class="lang-cpp">#include "DetPhysMatchComponents.h"
+#include "DetPhysLibrary.h"
+#include "DetPhysLink.h"
+
+// ヘッダー: UPROPERTY() TObjectPtr&lt;UDetPhysRtMatchComponent&gt; Match;
+//         UFUNCTION() void HandleTick(int64 Tick, int64 Hash, int32 Flags);
+AMyMatchActor::AMyMatchActor()
+{
+    Match = CreateDefaultSubobject&lt;UDetPhysRtMatchComponent&gt;(TEXT("Match"));
+}
+
+void AMyMatchActor::BeginPlay()
+{
+    Super::BeginPlay();
+    // 両方の端末: 同じ設定・同じルール・同じ形（同じ順）
+    Match-&gt;Settings.SessionId = 0x16;
+    Match-&gt;Rules.Seed = MatchSeed;
+    Match-&gt;ShapeFiles = ShapeFiles;
+    // 入力は整数にしてから渡す
+    Match-&gt;InputSource = [this](int64 InTick, TArray&lt;int32&gt;&amp; Out)
+    {
+        Out = UDetPhysLibrary::MakePushInput(UDetPhysLibrary::QuantizeMove(MoveAxis), bJump, bDash);
+    };
+    Match-&gt;OnTickConfirmed.AddDynamic(this, &amp;AMyMatchActor::HandleTick);
+    // 0 = ホスト（desync の時に正とする側）、1 = ゲスト
+    Match-&gt;StartWithLink(0, UDetPhysLink::UdpConnect(this, TEXT("192.168.1.7"), 47500));
+}
+
+// 確定した tick（両方で同じハッシュ）
+void AMyMatchActor::HandleTick(int64 Tick, int64 Hash, int32 Flags)
+{
+    UE_LOG(LogTemp, Log, TEXT("tick %lld hash %llx"), Tick, Hash);
+}</code></pre><button type="button" class="cp">コピー</button></div></div><div class="pane" role="tabpanel" data-ce="unreal" data-cv="blueprint" data-label="Unreal Blueprint"><div class="code"><pre><code>Actor に DetPhys Rt Match コンポーネントを足す（Details で Settings・Rules・Shape Files を両方で同じに）
+Event BeginPlay
+  → Udp Connect（Address 192.168.1.7, Port 47500）→ Start With Link（Local Peer 0, Link）
+Event Tick
+  → Make Push Input（Quantize Move（左右の軸）, Jump, Dash）→ Set Local Input
+On Tick Confirmed（Tick, Hash, Flags）→ Print String</code></pre><button type="button" class="cp">コピー</button></div></div></div></section><section class="sec"><h2 id="遅延-0-と入力遅延の自動調整"><a class="hl" href="#遅延-0-と入力遅延の自動調整" aria-hidden="true" tabindex="-1">#</a>遅延 0 と、入力遅延の自動調整</h2><ul><li><strong>入力の遅延</strong>（<code>input_delay</code>、0〜30、<strong>既定 0</strong>）を d にすると、フレームで渡した入力は「今の tick + 1 + d」の tick に入ります。d を増やすと、予測が外れてロールバックする回数は減りますが、操作が画面に出るまで d tick 遅れます。</li><li>遠い相手では、遅延 0 だと待ち（STALLED）が増えます。測った例（1 プロセス 2 ピア・片道 135±15 ms・取りこぼし 20%・3600 tick）: 遅延 0 で 235 回待ち、遅延 2 で 8 回、遅延 4 で 0 回。</li><li><strong>入力遅延の自動調整</strong>（<a class="api" href="api/detphys_rt.html#detphys_rt_set_auto_delay"><code>detphys_<wbr>rt_<wbr>set_<wbr>auto_<wbr>delay</code></a>、<strong>既定 OFF</strong>）を ON にすると、ホストが往復時間から遅延 D を決め、「tick X から D」を両方で切り替えます。<ul><li>決め方: 片道 = 往復時間 / 2 ＋ 揺れ × 1（<code>jitter_<wbr>weight_<wbr>milli</code> 1000）。D = ceil(片道 / 1 tick) − <code>rollback_ticks</code>（既定 N/2+1 = 6）を 0〜6 に収めます。</li><li>上げたい状態が 500 ms、下げたい状態が 3000 ms 続いたら切り替えます。上げる時は tick を進めずに入力だけ受け（DELAY_WAIT）、下げる時は 1 フレームで 2 tick 進めます。</li><li>どちらも入力を捨てないので、<strong>確定した結果は遅延によらず同じ</strong>です。ゲストは、自分も ON の時だけホストの案に従います。</li><li>測った例: PC と Galaxy S9 の間（片道 120〜150 ms を注入）で両方とも遅延 3 になり、待ちは 75 / 76 回 → 8 / 6 回に減りました。</li></ul></li></ul></section><section class="sec"><h2 id="再接続リアルタイム"><a class="hl" href="#再接続リアルタイム" aria-hidden="true" tabindex="-1">#</a>再接続（リアルタイム）</h2><p>どちらのピアも接続の識別子を持ち、相手の識別子が変わったら（相手が再起動たら）、生き残った側が自分の確定 tick T の状態と T の両ピアの入力を送ります。再起動た側はそれに置き換えて T から続けます。アプリは、落ちた側で同じ設定のセッションを作り直すだけです。相手の状態に置き換えたフレームは <code>DETPHYS_<wbr>RT_<wbr>FRAME_<wbr>REJOIN</code> が立つので、描画や音はそこで今の状態から作り直します。両方が同時に落ちると tick 0 からです。</p></section><section class="sec"><h2 id="snapshot"><a class="hl" href="#snapshot" aria-hidden="true" tabindex="-1">#</a>snapshot</h2><p>ロールバック・再同期・再接続のために、ワールドの状態を呼び出し側のバッファに写し取ります（コアの中では画像を確保しません）。</p><div class="tw"><table><thead><tr><th>種類</th><th>中身</th><th>戻せる所</th><th>既定で使う所</th></tr></thead><tbody><tr><td>dyn（<code>DETPHYS_SNAPSHOT_DYNAMIC</code>）</td><td>step で変わる状態だけ。形や静的な物は、ワールドが覚えている base（full の画像）から戻す</td><td>取ったワールドだけ</td><td>リアルタイムの snapshot のリング（N+1 個）</td></tr><tr><td>full（<code>DETPHYS_SNAPSHOT_FULL</code>）</td><td>全部</td><td>同じ形を同じ順で登録した別のワールドにも（x64 と arm64 の間でもそのまま）</td><td>再同期・再接続で送る状態、ターン制のゲストの毎ターンの保存</td></tr></tbody></table></div><ul><li>base はコアが自動で取り直します（ボディや形を作る・消す・位置を直接決めた後の最初の dyn で）。覚えておく base は既定 4 個（<code>snapshot_<wbr>base_<wbr>slots</code>）。足りない tick は、リアルタイムの輪ではコアが自動で full に落とします。</li><li>ターン制は毎ターン形が増えるので、ゲストの毎ターンの保存は full が既定です（<a class="api" href="api/detphys_turn.html#detphys_turn_set_checkpoint_kind"><code>detphys_<wbr>turn_<wbr>set_<wbr>checkpoint_<wbr>kind</code></a> で dyn も選べます。同じ物を動かすだけのゲームなら dyn が軽くなります）。</li><li>大きさの目安（2D、凹形状の動くボディ 200 体が全部起きている時）: dyn 約 0.55〜0.7 MB・full 約 1 MB（ベイクした形では dyn 1.5 MB・full 2.1 MB）。</li></ul></section><section class="sec"><h2 id="凹形状とベイカー"><a class="hl" href="#凹形状とベイカー" aria-hidden="true" tabindex="-1">#</a>凹形状とベイカー</h2><p>Box2D の形は 8 頂点までの凸多角形です。DetPhys は凹形状を<strong>凸多角形の組</strong>にして、1 つのボディに全部付けます。分解は前もって<strong>ベイカー</strong>で済ませ、mm の整数の頂点データ（<code>.dnshape</code>）として配るので、実行時に端末ごとに分解することはなく、どの端末でも同じデータになります。</p><p>形はエディタでベイクします。Unity では <code>Window &gt; DetPhys &gt; Shape Baker</code>（テクスチャかスプライトを選び、プレビューを見ながら設定を変えて保存）か、画像を右クリック &gt; <code>DetPhys &gt; Bake Concave Shape</code> です。できるのは <code>.dnshape.bytes</code> のアセットで、マッチコンポーネントの <code>Shapes</code> に入れて使います。ベイカーの流れ:</p><ol><li>画像のアルファ（既定 128 以上が内側）から輪郭を取る（既定 128 px / m。スプライトならその Pixels Per Unit）。</li><li>Douglas-Peucker で間引く（許容誤差 <code>Simplify</code> 既定 1 px）。Box2D が消してしまう細かい頂点（直線から 11 mm 未満）は先に消す。</li><li>凸多角形に分ける: <strong>Steiner</strong>（既定。長い直線の辺に点を足して数を減らす）か <strong>Hertel-Mehlhorn</strong>（新しい頂点を作らない）。どちらもすき間・重なりは 0 です。</li><li>mm の整数にして <code>.dnshape</code>（v1、チェックサム付き）に書く。原点は画像の中心です。</li></ol><p>ベイカーはネイティブのコアの中で整数だけで計算するので、同じ画像と設定ならどのマシンでも同じバイト列になります。PNG はファイルから直接読むので、テクスチャの Read/Write・圧縮・Max Size で形は変わりません。</p><ul><li>使い方: <code>.dnshape</code> のバイト列を、セッションの設定の <code>meshes</code>（登録した順に番号 0, 1, …）か <a class="api" href="api/detphys_body.html#detphys_world_add_mesh"><code>detphys_<wbr>world_<wbr>add_<wbr>mesh</code></a> で登録し、形の種類 <code>DETPHYS_<wbr>SHAPE_<wbr>MESH</code> と番号で付けます。<strong>両方のピアで同じ形を同じ順に</strong>登録します。</li><li>精度: 輪郭からの最大のずれ 4〜11 mm（サンプルの 8 形、128 px / m・1 px）。約 1 cm より細かい凹凸は消え、穴は埋めます。</li><li>負荷は凸多角形の数にほぼ比例します。サンプルの 8 形は 1 形あたり平均 9.4 個（steiner）。許容誤差を大きくすると数が減ります（2 px で 67 個 / 8 形）。</li></ul></section><section class="sec"><h2 id="動く凹形状"><a class="hl" href="#動く凹形状" aria-hidden="true" tabindex="-1">#</a>動く凹形状</h2><p>回る歯車・往復する足場・上下する U などを、<strong>tick の関数</strong>で動くキネマティックのボディにします（<code>detphys_<wbr>kinematic.<wbr>h</code>）。</p><ul><li>動きは状態を持たないので、ロールバックしても tick から同じ値を作り直せます（snapshot の値と作り直した値はビットまで同じ）。</li><li>毎 tick、関数の位置にぴったり合わせ、次の tick の位置に着く速度を与えます。Box2D はその速度で上の物を運ぶので、乗った物が滑らず、震えません。</li><li>動き（<a class="api" href="api/detphys_kinematic.html#detphys_motion_desc"><code>detphys_<wbr>motion_<wbr>desc</code></a>、単位は mm・mrad・mrad/s・tick の整数）:</li></ul><div class="tw"><table><thead><tr><th>パス</th><th>動き</th></tr></thead><tbody><tr><td><code>DETPHYS_PATH_FIXED</code></td><td>動かない（自分の回転 <code>spin_mrad_s</code> だけ。回る歯車・羽根）</td></tr><tr><td><code>DETPHYS_PATH_PINGPONG</code></td><td>A と B の間を往復（片道 <code>period_ticks</code>）</td></tr><tr><td><code>DETPHYS_PATH_ORBIT</code></td><td>円を回る</td></tr><tr><td><code>DETPHYS_PATH_POINTS</code></td><td>点をたどる（点ごとに角度も。ループか往復。同じ点を続けるとその間止まる）</td></tr><tr><td><code>DETPHYS_PATH_CALLBACK</code></td><td>ゲームのコールバックが tick から位置と角度を決める（整数だけで計算する）</td></tr></tbody></table></div><p>どのパスにも自分の回転 <code>spin_mrad_s</code> と時間のずらし <code>phase_ticks</code> を足せます。区間の速さは既定で端が 0（<code>DETPHYS_<wbr>EASE_<wbr>SMOOTH</code>、乗った物が飛ばされにくい）。</p><ul><li><strong>速い動き</strong>: Box2D は動くボディどうしの接触を tick の初めに 1 回探します（先読み約 2 cm）。いちばん速い点が 1 tick に <code>subtick_move_mm</code>（既定 20 mm）より動く tick だけ、ワールドを最大 <code>max_subticks</code>（既定 4）回に分けて進めます（<strong>分割</strong>）。既定のままで、小さな物（4〜15 cm）がすり抜けない速さは、いちばん速い点で歯車 34・足場 180・羽根 43・上下する U 18 m/s まででした。分割した tick は、その回数分重くなります。</li><li>セッションでは表をセッションに渡します（<a class="api" href="api/detphys_rt.html#detphys_rt_create_kinematic"><code>detphys_<wbr>rt_<wbr>create_<wbr>kinematic</code></a>・<a class="api" href="api/detphys_turn.html#detphys_turn_create_rule_kinematic"><code>detphys_<wbr>turn_<wbr>create_<wbr>rule_<wbr>kinematic</code></a>、Unity はルールの <code>UsesKinematic =&gt; true</code>）。1 tick の順番は「update → apply_inputs → 分割して進める → after_tick」で、ロールバックの再計算も同じです。</li><li>3D のワールドの動く凹形状は <a href="#動く凹形状3d">動く凹形状（3D）</a> にあります（<code>detphys3d_<wbr>kinematic.<wbr>h</code>）。</li></ul></section><section class="sec"><h2 id="3d"><a class="hl" href="#3d" aria-hidden="true" tabindex="-1">#</a>3D</h2><p>3D のワールド（<code>detphys3d.h</code>、Box3D）も、2D と同じセッションに載せられます。考え方（tick・入力・予測・ロールバック・照合・再同期・再接続・入力遅延の自動調整）は全部同じです。</p><div class="code"><pre><code class="lang-c">detphys_rt_config c; detphys3d_world_desc w;
+detphys_rt_config_default3d(&amp;c, &amp;w);          // snapshot は FULL、ワールドは既定値（60 Hz・4 サブステップ・重力 −10000 mm/s²）
+c.local_peer = 0;                            // ほかの設定は 2D と同じ
+detphys_rt_rule3d r = { sizeof r, 3, 0 };     // 入力 3 語・状態 0 語
+r.begin = my_begin;                          // 凸包の登録・床・プレイヤーを作る（detphys3d_world_* で）
+r.apply_inputs = my_apply;
+detphys_rt_session* s = detphys_rt_create3d(&amp;c, &amp;w, &amp;r, &amp;transport);   // ターン制は detphys_turn_create_rule3d
+// 毎フレーム: 2D と同じ poll → advance → next_confirmed。描画は detphys3d_world_read_transforms(detphys_rt_world3d(s), ...)</code></pre><button type="button" class="cp">コピー</button></div><ul><li><strong>形</strong>: 箱・球・カプセル・凸包。凸包は整数の点から <a class="api" href="api/detphys3d.html#detphys3d_world_add_hull"><code>detphys3d_<wbr>world_<wbr>add_<wbr>hull</code></a> で作って登録し、番号で付けます（同じ中身なら同じ番号）。凸包は <code>begin</code>（ターン制は <code>begin_match</code>）の中で、両方のピアで同じ順に登録します。凸包の中身は設定の照合に入ります。</li><li><strong>向き</strong>は整数の四元数（qx, qy, qz, qw）です。大きさは自由で、コアが正規化します。エンジンの float の四元数は <code>DETPHYS3D_<wbr>QUAT_<wbr>ONE</code>（2^30）倍して丸めて渡します。三角関数を使いません。</li><li><strong>snapshot</strong> は full が既定です（3D では dyn にしても 6〜9% しか小さくならないため）。</li><li><strong>送る状態</strong>（再同期・再接続）は transfer（<code>detphys3d_<wbr>world_<wbr>transfer_*</code>）で、full の画像に形の登録簿の中身と凸包の表を足したものです。登録簿の並びが違っていても、受け取った側が作り直してから戻します。115 体で 190〜260 KB です。</li><li>ワーカーは 1〜32 本（既定 1）、プールはコアの自前（既定。Android で Box3D 内蔵より速かった）・Box3D 内蔵・エンジンのジョブから選べます。本数を変えてもハッシュは変わりません。</li><li><strong>desync デバッガー</strong>も 2D と同じ設定で ON にできます。報告のフィールドは 3D のフィールド（<code>x</code> <code>y</code> <code>z</code>・<code>qx</code>〜<code>qw</code>・<code>vx</code> <code>vy</code> <code>vz</code>・<code>wx</code>〜<code>wz</code>）です（<a href="desync.html#3d-のワールドとセッション">5. desync への対処</a>）。</li><li>まだ無いもの: ジョイント・センサー・接触のイベント・レイの問い合わせ。エンジンごとに使える 3D の範囲は <a href="introduction.html#エンジンごとに使えるもの">1. 概要</a> にあります。</li></ul><p>Godot では、3D のルールを GDScript でも書けます。<code>DetPhysRtRule3D</code>（ターン制は <code>DetPhysTurnRule3D</code>）を継いでコールバックを書き、<code>DetPhysRtSession.<wbr>create3d</code>（<code>DetPhysTurnSession.<wbr>create3d</code>）に渡します。ワールドに渡す値は整数の Dictionary です（<a href="api/index.html">7. API リファレンス</a> の Godot の節）。</p><div class="code"><pre><code class="lang-gdscript">extends DetPhysRtRule3D   # 2 人が球を転がすだけのルール
+
+func _init() -&gt; void:
+	input_words = 2          # [x -100〜100, z -100〜100]
+	state_words = 0
+	rule_id = 0x42414C4C00000001
+	params = PackedInt32Array([300])   # 球の半径 mm
+
+func _begin(c: DetPhysRtContext3D) -&gt; void:
+	var w := c.world
+	w.add_body({"type": DetPhysRuleWorld3D.DETPHYS3D_BODY_STATIC, "y_mm": -500,
+		"shape": {"kind": DetPhysRuleWorld3D.DETPHYS3D_SHAPE_BOX, "half_x_mm": 8000, "half_y_mm": 500, "half_z_mm": 8000}})
+	for p in 2:
+		w.add_body({"x_mm": -3000 + 6000 * p, "y_mm": params[0],
+			"shape": {"kind": DetPhysRuleWorld3D.DETPHYS3D_SHAPE_SPHERE, "radius_mm": params[0]}})
+
+func _apply_inputs(c: DetPhysRtContext3D, inputs: PackedInt32Array) -&gt; void:
+	for p in 2:
+		c.world.apply_force(1 + p, inputs[p * 2] * 2000, 0, inputs[p * 2 + 1] * 2000)</code></pre><button type="button" class="cp">コピー</button></div><h3 id="動く凹形状3d"><a class="hl" href="#動く凹形状3d" aria-hidden="true" tabindex="-1">#</a>動く凹形状（3D）</h3><p>3D でも、回る歯車・回転台・止まりながら往復する足場・リフト・円を回る足場・ゆれる足場を、<strong>tick の関数</strong>で動くキネマティックのボディにできます（<code>detphys3d_<wbr>kinematic.<wbr>h</code>、バージョン 1）。考え方は 2D の<a href="#動く凹形状">動く凹形状</a>と同じです。動きは状態を持たないので、ロールバックしても tick から同じ値を作り直します。毎 tick、関数の姿勢にぴったり合わせ、次の tick の姿勢に着く速度・角速度を与えます。速い tick だけ分割して進めます。</p><ul><li>動き（<a class="api" href="api/detphys3d_kinematic.html#detphys3d_motion_desc"><code>detphys3d_<wbr>motion_<wbr>desc</code></a>、単位は mm・mrad・mrad/s・tick の整数、向きは整数の四元数）:</li></ul><div class="tw"><table><thead><tr><th>パス</th><th>動き</th></tr></thead><tbody><tr><td><code>DETPHYS3D_PATH_FIXED</code></td><td>動かない（回転軸のまわりの回転 <code>spin_mrad_s</code> だけ。回る歯車・回転台）</td></tr><tr><td><code>DETPHYS3D_PATH_PINGPONG</code></td><td>A と B の間を往復（片道 <code>period_ticks</code>）。A で <code>hold_a_ticks</code>・B で <code>hold_b_ticks</code> だけ止まる。上下に動かせばリフト</td></tr><tr><td><code>DETPHYS3D_PATH_ORBIT</code></td><td>中心のまわりを、回転軸のまわりに <code>orbit_mrad_s</code> で回る。向きは spin だけで決まる（spin 0 なら向きを変えずに円を描く）</td></tr><tr><td><code>DETPHYS3D_PATH_POINTS</code></td><td>点をたどる（点ごとに回転軸のまわりの角度も。ループか往復。同じ点を続けるとその間止まる。止まる階が 3 つ以上のリフトなど）</td></tr><tr><td><code>DETPHYS3D_PATH_CALLBACK</code></td><td>ゲームのコールバックが tick から位置 [µm] と整数の四元数を決める（整数だけで計算する）</td></tr></tbody></table></div><ul><li><strong>向き</strong>は、初めの向き（<code>qx</code>〜<code>qw</code>）を回転軸（<code>axis_x</code>〜<code>axis_z</code>。0, 0, 0 = y 軸）のまわりに a(t) だけ回したものです。a(t) は spin × 時間で、POINTS は点の角度も足します。</li><li>CALLBACK 以外のパスには、spin と時間のずらし <code>phase_ticks</code> を足せます。区間の端は既定で速さ 0 です（<code>DETPHYS_<wbr>EASE_<wbr>SMOOTH</code>）。</li><li><strong>形</strong>は <a class="api" href="api/detphys3d_kinematic.html#detphys3d_kinematic_add"><code>detphys3d_<wbr>kinematic_<wbr>add</code></a> で最初の形を付け、<a class="api" href="api/detphys3d.html#detphys3d_world_add_shape"><code>detphys3d_<wbr>world_<wbr>add_<wbr>shape</code></a> で凸包・箱を足して凸の組にします。近似はしません。</li><li><strong>速い回転</strong>でも、tick の終わりに関数の向きに着きます。Box3D の角速度の上限を外し、角速度を Box3D の積分に合わせて補正しているためです（40 rad/s・120 tick で差 2.0e-6 rad）。</li><li><strong>分割</strong>は 2D と同じ設定です（<code>subtick_move_mm</code> 20 mm・<code>max_subticks</code> 4）。いちばん速い点は外接半径で数えるので、外周に壁を付けた大きな回転台ほど分割が増えます。</li><li><strong>セッション</strong>には、表を <a class="api" href="api/detphys3d_kinematic.html#detphys_rt_create3d_kinematic"><code>detphys_<wbr>rt_<wbr>create3d_<wbr>kinematic</code></a>・<a class="api" href="api/detphys3d_kinematic.html#detphys_turn_create_rule3d_kinematic"><code>detphys_<wbr>turn_<wbr>create_<wbr>rule3d_<wbr>kinematic</code></a> で渡し、ルールの <code>begin</code>（<code>begin_match</code>）の中で add / bind します。表の中身は設定の照合に入ります。</li><li>ターン制では、動いているキネマティックがあるとワールドが落ち着かないので、<code>after_tick</code> で tick 数などでターンを終えます（<a href="rules.html">4. 決定論を守るためのルール</a> の 12）。</li><li><strong>確かめたこと</strong>: 回る凹の歯車と、往復・リフト・円・ゆれる足場のシーン（各 900 tick）で、PC の 5 つのビルドと Galaxy S9 の全 tick が一致し、すり抜けは 0 でした。止まった足場の上の物は震えません。</li><li>負荷は <a href="performance.html#3d-の動く凹形状">6. パフォーマンス</a> にあります。</li></ul><h4 id="回る台の上の物は外へ滑る"><a class="hl" href="#回る台の上の物は外へ滑る" aria-hidden="true" tabindex="-1">#</a>回る台の上の物は外へ滑る</h4><p>3D で回るキネマティック（歯車・回転台）に載せた物は、摩擦が足りていても<strong>外へゆっくり滑ります</strong>（0.3 rad/s の台で 10 秒に約 0.2 m）。Box3D の接触の解き方による性質で、どの端末でも同じように滑るので決定論は壊れません。</p><ul><li>物を載せたまま回す台には、<strong>縁や仕切り</strong>を付けます。</li><li>プレイヤーが乗る台では、移動の処理（ルールの <code>apply_inputs</code>）で<strong>その場所の台の速度</strong>（角速度 × 軸からの距離）を足します。</li><li>往復する足場・リフト・向きを変えずに円を回る足場は、この影響を受けません。</li></ul></section><section class="sec"><h2 id="トランスポート"><a class="hl" href="#トランスポート" aria-hidden="true" tabindex="-1">#</a>トランスポート</h2><ul><li>セッションは、データグラム（1 つ最大 1200 バイト）を運ぶ<strong>トランスポートのインターフェース</strong>（<a class="api" href="api/detphys_turn.html#detphys_transport"><code>detphys_<wbr>transport</code></a> の <code>send</code>・<code>recv</code> の 2 つの関数）だけを使います。届かない・順番が入れ替わる・重なることがあってよく、セッションが再送と並べ直しで埋めます。Steam・EOS・自前のリレーは、このインターフェースに差し込みます。</li><li>DetPhys に入っているトランスポート:<ul><li><strong>UDP</strong>（<code>detphys_udp.h</code>、IPv4、LAN・テスト用）: 待ち受け（LISTEN、最後に届いた送り主に返す）か、つなぐ（CONNECT）。どちらがホストでもよく、ファイアウォールのある端末はつなぐ側にします。</li><li><strong>ループバック</strong>（<code>detphys_<wbr>loopback_*</code>）: 1 プロセスの中で 2 ピア。遅れ・順番の入れ替え・取りこぼし・重なりを seed 付きで入れられます（テスト用）。</li><li>Unity の <code>DetPhysFaultyLink</code>・Godot の <code>DetPhysLink.<wbr>set_<wbr>faults</code>: UDP やループバックに、壁時計の ms で遅れ・揺れ・取りこぼし・重なりを足すテスト用のトランスポート。</li></ul></li><li><strong>接続のインターフェース</strong>（<code>detphys_link.h</code>）: トランスポートのインターフェースの上に「ルームを作る（ホスト）・6 桁のルームコードで入る（ゲスト）・毎フレームの poll・状態と理由」をそろえた層。UDP・ループバック・1 プロセスでルームの流れを試すテスト用のロビーが入っていて、EOS・Steam・自前のリレーも同じインターフェースに載せます。詳しくは <a href="transports.html">8. トランスポートとルームコード</a>。</li><li><strong>ネット越し</strong>: 入っている UDP は IP を直接打つ LAN 用で、NAT やモバイル回線（CGNAT）は越えられません。ネット越しは、EOS P2P（<a href="transports.html#eos-p2p">EOS P2P</a>）か、自分のサーバーに置くリレー（<a href="transports.html#自前のリレーdetphys_relay">8. トランスポートとルームコード</a>）か、自分のトランスポートを <a class="api" href="api/detphys_turn.html#detphys_transport"><code>detphys_<wbr>transport</code></a> に差し込んで使います。</li><li>時計: 実際のネットワークでは、エンジンの単調な時計（マイクロ秒）を渡します（<a class="api" href="api/detphys_turn.html#detphys_turn_poll_at"><code>detphys_<wbr>turn_<wbr>poll_<wbr>at</code></a>・<a class="api" href="api/detphys_rt.html#detphys_rt_poll"><code>detphys_rt_poll</code></a> / <code>advance</code>）。時計は再送・tick の進め方だけに使い、<strong>ハッシュには入りません</strong>。</li></ul></section><section class="sec"><h2 id="ワーカースレッド"><a class="hl" href="#ワーカースレッド" aria-hidden="true" tabindex="-1">#</a>ワーカー（スレッド）</h2><p><code>worker_count</code>（1〜64、既定 1）で step を手伝うスレッドの数を決めます。<strong>本数・プールの種類を変えてもハッシュは変わりません</strong>（ピアごとに違ってもよい）。凹形状の動くボディが 200 体ほどあると 4 本で step が速くなりますが、単純な形が少ない時は 1 本の方が速いことがあります。プールはコアの自前（既定）・Box2D 内蔵・エンジンのジョブ（<code>enqueue_task</code> / <code>finish_task</code>）から選べます。</p></section></article><nav class="pn"><a class="pv" href="gear-arena.html"><small>前へ</small>サンプル: 歯車アリーナ</a><a class="nx" href="rules.html"><small>次へ</small>決定論を守るためのルール</a></nav><footer class="foot"><p>DetPhys は Box2D・Box3D とは無関係で、Box2D・Box3D およびその作者に公認・推奨されたものではありません。物理の土台に MIT ライセンスの Box2D v3 と Box3D を使っています。</p><p class="fm"><a href="introduction.html#ライセンス">ライセンス</a><span>今のバージョン（2026-11）の内容です</span></p><p class="fm host"><a class="host" href="https://petaf.dev/ja/">© 2026 Petaf</a><a class="host" href="https://petaf.dev/ja/products/">製品</a><a class="host" href="https://petaf.dev/ja/contact/">お問い合わせ</a><a class="host" href="https://petaf.dev/ja/privacy/">プライバシー</a></p><p class="host">このサイトは、アクセス解析やトラッキングを使っていません。</p></footer></main><aside class="toc" aria-label="このページ"><p>このページ</p><ul><li class="l2"><a href="#決定論的な同期とは">決定論的な同期とは</a></li><li class="l2"><a href="#tick">tick</a></li><li class="l2"><a href="#入力とゲームの状態">入力とゲームの状態</a></li><li class="l2"><a href="#ルール">ルール</a></li><li class="l2"><a href="#ターン制">ターン制</a></li><li class="l2"><a href="#リアルタイムロールバック">リアルタイム（ロールバック）</a></li><li class="l2"><a href="#遅延-0-と入力遅延の自動調整">遅延 0 と、入力遅延の自動調整</a></li><li class="l2"><a href="#再接続リアルタイム">再接続（リアルタイム）</a></li><li class="l2"><a href="#snapshot">snapshot</a></li><li class="l2"><a href="#凹形状とベイカー">凹形状とベイカー</a></li><li class="l2"><a href="#動く凹形状">動く凹形状</a></li><li class="l2"><a href="#3d">3D</a></li><li class="l3"><a href="#動く凹形状3d">動く凹形状（3D）</a></li><li class="l2"><a href="#トランスポート">トランスポート</a></li><li class="l2"><a href="#ワーカースレッド">ワーカー（スレッド）</a></li></ul></aside></div><div class="scrim" hidden></div><dialog class="search" aria-label="検索"><form method="dialog" class="sq"><svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><input type="search" autocomplete="off" spellcheck="false" placeholder="関数名・言葉で探す" aria-label="検索"><button type="submit" class="sx">閉じる</button></form><ul class="sr" role="listbox"></ul><p class="sh">↑↓ で選ぶ・Enter で開く・Esc で閉じる</p></dialog></body>
+</html>
